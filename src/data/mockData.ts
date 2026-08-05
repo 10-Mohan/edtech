@@ -1,4 +1,5 @@
 import {
+  AuthUser,
   CareerPath,
   ConceptNode,
   DiagnosticQuestion,
@@ -7,6 +8,7 @@ import {
   ParentWeeklySummary,
   RecallCard,
   StudentClassroomMetric,
+  StudentComprehensiveReport,
   UserProfile
 } from '../types';
 
@@ -547,3 +549,176 @@ export const mockParentSummary: ParentWeeklySummary = {
     }
   ]
 };
+
+export const mockAuthUsers: AuthUser[] = [
+  {
+    id: 'stu_maya',
+    email: 'maya.lin@student.waypoint.edu',
+    name: 'Maya Lin',
+    role: 'student',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    title: 'Grade 11 AP Scholar'
+  },
+  {
+    id: 'parent_elena',
+    email: 'elena.lin@parent.waypoint.edu',
+    name: 'Elena Lin',
+    role: 'parent',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+    title: 'Parent of Maya Lin',
+    linkedStudentId: 'stu_maya'
+  },
+  {
+    id: 'teach_vance',
+    email: 'dr.vance@faculty.waypoint.edu',
+    name: 'Dr. Eleanor Vance',
+    role: 'teacher',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+    title: 'AP STEM & Mathematics Department Head'
+  }
+];
+
+export const mockStudentComprehensiveReport: StudentComprehensiveReport = {
+  studentId: 'stu_maya',
+  studentName: 'Maya Lin',
+  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+  grade: 'Grade 11 (AP Advanced STEM)',
+  school: 'Oakwood Horizon STEM Academy',
+  academicYear: '2025 - 2026 Academic Term',
+  studentEmail: 'maya.lin@student.waypoint.edu',
+  parentEmail: 'elena.lin@parent.waypoint.edu',
+  parentName: 'Elena Lin',
+
+  attendance: {
+    overallRate: 96.8,
+    presentDays: 48,
+    totalDays: 50,
+    excusedAbsences: 2,
+    unexcusedAbsences: 0,
+    tardies: 1,
+    recentLog: [
+      { date: 'Aug 05, 2026', status: 'present', subject: 'AP Calculus AB', note: 'Active participation in Socratic session' },
+      { date: 'Aug 04, 2026', status: 'present', subject: 'AP Physics C: Mechanics', note: 'Completed lab on rotational inertia' },
+      { date: 'Aug 03, 2026', status: 'tardy', subject: 'AP Computer Science A', note: 'Late by 5 mins (bus transit delay)' },
+      { date: 'Aug 02, 2026', status: 'present', subject: 'AP Chemistry', note: 'Lab practical: Acid-base titration' },
+      { date: 'Aug 01, 2026', status: 'present', subject: 'AP Calculus AB', note: 'Derivatives diagnostic completed' },
+      { date: 'Jul 31, 2026', status: 'excused', subject: 'All Periods', note: 'Excused: Medical appointment' }
+    ]
+  },
+
+  subjectBreakdown: [
+    {
+      subject: 'AP Calculus AB',
+      score: 94,
+      gradeLetter: 'A',
+      rankInClass: 'Top 5%',
+      strengths: [
+        'Exceptional intuition for Limits and Epsilon-Delta definitions',
+        'Strong graphical interpretation of tangent curves',
+        'Consistent daily active recall practice on formula cards'
+      ],
+      weakSections: [
+        'Composite Function Chain Rule (occasional internal derivative omission)',
+        'Trig substitution in indefinite integrals'
+      ],
+      teacherName: 'Dr. Eleanor Vance',
+      teacherRemarks: 'Maya exhibits tremendous curiosity. Once she cements the nested chain rule reflex, her mastery will be flawless.'
+    },
+    {
+      subject: 'AP Computer Science A',
+      score: 96,
+      gradeLetter: 'A+',
+      rankInClass: 'Top 3%',
+      strengths: [
+        'Recursion and tree traversal algorithms',
+        'Clean object-oriented design and Java syntax',
+        'Independent project on 2D physics simulation'
+      ],
+      weakSections: [
+        '2D Matrix array boundary conditions in edge cases'
+      ],
+      teacherName: 'Prof. Marcus Brody',
+      teacherRemarks: 'Maya is performing well ahead of the grade standard. Her analytical reasoning is outstanding.'
+    },
+    {
+      subject: 'AP Physics C: Mechanics',
+      score: 88,
+      gradeLetter: 'A-',
+      rankInClass: 'Top 12%',
+      strengths: [
+        'Kinematics, trajectory equations, and vector decomposition',
+        'Newtonian conservation of momentum and energy'
+      ],
+      weakSections: [
+        'Torque integration on non-uniform rods',
+        'Rotational moment of inertia derivations'
+      ],
+      teacherName: 'Dr. Sarah Jenkins',
+      teacherRemarks: 'Great problem-solving mindset. We are working together on multi-variable torque diagrams.'
+    },
+    {
+      subject: 'AP Chemistry',
+      score: 81,
+      gradeLetter: 'B+',
+      rankInClass: 'Top 25%',
+      strengths: [
+        'Atomic electron configurations and Periodic trends',
+        'Thermodynamics and enthalpy cycle calculations'
+      ],
+      weakSections: [
+        'Acid-Base buffer equilibrium and ICE tables',
+        'Electrochemistry Nernst equation calculations'
+      ],
+      teacherName: 'Mr. David Kim',
+      teacherRemarks: 'Good lab technique. With extra spaced repetition on equilibrium formulas, she will easily reach an A.'
+    },
+    {
+      subject: 'AP Biology & Genetics',
+      score: 89,
+      gradeLetter: 'A-',
+      rankInClass: 'Top 10%',
+      strengths: [
+        'Cellular respiration and ATP synthesis pathways',
+        'DNA transcription, translation, and CRISPR mechanics'
+      ],
+      weakSections: [
+        'Population genetics Hardy-Weinberg equilibrium problems'
+      ],
+      teacherName: 'Ms. Clara Thorne',
+      teacherRemarks: 'Excellent conceptual grasp. Maya connects biological systems with computational modeling very naturally.'
+    }
+  ],
+
+  weakAreasRadar: [
+    {
+      topic: 'Composite Chain Rule Derivatives',
+      subject: 'AP Calculus AB',
+      severity: 'critical',
+      misconceptionSummary: 'Forgets to multiply by the inner derivative $g\'(x)$ when differentiating $f(g(x))$.',
+      recommendedHomeAction: 'Prompt Maya to use the "box method" or "onion peeling" metaphor when tackling composite problems.'
+    },
+    {
+      topic: 'Acid-Base Buffer Equilibrium (ICE Tables)',
+      subject: 'AP Chemistry',
+      severity: 'moderate',
+      misconceptionSummary: 'Confuses initial concentrations with equilibrium concentrations in Henderson-Hasselbalch approximations.',
+      recommendedHomeAction: 'Encourage 10 minutes on the Waypoint Chemistry Flashcard deck on equilibrium constants.'
+    },
+    {
+      topic: 'Rotational Inertia on Non-Uniform Masses',
+      subject: 'AP Physics C',
+      severity: 'mild',
+      misconceptionSummary: 'Sets up $dm = \\lambda dx$ correctly but forgets limits of integration around center of mass.',
+      recommendedHomeAction: 'Ask Maya to show you how a figure skater spins faster by pulling in their arms.'
+    }
+  ],
+
+  studyHabits: {
+    weeklyFocusHours: 4.5,
+    activeRecallStreakDays: 8,
+    masteredCardsCount: 24,
+    socraticSessionsCompleted: 7,
+    completionRate: 96
+  }
+};
+

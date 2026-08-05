@@ -11,12 +11,14 @@ import {
   AlertTriangle,
   HeartHandshake,
   Sparkles,
-  BookOpenCheck
+  BookOpen,
+  CalendarCheck,
+  Award
 } from 'lucide-react';
 
 export type StudentTab = 'knowledge_graph' | 'active_recall' | 'socratic_tutor' | 'homework_scanner' | 'career_roadmap';
 export type TeacherTab = 'class_overview' | 'tiered_worksheets' | 'misconception_alerts';
-export type ParentTab = 'weekly_digest' | 'dinner_prompts' | 'focus_recommendations';
+export type ParentTab = 'academic_report' | 'attendance' | 'weak_sections' | 'weekly_digest' | 'dinner_prompts';
 
 interface SidebarProps {
   currentRole: UserRole;
@@ -52,9 +54,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div>
         {/* Navigation Group Title */}
         <div style={{ padding: '0 12px 12px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-dim)' }}>
-          {currentRole === 'student' && 'Learning Hub'}
+          {currentRole === 'student' && 'Student Hub'}
           {currentRole === 'teacher' && 'Instructor Tools'}
-          {currentRole === 'parent' && 'Family Insights'}
+          {currentRole === 'parent' && 'Maya\'s Family Portal'}
         </div>
 
         {/* Student Navigation Items */}
@@ -135,12 +137,36 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {currentRole === 'parent' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <NavItem
+              icon={<BookOpen size={18} />}
+              label="Subject Report & Strengths"
+              active={activeTab === 'academic_report'}
+              onClick={() => onSelectTab('academic_report')}
+              badge="5 Courses"
+              badgeColor="badge-indigo"
+            />
+            <NavItem
+              icon={<CalendarCheck size={18} />}
+              label="Live Attendance Log"
+              active={activeTab === 'attendance'}
+              onClick={() => onSelectTab('attendance')}
+              badge="96.8%"
+              badgeColor="badge-emerald"
+            />
+            <NavItem
+              icon={<AlertTriangle size={18} />}
+              label="Weak Sections Radar"
+              active={activeTab === 'weak_sections'}
+              onClick={() => onSelectTab('weak_sections')}
+              badge="Action Tips"
+              badgeColor="badge-amber"
+            />
+            <NavItem
               icon={<HeartHandshake size={18} />}
               label="Weekly Growth Digest"
               active={activeTab === 'weekly_digest'}
               onClick={() => onSelectTab('weekly_digest')}
               badge="Aug W1"
-              badgeColor="badge-emerald"
+              badgeColor="badge-cyan"
             />
             <NavItem
               icon={<Sparkles size={18} />}
@@ -149,12 +175,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onClick={() => onSelectTab('dinner_prompts')}
               badge="2 Prompts"
               badgeColor="badge-indigo"
-            />
-            <NavItem
-              icon={<BookOpenCheck size={18} />}
-              label="Home Action Plan"
-              active={activeTab === 'focus_recommendations'}
-              onClick={() => onSelectTab('focus_recommendations')}
             />
           </div>
         )}
@@ -177,7 +197,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </span>
         </div>
         <p style={{ fontSize: '0.72rem', color: 'var(--text-dim)', margin: 0, lineHeight: 1.4 }}>
-          Graph node tracking & spaced recall intervals active.
+          {currentRole === 'parent'
+            ? 'Synchronized with Maya Lin\'s active coursework.'
+            : 'Graph node tracking & spaced recall intervals active.'}
         </p>
       </div>
     </aside>

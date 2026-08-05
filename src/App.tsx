@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ConceptNode, RecallCard, UserProfile, UserRole } from './types';
+import { AuthUser, ConceptNode, RecallCard, UserProfile, UserRole } from './types';
 import { StorageService } from './services/storageService';
 import { isCardDue } from './services/srsEngine';
-import { mockDiagnosticQuestions } from './data/mockData';
+import { mockDiagnosticQuestions, mockAuthUsers } from './data/mockData';
 
+import { LoginPage } from './components/auth/LoginPage';
 import { Header } from './components/common/Header';
 import { Sidebar } from './components/common/Sidebar';
 import { KnowledgeGraph } from './components/student/KnowledgeGraph';
@@ -16,7 +17,8 @@ import { TeacherDashboard } from './components/teacher/TeacherDashboard';
 import { ParentDashboard } from './components/parent/ParentDashboard';
 
 export const App: React.FC = () => {
-  const [role, setRole] = useState<UserRole>(StorageService.getRole());
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(StorageService.getCurrentUser());
+  const [role, setRole] = useState<UserRole>(currentUser ? currentUser.role : StorageService.getRole());
   const [theme, setTheme] = useState<'dark' | 'light'>(StorageService.getTheme());
   const [profile, setProfile] = useState<UserProfile>(StorageService.getProfile());
   const [conceptNodes, setConceptNodes] = useState<ConceptNode[]>(StorageService.getConceptNodes());
@@ -25,7 +27,7 @@ export const App: React.FC = () => {
   // Active Tab states
   const [studentTab, setStudentTab] = useState<string>('knowledge_graph');
   const [teacherTab, setTeacherTab] = useState<string>('class_overview');
-  const [parentTab, setParentTab] = useState<string>('weekly_digest');
+  const [parentTab, setParentTab] = useState<string>('academic_report');
 
   // Modal / Practice selection state
   const [isDiagnosticOpen, setIsDiagnosticOpen] = useState<boolean>(false);
@@ -34,6 +36,24 @@ export const App: React.FC = () => {
   useEffect(() => {
     StorageService.setTheme(theme);
   }, [theme]);
+
+  const handleLogin = (user: AuthUser) => {
+    setCurrentUser(user);
+    setRole(user.role);
+    StorageService.login(user);
+    if (user.role === 'parent') {
+      setParentTab('academic_report');
+    } else if (user.role === 'teacher') {
+      setTeacherTab('class_overview');
+    } else {
+      setStudentTab('knowledge_graph');
+    }
+  };
+
+  const handleLogout = () => {
+    StorageService.logout();
+    setCurrentUser(null);
+  };
 
   const handleToggleTheme = () => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
@@ -44,6 +64,11 @@ export const App: React.FC = () => {
   const handleRoleChange = (newRole: UserRole) => {
     setRole(newRole);
     StorageService.setRole(newRole);
+    const matchedUser = mockAuthUsers.find(u => u.role === newRole);
+    if (matchedUser) {
+      setCurrentUser(matchedUser);
+      StorageService.login(matchedUser);
+    }
   };
 
   const handleAddXP = (amount: number) => {
@@ -63,7 +88,7 @@ export const App: React.FC = () => {
   };
 
   const handleAutoGenerateCards = (newCards: RecallCard[]) => {
-    let current = StorageService.getRecallCards();
+    const current = StorageService.getRecallCards();
     const updated = [...newCards, ...current];
     StorageService.saveRecallCards(updated);
     setRecallCards(updated);
@@ -82,6 +107,11 @@ export const App: React.FC = () => {
       setStudentTab('knowledge_graph');
     }
   };
+
+  // If unauthenticated, show the dedicated Role Selection Login Page
+  if (!currentUser) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
 
   const dueCardsCount = recallCards.filter(isCardDue).length;
 
@@ -111,6 +141,8 @@ export const App: React.FC = () => {
           currentRole={role}
           onRoleChange={handleRoleChange}
           profile={profile}
+          currentUser={currentUser}
+          onLogout={handleLogout}
           theme={theme}
           onToggleTheme={handleToggleTheme}
           onOpenDiagnostic={() => setIsDiagnosticOpen(true)}

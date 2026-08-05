@@ -1,9 +1,25 @@
-import { ConceptNode, RecallCard, UserProfile, UserRole, DifferentiatedWorksheet } from '../types';
-import { initialConceptNodes, initialRecallCards, initialStudentProfile, mockWorksheets } from '../data/mockData';
+import {
+  ConceptNode,
+  RecallCard,
+  UserProfile,
+  UserRole,
+  DifferentiatedWorksheet,
+  AuthUser,
+  StudentComprehensiveReport
+} from '../types';
+import {
+  initialConceptNodes,
+  initialRecallCards,
+  initialStudentProfile,
+  mockWorksheets,
+  mockAuthUsers,
+  mockStudentComprehensiveReport
+} from '../data/mockData';
 
 const KEYS = {
   USER_ROLE: 'waypoint_user_role',
   USER_PROFILE: 'waypoint_user_profile',
+  AUTH_USER: 'waypoint_auth_user',
   THEME: 'waypoint_theme',
   CONCEPT_NODES: 'waypoint_concept_nodes',
   RECALL_CARDS: 'waypoint_recall_cards',
@@ -11,6 +27,27 @@ const KEYS = {
 };
 
 export const StorageService = {
+  getCurrentUser(): AuthUser | null {
+    const data = localStorage.getItem(KEYS.AUTH_USER);
+    if (data) {
+      try {
+        return JSON.parse(data);
+      } catch (e) {
+        // fallback
+      }
+    }
+    return null;
+  },
+
+  login(user: AuthUser): void {
+    localStorage.setItem(KEYS.AUTH_USER, JSON.stringify(user));
+    this.setRole(user.role);
+  },
+
+  logout(): void {
+    localStorage.removeItem(KEYS.AUTH_USER);
+  },
+
   getRole(): UserRole {
     return (localStorage.getItem(KEYS.USER_ROLE) as UserRole) || 'student';
   },
@@ -33,6 +70,10 @@ export const StorageService = {
 
   saveProfile(profile: UserProfile): void {
     localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify(profile));
+  },
+
+  getStudentReport(_studentId?: string): StudentComprehensiveReport {
+    return mockStudentComprehensiveReport;
   },
 
   addXP(amount: number): UserProfile {

@@ -1,11 +1,25 @@
 import React from 'react';
-import { UserProfile, UserRole } from '../../types';
-import { Compass, Flame, Moon, Sun, Award, Zap, GraduationCap, Users, ShieldCheck } from 'lucide-react';
+import { AuthUser, UserProfile, UserRole } from '../../types';
+import {
+  Compass,
+  Flame,
+  Moon,
+  Sun,
+  Award,
+  Zap,
+  GraduationCap,
+  Users,
+  Briefcase,
+  LogOut,
+  UserCheck
+} from 'lucide-react';
 
 interface HeaderProps {
   currentRole: UserRole;
   onRoleChange: (role: UserRole) => void;
   profile: UserProfile;
+  currentUser: AuthUser | null;
+  onLogout: () => void;
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
   onOpenDiagnostic: () => void;
@@ -15,6 +29,8 @@ export const Header: React.FC<HeaderProps> = ({
   currentRole,
   onRoleChange,
   profile,
+  currentUser,
+  onLogout,
   theme,
   onToggleTheme,
   onOpenDiagnostic
@@ -91,22 +107,7 @@ export const Header: React.FC<HeaderProps> = ({
           }}
         >
           <GraduationCap size={15} />
-          <span>Student Portal</span>
-        </button>
-
-        <button
-          onClick={() => onRoleChange('teacher')}
-          className="btn btn-sm"
-          style={{
-            background: currentRole === 'teacher' ? 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)' : 'transparent',
-            color: currentRole === 'teacher' ? '#fff' : 'var(--text-muted)',
-            boxShadow: currentRole === 'teacher' ? '0 2px 10px var(--secondary-glow)' : 'none',
-            borderRadius: 'var(--radius-full)',
-            padding: '6px 14px'
-          }}
-        >
-          <Users size={15} />
-          <span>Teacher Portal</span>
+          <span>Student</span>
         </button>
 
         <button
@@ -120,14 +121,29 @@ export const Header: React.FC<HeaderProps> = ({
             padding: '6px 14px'
           }}
         >
-          <ShieldCheck size={15} />
-          <span>Parent Digest</span>
+          <Users size={15} />
+          <span>Parent (Maya Lin)</span>
+        </button>
+
+        <button
+          onClick={() => onRoleChange('teacher')}
+          className="btn btn-sm"
+          style={{
+            background: currentRole === 'teacher' ? 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)' : 'transparent',
+            color: currentRole === 'teacher' ? '#fff' : 'var(--text-muted)',
+            boxShadow: currentRole === 'teacher' ? '0 2px 10px var(--secondary-glow)' : 'none',
+            borderRadius: 'var(--radius-full)',
+            padding: '6px 14px'
+          }}
+        >
+          <Briefcase size={15} />
+          <span>Teacher</span>
         </button>
       </div>
 
       {/* User Stats & Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-        {/* Quick Diagnostic Launch */}
+        {/* Quick Diagnostic Launch (Student only) */}
         {currentRole === 'student' && (
           <button
             onClick={onOpenDiagnostic}
@@ -139,7 +155,7 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         )}
 
-        {/* Streak Counter */}
+        {/* Streak Counter (Student only) */}
         {currentRole === 'student' && (
           <div
             className="badge badge-amber"
@@ -157,7 +173,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         )}
 
-        {/* XP & Level Pill */}
+        {/* XP & Level Pill (Student only) */}
         {currentRole === 'student' && (
           <div
             style={{
@@ -189,24 +205,54 @@ export const Header: React.FC<HeaderProps> = ({
           {theme === 'dark' ? <Sun size={17} color="#fbbf24" /> : <Moon size={17} color="#6366f1" />}
         </button>
 
-        {/* User Profile Avatar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* User Badge & Avatar */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            background: 'var(--bg-surface-elevated)',
+            padding: '4px 12px 4px 6px',
+            borderRadius: 'var(--radius-full)',
+            border: '1px solid var(--border-medium)'
+          }}
+        >
           <img
-            src={profile.avatar}
-            alt={profile.name}
+            src={currentUser?.avatar || profile.avatar}
+            alt={currentUser?.name || profile.name}
             style={{
-              width: '38px',
-              height: '38px',
+              width: '32px',
+              height: '32px',
               borderRadius: '50%',
-              objectFit: 'cover',
-              border: '2px solid var(--border-medium)'
+              objectFit: 'cover'
             }}
           />
-          <div style={{ display: 'none', flexDirection: 'column' }} className="user-text-meta">
-            <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{profile.name}</span>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{profile.grade}</span>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-main)' }}>
+              {currentUser?.name || (currentRole === 'student' ? 'Maya Lin' : currentRole === 'parent' ? 'Elena Lin' : 'Dr. Vance')}
+            </span>
+            <span style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>
+              {currentRole === 'parent' ? 'Parent of Maya' : currentRole === 'student' ? 'Grade 11 AP' : 'STEM Faculty'}
+            </span>
           </div>
         </div>
+
+        {/* Sign Out Button */}
+        <button
+          onClick={onLogout}
+          className="btn btn-secondary btn-sm"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '6px 12px',
+            color: '#fda4af'
+          }}
+          title="Sign out and return to role selection"
+        >
+          <LogOut size={15} />
+          <span>Sign Out</span>
+        </button>
       </div>
     </header>
   );

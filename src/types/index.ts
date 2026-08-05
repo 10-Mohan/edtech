@@ -198,3 +198,72 @@ export interface ParentWeeklySummary {
     followUp: string;
   }[];
 }
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  avatar: string;
+  title: string;
+  linkedStudentId?: string; // Links parent to student
+}
+
+export interface StudentComprehensiveReport {
+  studentId: string;
+  studentName: string;
+  avatar: string;
+  grade: string;
+  school: string;
+  academicYear: string;
+  studentEmail: string;
+  parentEmail: string;
+  parentName: string;
+
+  // Attendance metrics
+  attendance: {
+    overallRate: number; // e.g. 96.8%
+    presentDays: number;
+    totalDays: number;
+    excusedAbsences: number;
+    unexcusedAbsences: number;
+    tardies: number;
+    recentLog: {
+      date: string;
+      status: 'present' | 'absent' | 'tardy' | 'excused';
+      subject: string;
+      note?: string;
+    }[];
+  };
+
+  // Multi-subject performance & strengths
+  subjectBreakdown: {
+    subject: string;
+    score: number; // 0-100
+    gradeLetter: string; // "A+", "A", "B+"
+    strengths: string[];
+    weakSections: string[];
+    teacherRemarks: string;
+    teacherName: string;
+    rankInClass: string;
+  }[];
+
+  // Priority remediation topics / weak spots
+  weakAreasRadar: {
+    topic: string;
+    subject: string;
+    severity: 'critical' | 'moderate' | 'mild';
+    misconceptionSummary: string;
+    recommendedHomeAction: string;
+  }[];
+
+  // Cognitive & Habits metrics
+  studyHabits: {
+    weeklyFocusHours: number;
+    activeRecallStreakDays: number;
+    masteredCardsCount: number;
+    socraticSessionsCompleted: number;
+    completionRate: number; // 94%
+  };
+}
+
