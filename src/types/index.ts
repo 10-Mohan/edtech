@@ -1,0 +1,200 @@
+export type UserRole = 'student' | 'teacher' | 'parent';
+
+export type SubjectId = 'math' | 'physics' | 'cs' | 'biology' | 'chemistry';
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  avatar: string;
+  role: UserRole;
+  grade: string;
+  xp: number;
+  level: number;
+  streakDays: number;
+  dailyGoalMinutes: number;
+  completedMinutesToday: number;
+  cardsReviewedToday: number;
+}
+
+export type NodeStatus = 'mastered' | 'weak' | 'in_progress' | 'locked';
+
+export interface ConceptNode {
+  id: string;
+  title: string;
+  subject: SubjectId;
+  category: string;
+  status: NodeStatus;
+  masteryScore: number; // 0 to 100
+  prerequisites: string[]; // Node IDs
+  x: number;
+  y: number;
+  description: string;
+  estimatedStudyMins: number;
+  commonMisconception?: string;
+  keyTakeaways: string[];
+}
+
+export interface GraphEdge {
+  from: string;
+  to: string;
+}
+
+export interface DiagnosticQuestion {
+  id: string;
+  subject: SubjectId;
+  topicId: string;
+  topicTitle: string;
+  question: string;
+  equation?: string;
+  options: {
+    id: string;
+    text: string;
+    isCorrect: boolean;
+    misconceptionFeedback?: string;
+  }[];
+  hint: string;
+}
+
+export interface DiagnosticResult {
+  totalQuestions: number;
+  correctAnswers: number;
+  identifiedGaps: {
+    topicId: string;
+    topicTitle: string;
+    severity: 'high' | 'medium' | 'low';
+    misconception: string;
+    recommendedAction: string;
+  }[];
+  generatedCardIds: string[];
+}
+
+export type ConfidenceRating = 'again' | 'hard' | 'good' | 'easy';
+
+export interface RecallCard {
+  id: string;
+  topicId: string;
+  subject: SubjectId;
+  front: string;
+  back: string;
+  equation?: string;
+  hint?: string;
+  intervalDays: number;
+  easeFactor: number;
+  repetitions: number;
+  nextReviewDate: string; // ISO string
+  lastReviewed?: string;
+  status: 'new' | 'learning' | 'review' | 'mastered';
+}
+
+export interface ChatMessage {
+  id: string;
+  sender: 'user' | 'assistant' | 'system';
+  text: string;
+  timestamp: string;
+  mode?: 'socratic' | 'feynman';
+  feynmanFeedback?: {
+    comprehensionScore: number; // 0 - 100
+    clarityScore: number;
+    missingKeyPoints: string[];
+    praise: string;
+    suggestion: string;
+  };
+}
+
+export interface HomeworkProblem {
+  id: string;
+  title: string;
+  subject: SubjectId;
+  rawExpression: string;
+  steps: {
+    stepNumber: number;
+    expression: string;
+    explanation: string;
+    isError: boolean;
+    errorType?: string;
+    correctionHint?: string;
+  }[];
+  conceptTested: string;
+  remedialConceptId: string;
+}
+
+export interface CareerPath {
+  id: string;
+  title: string;
+  icon: string;
+  industry: string;
+  matchScore: number; // 0 - 100
+  avgSalary: string;
+  growthRate: string;
+  description: string;
+  connectedSyllabusTopics: {
+    topicId: string;
+    topicTitle: string;
+    howItIsUsed: string;
+  }[];
+  miniSimulation: {
+    scenario: string;
+    challengeQuestion: string;
+    options: {
+      id: string;
+      text: string;
+      isCorrect: boolean;
+      feedback: string;
+    }[];
+  };
+}
+
+export interface StudentClassroomMetric {
+  studentId: string;
+  studentName: string;
+  avatar: string;
+  grade: string;
+  overallMastery: number;
+  status: 'thriving' | 'on_track' | 'needs_support' | 'at_risk';
+  gapTopicsCount: number;
+  lastActive: string;
+  topicScores: Record<string, number>; // topicId -> score 0-100
+}
+
+export interface DifferentiatedWorksheet {
+  id: string;
+  title: string;
+  subject: SubjectId;
+  topicTitle: string;
+  createdAt: string;
+  tier1Foundational: {
+    targetStudents: string[];
+    description: string;
+    problems: string[];
+  };
+  tier2Intermediate: {
+    targetStudents: string[];
+    description: string;
+    problems: string[];
+  };
+  tier3Extension: {
+    targetStudents: string[];
+    description: string;
+    problems: string[];
+  };
+}
+
+export interface ParentWeeklySummary {
+  weekLabel: string;
+  overallHealth: 'excellent' | 'steady' | 'needs_attention';
+  hoursLearned: number;
+  masteryGainPercent: number;
+  cardsMasteredCount: number;
+  headlineSummary: string;
+  celebrations: string[];
+  focusAreas: {
+    subject: string;
+    topic: string;
+    homeActionTip: string;
+  }[];
+  dinnerTablePrompts: {
+    prompt: string;
+    context: string;
+    followUp: string;
+  }[];
+}
