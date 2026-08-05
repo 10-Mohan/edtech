@@ -2,6 +2,17 @@ export type UserRole = 'student' | 'teacher' | 'parent';
 
 export type SubjectId = 'math' | 'physics' | 'cs' | 'biology' | 'chemistry';
 
+export type ColorThemeId =
+  | 'indigo'
+  | 'teal'
+  | 'emerald'
+  | 'coral'
+  | 'plum'
+  | 'slate'
+  | 'amber'
+  | 'rose'
+  | 'graphite';
+
 export interface UserProfile {
   id: string;
   name: string;

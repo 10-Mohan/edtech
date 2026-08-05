@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AuthUser, UserRole } from '../../types';
+import { AuthUser, ColorThemeId, UserRole } from '../../types';
 import { mockAuthUsers } from '../../data/mockData';
 import {
   GraduationCap,
@@ -15,14 +15,27 @@ import {
   HeartHandshake,
   CheckCircle2,
   Lock,
-  Mail
+  Mail,
+  Palette,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 interface LoginPageProps {
   onLogin: (user: AuthUser) => void;
+  theme: 'dark' | 'light';
+  onToggleTheme: () => void;
+  colorTheme: ColorThemeId;
+  onOpenThemeModal: () => void;
 }
 
-export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
+export const LoginPage: React.FC<LoginPageProps> = ({
+  onLogin,
+  theme,
+  onToggleTheme,
+  colorTheme,
+  onOpenThemeModal
+}) => {
   const [selectedRole, setSelectedRole] = useState<UserRole>('student');
   const [email, setEmail] = useState<string>('maya.lin@student.waypoint.edu');
   const [password, setPassword] = useState<string>('demo123');
@@ -92,6 +105,42 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           pointerEvents: 'none'
         }}
       />
+
+      {/* Top Floating Theme & Appearance Controls */}
+      <div
+        style={{
+          position: 'fixed',
+          top: '20px',
+          right: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          zIndex: 100,
+          background: 'var(--bg-surface-glass)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid var(--border-medium)',
+          borderRadius: 'var(--radius-full)',
+          padding: '4px 10px'
+        }}
+      >
+        <button
+          onClick={onOpenThemeModal}
+          className="btn btn-secondary btn-icon"
+          title="Customize Theme (9 Monochrome Single-Tone Palettes)"
+          style={{ width: '32px', height: '32px' }}
+        >
+          <Palette size={15} color="var(--primary-light)" />
+        </button>
+
+        <button
+          onClick={onToggleTheme}
+          className="btn btn-secondary btn-icon"
+          title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} mode`}
+          style={{ width: '32px', height: '32px' }}
+        >
+          {theme === 'dark' ? <Sun size={15} color="#fbbf24" /> : <Moon size={15} color="#6366f1" />}
+        </button>
+      </div>
 
       <div
         style={{

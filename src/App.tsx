@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AuthUser, ConceptNode, RecallCard, UserProfile, UserRole } from './types';
+import { AuthUser, ColorThemeId, ConceptNode, RecallCard, UserProfile, UserRole } from './types';
 import { StorageService } from './services/storageService';
 import { isCardDue } from './services/srsEngine';
 import { mockDiagnosticQuestions } from './data/mockData';
@@ -13,6 +13,7 @@ import { SocraticTutor } from './components/student/SocraticTutor';
 import { HomeworkScanner } from './components/student/HomeworkScanner';
 import { CareerRoadmap } from './components/student/CareerRoadmap';
 import { DiagnosticTestModal } from './components/student/DiagnosticTestModal';
+import { ThemeSelectorModal } from './components/common/ThemeSelectorModal';
 import { TeacherDashboard } from './components/teacher/TeacherDashboard';
 import { ParentDashboard } from './components/parent/ParentDashboard';
 
@@ -20,6 +21,8 @@ export const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(StorageService.getCurrentUser());
   const [role, setRole] = useState<UserRole>(currentUser ? currentUser.role : StorageService.getRole());
   const [theme, setTheme] = useState<'dark' | 'light'>(StorageService.getTheme());
+  const [colorTheme, setColorTheme] = useState<ColorThemeId>(StorageService.getColorTheme());
+  const [isThemeModalOpen, setIsThemeModalOpen] = useState<boolean>(false);
   const [profile, setProfile] = useState<UserProfile>(StorageService.getProfile());
   const [conceptNodes, setConceptNodes] = useState<ConceptNode[]>(StorageService.getConceptNodes());
   const [recallCards, setRecallCards] = useState<RecallCard[]>(StorageService.getRecallCards());
@@ -36,6 +39,10 @@ export const App: React.FC = () => {
   useEffect(() => {
     StorageService.setTheme(theme);
   }, [theme]);
+
+  useEffect(() => {
+    StorageService.setColorTheme(colorTheme);
+  }, [colorTheme]);
 
   const handleLogin = (user: AuthUser) => {
     setCurrentUser(user);
@@ -59,6 +66,11 @@ export const App: React.FC = () => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(nextTheme);
     StorageService.setTheme(nextTheme);
+  };
+
+  const handleSelectColorTheme = (themeId: ColorThemeId) => {
+    setColorTheme(themeId);
+    StorageService.setColorTheme(themeId);
   };
 
   const handleAddXP = (amount: number) => {
@@ -98,9 +110,27 @@ export const App: React.FC = () => {
     }
   };
 
-  // If unauthenticated, show the dedicated Role Selection Login Page
+  // If unauthenticated, show the dedicated Role Selection Login Page with Theme Controls
   if (!currentUser) {
-    return <LoginPage onLogin={handleLogin} />;
+    return (
+      <>
+        <LoginPage
+          onLogin={handleLogin}
+          theme={theme}
+          onToggleTheme={handleToggleTheme}
+          colorTheme={colorTheme}
+          onOpenThemeModal={() => setIsThemeModalOpen(true)}
+        />
+        <ThemeSelectorModal
+          isOpen={isThemeModalOpen}
+          onClose={() => setIsThemeModalOpen(false)}
+          currentColorTheme={colorTheme}
+          onSelectColorTheme={handleSelectColorTheme}
+          themeMode={theme}
+          onToggleThemeMode={handleToggleTheme}
+        />
+      </>
+    );
   }
 
   const dueCardsCount = recallCards.filter(isCardDue).length;
@@ -134,6 +164,8 @@ export const App: React.FC = () => {
           onLogout={handleLogout}
           theme={theme}
           onToggleTheme={handleToggleTheme}
+          colorTheme={colorTheme}
+          onOpenThemeModal={() => setIsThemeModalOpen(true)}
           onOpenDiagnostic={() => setIsDiagnosticOpen(true)}
         />
 
@@ -202,6 +234,16 @@ export const App: React.FC = () => {
         onClose={() => setIsDiagnosticOpen(false)}
         onAutoGenerateCards={handleAutoGenerateCards}
         onAddXP={handleAddXP}
+      />
+
+      {/* 9 Monochrome Single-Tone Theme Selector Modal */}
+      <ThemeSelectorModal
+        isOpen={isThemeModalOpen}
+        onClose={() => setIsThemeModalOpen(false)}
+        currentColorTheme={colorTheme}
+        onSelectColorTheme={handleSelectColorTheme}
+        themeMode={theme}
+        onToggleThemeMode={handleToggleTheme}
       />
     </div>
   );

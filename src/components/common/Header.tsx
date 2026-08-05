@@ -1,5 +1,5 @@
 import React from 'react';
-import { AuthUser, UserProfile, UserRole } from '../../types';
+import { AuthUser, ColorThemeId, UserProfile, UserRole } from '../../types';
 import {
   Compass,
   Flame,
@@ -11,7 +11,7 @@ import {
   Users,
   Briefcase,
   LogOut,
-  ShieldCheck
+  Palette
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -21,6 +21,8 @@ interface HeaderProps {
   onLogout: () => void;
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
+  colorTheme: ColorThemeId;
+  onOpenThemeModal: () => void;
   onOpenDiagnostic: () => void;
 }
 
@@ -31,6 +33,8 @@ export const Header: React.FC<HeaderProps> = ({
   onLogout,
   theme,
   onToggleTheme,
+  colorTheme,
+  onOpenThemeModal,
   onOpenDiagnostic
 }) => {
   return (
@@ -196,7 +200,34 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         )}
 
-        {/* Theme Toggle */}
+        {/* 9-Color Theme Palette Picker */}
+        <button
+          onClick={onOpenThemeModal}
+          className="btn btn-secondary btn-icon"
+          title="Customize Theme • 9 Monochrome Single-Tone Palettes"
+          style={{
+            width: '38px',
+            height: '38px',
+            position: 'relative',
+            borderColor: 'var(--border-highlight)'
+          }}
+        >
+          <Palette size={17} color="var(--primary-light)" />
+          <span
+            style={{
+              position: 'absolute',
+              bottom: '4px',
+              right: '4px',
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: 'var(--primary)',
+              boxShadow: '0 0 6px var(--primary-glow)'
+            }}
+          />
+        </button>
+
+        {/* Dark / Light Base Mode Toggle */}
         <button
           onClick={onToggleTheme}
           className="btn btn-secondary btn-icon"

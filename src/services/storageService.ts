@@ -5,7 +5,8 @@ import {
   UserRole,
   DifferentiatedWorksheet,
   AuthUser,
-  StudentComprehensiveReport
+  StudentComprehensiveReport,
+  ColorThemeId
 } from '../types';
 import {
   initialConceptNodes,
@@ -21,6 +22,7 @@ const KEYS = {
   USER_PROFILE: 'waypoint_user_profile',
   AUTH_USER: 'waypoint_auth_user',
   THEME: 'waypoint_theme',
+  COLOR_THEME: 'waypoint_color_theme',
   CONCEPT_NODES: 'waypoint_concept_nodes',
   RECALL_CARDS: 'waypoint_recall_cards',
   WORKSHEETS: 'waypoint_worksheets',
@@ -96,6 +98,15 @@ export const StorageService = {
   setTheme(theme: 'dark' | 'light'): void {
     localStorage.setItem(KEYS.THEME, theme);
     document.documentElement.setAttribute('data-theme', theme);
+  },
+
+  getColorTheme(): ColorThemeId {
+    return (localStorage.getItem(KEYS.COLOR_THEME) as ColorThemeId) || 'indigo';
+  },
+
+  setColorTheme(colorTheme: ColorThemeId): void {
+    localStorage.setItem(KEYS.COLOR_THEME, colorTheme);
+    document.documentElement.setAttribute('data-color-theme', colorTheme);
   },
 
   getConceptNodes(): ConceptNode[] {
