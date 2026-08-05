@@ -11,12 +11,11 @@ import {
   Users,
   Briefcase,
   LogOut,
-  UserCheck
+  ShieldCheck
 } from 'lucide-react';
 
 interface HeaderProps {
   currentRole: UserRole;
-  onRoleChange: (role: UserRole) => void;
   profile: UserProfile;
   currentUser: AuthUser | null;
   onLogout: () => void;
@@ -27,7 +26,6 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   currentRole,
-  onRoleChange,
   profile,
   currentUser,
   onLogout,
@@ -84,61 +82,64 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Role Switcher Pill */}
-      <div
-        style={{
-          background: 'var(--bg-surface-elevated)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-full)',
-          padding: '4px',
-          display: 'flex',
-          gap: '4px'
-        }}
-      >
-        <button
-          onClick={() => onRoleChange('student')}
-          className="btn btn-sm"
-          style={{
-            background: currentRole === 'student' ? 'var(--primary-gradient)' : 'transparent',
-            color: currentRole === 'student' ? '#fff' : 'var(--text-muted)',
-            boxShadow: currentRole === 'student' ? '0 2px 10px var(--primary-glow)' : 'none',
-            borderRadius: 'var(--radius-full)',
-            padding: '6px 14px'
-          }}
-        >
-          <GraduationCap size={15} />
-          <span>Student</span>
-        </button>
+      {/* Role-Locked Portal Indicator Badge (Strict Access Boundary) */}
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        {currentRole === 'student' && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 16px',
+              borderRadius: 'var(--radius-full)',
+              background: 'rgba(99, 102, 241, 0.12)',
+              border: '1px solid rgba(99, 102, 241, 0.3)'
+            }}
+          >
+            <GraduationCap size={16} color="var(--primary-light)" />
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e0e7ff' }}>
+              Student Learning Hub
+            </span>
+          </div>
+        )}
 
-        <button
-          onClick={() => onRoleChange('parent')}
-          className="btn btn-sm"
-          style={{
-            background: currentRole === 'parent' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'transparent',
-            color: currentRole === 'parent' ? '#fff' : 'var(--text-muted)',
-            boxShadow: currentRole === 'parent' ? '0 2px 10px var(--accent-emerald-glow)' : 'none',
-            borderRadius: 'var(--radius-full)',
-            padding: '6px 14px'
-          }}
-        >
-          <Users size={15} />
-          <span>Parent (Maya Lin)</span>
-        </button>
+        {currentRole === 'parent' && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 16px',
+              borderRadius: 'var(--radius-full)',
+              background: 'rgba(16, 185, 129, 0.12)',
+              border: '1px solid rgba(16, 185, 129, 0.3)'
+            }}
+          >
+            <Users size={16} color="#34d399" />
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#d1fae5' }}>
+              Parent Portal • Linked Student: Maya Lin
+            </span>
+          </div>
+        )}
 
-        <button
-          onClick={() => onRoleChange('teacher')}
-          className="btn btn-sm"
-          style={{
-            background: currentRole === 'teacher' ? 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)' : 'transparent',
-            color: currentRole === 'teacher' ? '#fff' : 'var(--text-muted)',
-            boxShadow: currentRole === 'teacher' ? '0 2px 10px var(--secondary-glow)' : 'none',
-            borderRadius: 'var(--radius-full)',
-            padding: '6px 14px'
-          }}
-        >
-          <Briefcase size={15} />
-          <span>Teacher</span>
-        </button>
+        {currentRole === 'teacher' && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 16px',
+              borderRadius: 'var(--radius-full)',
+              background: 'rgba(6, 182, 212, 0.12)',
+              border: '1px solid rgba(6, 182, 212, 0.3)'
+            }}
+          >
+            <Briefcase size={16} color="#22d3ee" />
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#cffafe' }}>
+              Teacher Orchestration Cockpit
+            </span>
+          </div>
+        )}
       </div>
 
       {/* User Stats & Controls */}
@@ -232,7 +233,7 @@ export const Header: React.FC<HeaderProps> = ({
               {currentUser?.name || (currentRole === 'student' ? 'Maya Lin' : currentRole === 'parent' ? 'Elena Lin' : 'Dr. Vance')}
             </span>
             <span style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>
-              {currentRole === 'parent' ? 'Parent of Maya' : currentRole === 'student' ? 'Grade 11 AP' : 'STEM Faculty'}
+              {currentRole === 'parent' ? 'Parent Account' : currentRole === 'student' ? 'Student Account' : 'Faculty Account'}
             </span>
           </div>
         </div>
@@ -248,7 +249,7 @@ export const Header: React.FC<HeaderProps> = ({
             padding: '6px 12px',
             color: '#fda4af'
           }}
-          title="Sign out and return to role selection"
+          title="Sign out to switch account or portal"
         >
           <LogOut size={15} />
           <span>Sign Out</span>

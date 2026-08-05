@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AuthUser, ConceptNode, RecallCard, UserProfile, UserRole } from './types';
 import { StorageService } from './services/storageService';
 import { isCardDue } from './services/srsEngine';
-import { mockDiagnosticQuestions, mockAuthUsers } from './data/mockData';
+import { mockDiagnosticQuestions } from './data/mockData';
 
 import { LoginPage } from './components/auth/LoginPage';
 import { Header } from './components/common/Header';
@@ -59,16 +59,6 @@ export const App: React.FC = () => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(nextTheme);
     StorageService.setTheme(nextTheme);
-  };
-
-  const handleRoleChange = (newRole: UserRole) => {
-    setRole(newRole);
-    StorageService.setRole(newRole);
-    const matchedUser = mockAuthUsers.find(u => u.role === newRole);
-    if (matchedUser) {
-      setCurrentUser(matchedUser);
-      StorageService.login(matchedUser);
-    }
   };
 
   const handleAddXP = (amount: number) => {
@@ -139,7 +129,6 @@ export const App: React.FC = () => {
         {/* Sticky Glassmorphic Header */}
         <Header
           currentRole={role}
-          onRoleChange={handleRoleChange}
           profile={profile}
           currentUser={currentUser}
           onLogout={handleLogout}
