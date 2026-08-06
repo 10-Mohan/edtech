@@ -14,6 +14,8 @@ import { HomeworkScanner } from './components/student/HomeworkScanner';
 import { CareerRoadmap } from './components/student/CareerRoadmap';
 import { DiagnosticTestModal } from './components/student/DiagnosticTestModal';
 import { ThemeSelectorModal } from './components/common/ThemeSelectorModal';
+import { AISettingsModal } from './components/common/AISettingsModal';
+import { BackendSettingsModal } from './components/common/BackendSettingsModal';
 import { TeacherDashboard } from './components/teacher/TeacherDashboard';
 import { ParentDashboard } from './components/parent/ParentDashboard';
 
@@ -23,6 +25,8 @@ export const App: React.FC = () => {
   const [theme, setTheme] = useState<'dark' | 'light'>(StorageService.getTheme());
   const [colorTheme, setColorTheme] = useState<ColorThemeId>(StorageService.getColorTheme());
   const [isThemeModalOpen, setIsThemeModalOpen] = useState<boolean>(false);
+  const [isAISettingsOpen, setIsAISettingsOpen] = useState<boolean>(false);
+  const [isBackendSettingsOpen, setIsBackendSettingsOpen] = useState<boolean>(false);
   const [profile, setProfile] = useState<UserProfile>(StorageService.getProfile());
   const [conceptNodes, setConceptNodes] = useState<ConceptNode[]>(StorageService.getConceptNodes());
   const [recallCards, setRecallCards] = useState<RecallCard[]>(StorageService.getRecallCards());
@@ -120,6 +124,8 @@ export const App: React.FC = () => {
           onToggleTheme={handleToggleTheme}
           colorTheme={colorTheme}
           onOpenThemeModal={() => setIsThemeModalOpen(true)}
+          onOpenAISettings={() => setIsAISettingsOpen(true)}
+          onOpenBackendSettings={() => setIsBackendSettingsOpen(true)}
         />
         <ThemeSelectorModal
           isOpen={isThemeModalOpen}
@@ -128,6 +134,14 @@ export const App: React.FC = () => {
           onSelectColorTheme={handleSelectColorTheme}
           themeMode={theme}
           onToggleThemeMode={handleToggleTheme}
+        />
+        <AISettingsModal
+          isOpen={isAISettingsOpen}
+          onClose={() => setIsAISettingsOpen(false)}
+        />
+        <BackendSettingsModal
+          isOpen={isBackendSettingsOpen}
+          onClose={() => setIsBackendSettingsOpen(false)}
         />
       </>
     );
@@ -167,6 +181,8 @@ export const App: React.FC = () => {
           colorTheme={colorTheme}
           onOpenThemeModal={() => setIsThemeModalOpen(true)}
           onOpenDiagnostic={() => setIsDiagnosticOpen(true)}
+          onOpenAISettings={() => setIsAISettingsOpen(true)}
+          onOpenBackendSettings={() => setIsBackendSettingsOpen(true)}
         />
 
         {/* Page Body */}
@@ -244,6 +260,18 @@ export const App: React.FC = () => {
         onSelectColorTheme={handleSelectColorTheme}
         themeMode={theme}
         onToggleThemeMode={handleToggleTheme}
+      />
+
+      {/* AI LLM Settings Modal */}
+      <AISettingsModal
+        isOpen={isAISettingsOpen}
+        onClose={() => setIsAISettingsOpen(false)}
+      />
+
+      {/* Backend & Cloud Database Sync Modal */}
+      <BackendSettingsModal
+        isOpen={isBackendSettingsOpen}
+        onClose={() => setIsBackendSettingsOpen(false)}
       />
     </div>
   );

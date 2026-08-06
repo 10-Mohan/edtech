@@ -1,5 +1,7 @@
 import React from 'react';
 import { AuthUser, ColorThemeId, UserProfile, UserRole } from '../../types';
+import { AIProviderService } from '../../services/aiProvider';
+import { SupabaseService } from '../../services/supabaseClient';
 import {
   Compass,
   Flame,
@@ -11,7 +13,10 @@ import {
   Users,
   Briefcase,
   LogOut,
-  Palette
+  Palette,
+  Bot,
+  Database,
+  Cloud
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -24,6 +29,8 @@ interface HeaderProps {
   colorTheme: ColorThemeId;
   onOpenThemeModal: () => void;
   onOpenDiagnostic: () => void;
+  onOpenAISettings?: () => void;
+  onOpenBackendSettings?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -35,8 +42,13 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleTheme,
   colorTheme,
   onOpenThemeModal,
-  onOpenDiagnostic
+  onOpenDiagnostic,
+  onOpenAISettings,
+  onOpenBackendSettings
 }) => {
+  const isLiveAI = AIProviderService.isLiveProviderActive();
+  const isCloudDB = SupabaseService.isCloudConfigured();
+
   return (
     <header
       style={{
@@ -121,7 +133,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Users size={16} color="var(--primary-light)" />
             <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
-              Parent Portal • Linked Student: Maya Lin
+              Parent Portal • Multi-Student Connected
             </span>
           </div>
         )}
@@ -147,7 +159,7 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* User Stats & Controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         {/* Quick Diagnostic Launch (Student only) */}
         {currentRole === 'student' && (
           <button
@@ -157,6 +169,53 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Zap size={14} />
             <span>Gap Diagnostic</span>
+          </button>
+        )}
+
+        {/* AI Model Settings Button */}
+        {onOpenAISettings && (
+          <button
+            onClick={onOpenAISettings}
+            className="btn btn-secondary btn-icon"
+            title={`AI Engine Config • ${isLiveAI ? 'Live LLM Active' : 'Offline Heuristic'}`}
+            style={{
+              width: '38px',
+              height: '38px',
+              position: 'relative',
+              borderColor: isLiveAI ? '#10b981' : 'var(--border-subtle)'
+            }}
+          >
+            <Bot size={17} color={isLiveAI ? '#10b981' : 'var(--text-dim)'} />
+            {isLiveAI && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '6px',
+                  right: '6px',
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: '#10b981'
+                }}
+              />
+            )}
+          </button>
+        )}
+
+        {/* Database & Cloud Sync Settings Button */}
+        {onOpenBackendSettings && (
+          <button
+            onClick={onOpenBackendSettings}
+            className="btn btn-secondary btn-icon"
+            title={`Database & Cloud Sync • ${isCloudDB ? 'Supabase Connected' : 'Persistent Local Sync'}`}
+            style={{
+              width: '38px',
+              height: '38px',
+              position: 'relative',
+              borderColor: isCloudDB ? '#06b6d4' : 'var(--border-subtle)'
+            }}
+          >
+            <Database size={17} color={isCloudDB ? '#06b6d4' : 'var(--text-dim)'} />
           </button>
         )}
 

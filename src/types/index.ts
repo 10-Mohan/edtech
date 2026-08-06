@@ -110,6 +110,7 @@ export interface ChatMessage {
     praise: string;
     suggestion: string;
   };
+  isLoading?: boolean;
 }
 
 export interface HomeworkProblem {
@@ -127,6 +128,7 @@ export interface HomeworkProblem {
   }[];
   conceptTested: string;
   remedialConceptId: string;
+  uploadedImageUrl?: string;
 }
 
 export interface CareerPath {
@@ -217,7 +219,8 @@ export interface AuthUser {
   role: UserRole;
   avatar: string;
   title: string;
-  linkedStudentId?: string; // Links parent to student
+  linkedStudentId?: string; // Active linked student
+  linkedStudentIds?: string[]; // All linked students for multi-child parents
 }
 
 export interface StudentComprehensiveReport {
@@ -278,3 +281,66 @@ export interface StudentComprehensiveReport {
   };
 }
 
+// -------------------------------------------------------------
+// AI Provider & LLM Engine Configuration Types
+// -------------------------------------------------------------
+export type AIProviderId = 'openai' | 'anthropic' | 'gemini' | 'simulated';
+
+export interface AIConfig {
+  provider: AIProviderId;
+  apiKey: string;
+  model: string;
+  temperature: number;
+  visionModel?: string;
+  customEndpoint?: string;
+}
+
+export interface VisionScanResult {
+  title: string;
+  subject: SubjectId;
+  rawExpression: string;
+  steps: {
+    stepNumber: number;
+    expression: string;
+    explanation: string;
+    isError: boolean;
+    errorType?: string;
+    correctionHint?: string;
+  }[];
+  conceptTested: string;
+  remedialConceptId: string;
+}
+
+// -------------------------------------------------------------
+// Cloud Database & Backend Configuration Types
+// -------------------------------------------------------------
+export type CloudProviderId = 'local' | 'supabase' | 'firebase';
+
+export interface CloudBackendConfig {
+  provider: CloudProviderId;
+  supabaseUrl?: string;
+  supabaseAnonKey?: string;
+  firebaseProjectId?: string;
+  firebaseApiKey?: string;
+  isConnected: boolean;
+  lastSyncedAt?: string;
+}
+
+// -------------------------------------------------------------
+// Curriculum Authoring & Generation Types
+// -------------------------------------------------------------
+export interface CurriculumGenerationPrompt {
+  subject: SubjectId;
+  courseTitle: string;
+  targetLevel: 'introductory' | 'ap_advanced' | 'college' | 'remedial';
+  keyUnits: string[];
+  generateQuestions: boolean;
+}
+
+export interface GeneratedCurriculum {
+  courseTitle: string;
+  subject: SubjectId;
+  nodes: ConceptNode[];
+  edges: GraphEdge[];
+  sampleWorksheets?: DifferentiatedWorksheet[];
+}

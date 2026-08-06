@@ -1,7 +1,100 @@
-import { ChatMessage, DiagnosticQuestion, DiagnosticResult, HomeworkProblem, RecallCard } from '../types';
+import { ChatMessage, DiagnosticQuestion, DiagnosticResult } from '../types';
+import { AIProviderService } from './aiProvider';
+
+export const SOCRATIC_SYSTEM_PROMPT = `You are Waypoint, an elite Socratic STEM Tutor built on first-principles pedagogy (Khanmigo & Bloom's 2-Sigma standard).
+YOUR SACRED RULE: NEVER directly give the full answer, final numerical calculation, or complete derivation code.
+Instead:
+1. Guide the student step-by-step through probing questions.
+2. Ask them to explain what physically or geometrically happens at intermediate steps.
+3. Propose intuitive thought experiments (e.g. "What happens if $x \\to 0$ or as $t \\to \\infty$?").
+4. Validate their correct reasoning with enthusiasm and gently illuminate any misconceptions with targeted counter-questions.
+5. Format mathematical equations with standard LaTeX ($x^2$, $\\frac{df}{dx}$, \\int). Keep responses concise (under 120 words) to encourage dynamic back-and-forth dialogue.`;
+
+export const FEYNMAN_SYSTEM_PROMPT = `You are a Feynman Technique Mastery Evaluator.
+The student will attempt to explain a complex STEM topic in simple, intuitive terms as if teaching a beginner.
+Evaluate their explanation rigorously based on:
+1. Conceptual Comprehension (0-100%): Did they capture the fundamental mechanism correctly?
+2. Jargon-Free Clarity (0-100%): Did they use clear analogies instead of copy-pasting textbook jargon?
+3. Missing Key Nuances: What critical mechanism, boundary case, or practical implication was left out?
+
+CRITICAL: Return ONLY valid JSON in this exact structure:
+{
+  "comprehensionScore": 85,
+  "clarityScore": 90,
+  "missingKeyPoints": ["Mentioning why the rate approaches a finite limit", "Connecting to a real-world physical example"],
+  "praise": "Outstanding intuitive breakdown using the moving car speedometer analogy!",
+  "suggestion": "To make this 100% complete, briefly explain what happens when the interval $\\Delta t$ shrinks to zero."
+}`;
 
 /**
- * Socratic AI Tutor Response Generator
+ * Real Socratic AI Tutor Generator (Async with live LLM + offline fallback)
+ */
+export async function generateSocraticResponseAsync(
+  userMessage: string,
+  contextTopic?: string,
+  history: ChatMessage[] = []
+): Promise<string> {
+  if (AIProviderService.isLiveProviderActive()) {
+    try {
+      const messages = history.slice(-6).map(m => ({
+        role: (m.sender === 'assistant' ? 'assistant' : 'user') as 'assistant' | 'user',
+        content: m.text
+      }));
+      messages.push({ role: 'user', content: userMessage });
+
+      const topicContext = contextTopic ? `\nCURRENT SUBJECT FOCUS: ${contextTopic}` : '';
+      const reply = await AIProviderService.callChatCompletion(
+        SOCRATIC_SYSTEM_PROMPT + topicContext,
+        messages
+      );
+      if (reply.trim()) {
+        return reply.trim();
+      }
+    } catch (err) {
+      console.warn('Live AI provider failed, falling back to simulated engine:', err);
+    }
+  }
+
+  // High-fidelity fallback
+  return generateSocraticResponse(userMessage, contextTopic);
+}
+
+/**
+ * Real Feynman Evaluator (Async with live LLM JSON mode + offline fallback)
+ */
+export async function evaluateFeynmanExplanationAsync(
+  topicTitle: string,
+  studentExplanation: string
+): Promise<ChatMessage['feynmanFeedback']> {
+  if (AIProviderService.isLiveProviderActive()) {
+    try {
+      const prompt = `Topic to evaluate: "${topicTitle}"\nStudent Explanation:\n"${studentExplanation}"`;
+      const rawJson = await AIProviderService.callChatCompletion(
+        FEYNMAN_SYSTEM_PROMPT,
+        [{ role: 'user', content: prompt }],
+        { jsonMode: true }
+      );
+
+      const parsed = JSON.parse(rawJson);
+      return {
+        comprehensionScore: Math.min(100, Math.max(0, Number(parsed.comprehensionScore) || 75)),
+        clarityScore: Math.min(100, Math.max(0, Number(parsed.clarityScore) || 80)),
+        missingKeyPoints: Array.isArray(parsed.missingKeyPoints) && parsed.missingKeyPoints.length > 0
+          ? parsed.missingKeyPoints
+          : ['All essential conceptual mechanisms covered!'],
+        praise: parsed.praise || 'Great effort putting this into your own words!',
+        suggestion: parsed.suggestion || 'Try adding a visual analogy to ground the concept even further.'
+      };
+    } catch (err) {
+      console.warn('Live Feynman evaluation failed, falling back to local heuristic evaluator:', err);
+    }
+  }
+
+  return evaluateFeynmanExplanation(topicTitle, studentExplanation);
+}
+
+/**
+ * Synchronous / Heuristic Socratic Generator (used as instant fallback & unit tests)
  */
 export function generateSocraticResponse(userMessage: string, contextTopic?: string): string {
   const msg = userMessage.toLowerCase();
@@ -26,9 +119,8 @@ export function generateSocraticResponse(userMessage: string, contextTopic?: str
     return `With recursion, the secret is always in the base case and the sub-problem contract! If your function solved the problem for a sub-tree of size $(N-1)$, what is the single remaining step to combine that with the root?`;
   }
 
-  // Generic Socratic prompt
   const socraticPrompts = [
-    `That's a pivotal concept. What is the fundamental definition or rule you are applying here, and what assumptions are you making about the starting conditions?`,
+    `That's a pivotal concept in ${contextTopic || 'this discipline'}. What is the fundamental definition you are applying here, and what assumptions are you making about starting conditions?`,
     `Let's break that down into smaller steps. What is the very first thing that occurs before this step? How can you verify that intermediate result?`,
     `Interesting intuition! If we tested an extreme edge case (like when $x = 0$ or as $x \\to \\infty$), does your explanation still hold true? What happens?`,
     `Could you explain what you expect to happen if we reverse the process? What is the core mechanism driving this behavior?`
@@ -37,7 +129,7 @@ export function generateSocraticResponse(userMessage: string, contextTopic?: str
 }
 
 /**
- * Feynman Technique Evaluator ("Teach the AI")
+ * Synchronous / Heuristic Feynman Evaluator
  */
 export function evaluateFeynmanExplanation(topicTitle: string, studentExplanation: string): ChatMessage['feynmanFeedback'] {
   const wordCount = studentExplanation.trim().split(/\s+/).length;
@@ -83,7 +175,7 @@ export function evaluateFeynmanExplanation(topicTitle: string, studentExplanatio
 }
 
 /**
- * Evaluate Diagnostic Test & Auto-Generate Recall Cards
+ * Diagnostic Evaluation & Auto-Generation of Recall Cards
  */
 export function processDiagnosticSubmission(
   questions: DiagnosticQuestion[],
@@ -100,7 +192,6 @@ export function processDiagnosticSubmission(
     if (chosenOption && chosenOption.isCorrect) {
       correctCount++;
     } else {
-      // Gap identified!
       const misconception = chosenOption?.misconceptionFeedback || `Struggled with foundational ${q.topicTitle} rules.`;
       gaps.push({
         topicId: q.topicId,

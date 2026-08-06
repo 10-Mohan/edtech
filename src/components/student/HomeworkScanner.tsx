@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { HomeworkProblem } from '../../types';
 import { mockHomeworkProblems } from '../../data/mockData';
 import { MathRenderer } from '../common/MathRenderer';
+import { AIProviderService } from '../../services/aiProvider';
 import {
   ScanLine,
   UploadCloud,
@@ -11,7 +12,10 @@ import {
   ArrowRight,
   FileText,
   HelpCircle,
-  Zap
+  Zap,
+  Image as ImageIcon,
+  Camera,
+  RefreshCw
 } from 'lucide-react';
 
 interface HomeworkScannerProps {
@@ -25,18 +29,45 @@ export const HomeworkScanner: React.FC<HomeworkScannerProps> = ({
 }) => {
   const [selectedProblem, setSelectedProblem] = useState<HomeworkProblem>(mockHomeworkProblems[0]);
   const [isScanning, setIsScanning] = useState<boolean>(false);
-  const [scanComplete, setScanComplete] = useState<boolean>(true);
+  const [uploadedImagePreview, setUploadedImagePreview] = useState<string | null>(null);
+  const [customAnalysis, setCustomAnalysis] = useState<any | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const isLiveAI = AIProviderService.isLiveProviderActive();
 
   const handleScanSample = (problem: HomeworkProblem) => {
     setSelectedProblem(problem);
+    setUploadedImagePreview(null);
+    setCustomAnalysis(null);
     setIsScanning(true);
-    setScanComplete(false);
 
     setTimeout(() => {
       setIsScanning(false);
-      setScanComplete(true);
       onAddXP(20);
-    }, 800);
+    }, 600);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64Data = reader.result as string;
+      setUploadedImagePreview(base64Data);
+      setIsScanning(true);
+
+      try {
+        const result = await AIProviderService.analyzeHomeworkImage(base64Data);
+        setCustomAnalysis(result);
+        onAddXP(35);
+      } catch (err) {
+        console.error('Vision analysis error:', err);
+      } finally {
+        setIsScanning(false);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -46,24 +77,42 @@ export const HomeworkScanner: React.FC<HomeworkScannerProps> = ({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>AI Homework Scanner & Error Pinpointer</h1>
-              <span className="badge badge-cyan">Computer Vision & Logic Engine</span>
+              <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>AI Vision Homework Scanner & Pinpointer</h1>
+              <span className={`badge ${isLiveAI ? 'badge-emerald' : 'badge-cyan'}`}>
+                {isLiveAI ? `Live Multimodal AI (${AIProviderService.getActiveProviderName()})` : 'Neural OCR Simulator'}
+              </span>
             </div>
             <p style={{ margin: 0 }}>
-              Waypoint inspects multi-step mathematical derivations, isolates the exact logical or algebraic breakdown step, and explains how to recover.
+              Upload handwritten math homework or choose an AP benchmark problem. Waypoint reconstructs your steps and isolates the exact algebraic flaw.
             </p>
           </div>
 
-          {/* Sample Problem Pickers */}
-          <div style={{ display: 'flex', gap: '8px' }}>
+          {/* Action buttons */}
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleFileUpload}
+            />
+
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="btn btn-primary"
+            >
+              <Camera size={16} />
+              <span>Upload Work Photo</span>
+            </button>
+
             {mockHomeworkProblems.map((prob, idx) => (
               <button
                 key={prob.id}
                 onClick={() => handleScanSample(prob)}
-                className={`btn btn-sm ${selectedProblem.id === prob.id ? 'btn-primary' : 'btn-secondary'}`}
+                className={`btn btn-sm ${selectedProblem.id === prob.id && !uploadedImagePreview ? 'btn-primary' : 'btn-secondary'}`}
               >
                 <FileText size={14} />
-                <span>Sample {idx + 1}: {prob.title.split(':')[0]}</span>
+                <span>Sample {idx + 1}</span>
               </button>
             ))}
           </div>
@@ -71,43 +120,56 @@ export const HomeworkScanner: React.FC<HomeworkScannerProps> = ({
       </div>
 
       {/* Main Scanner Work Area */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '24px' }}>
         {/* Left Column: Input Problem & Derivation Steps */}
         <div className="glass-panel" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
-              Student Submitted Work
+              {uploadedImagePreview ? 'Uploaded Handwritten Derivation' : 'Sample Exam Derivation'}
             </span>
             <span className="badge badge-indigo">
-              {selectedProblem.conceptTested}
+              {customAnalysis ? 'Computer Vision OCR Verified' : selectedProblem.conceptTested}
             </span>
           </div>
 
-          <div
-            style={{
-              background: 'var(--bg-surface-elevated)',
-              border: '1px solid var(--border-medium)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '18px',
-              marginBottom: '20px'
-            }}
-          >
-            <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginBottom: '4px' }}>Given Problem:</div>
-            <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#f8fafc' }}>
-              <MathRenderer text={selectedProblem.title} />
+          {uploadedImagePreview && (
+            <div style={{ marginBottom: '18px', textAlign: 'center', background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-subtle)' }}>
+              <img
+                src={uploadedImagePreview}
+                alt="Student Handwritten Work"
+                style={{ maxHeight: '180px', maxWidth: '100%', borderRadius: '8px', objectFit: 'contain' }}
+              />
             </div>
-          </div>
+          )}
+
+          {!uploadedImagePreview && (
+            <div
+              style={{
+                background: 'var(--bg-surface-elevated)',
+                border: '1px solid var(--border-medium)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '18px',
+                marginBottom: '20px'
+              }}
+            >
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginBottom: '4px' }}>Target Problem:</div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#f8fafc' }}>
+                <MathRenderer text={selectedProblem.title} />
+              </div>
+            </div>
+          )}
 
           {isScanning ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '260px', gap: '14px' }}>
-              <ScanLine size={40} className="animate-bounce" color="#6366f1" />
-              <p style={{ color: 'var(--primary-light)', fontSize: '0.9rem' }}>
-                AI Logic Engine analyzing algebraic derivations...
+              <ScanLine size={44} className="animate-bounce" color="var(--primary-light)" />
+              <p style={{ color: 'var(--primary-light)', fontSize: '0.95rem', fontWeight: 600 }}>
+                Multimodal OCR analyzing handwriting & algebraic consistency...
               </p>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {selectedProblem.steps.map(step => (
+              {/* Display parsed steps from custom analysis or selectedProblem */}
+              {(customAnalysis?.steps || selectedProblem.steps).map((step: any) => (
                 <div
                   key={step.stepNumber}
                   style={{
@@ -133,7 +195,7 @@ export const HomeworkScanner: React.FC<HomeworkScannerProps> = ({
                     )}
                   </div>
 
-                  <div style={{ fontSize: '1rem', fontWeight: 600, color: '#f8fafc', marginBottom: '6px' }}>
+                  <div style={{ fontSize: '1.05rem', fontWeight: 600, color: '#f8fafc', marginBottom: '6px' }}>
                     <MathRenderer text={step.expression} />
                   </div>
 
@@ -160,8 +222,8 @@ export const HomeworkScanner: React.FC<HomeworkScannerProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
               <div
                 style={{
-                  width: '36px',
-                  height: '36px',
+                  width: '38px',
+                  height: '38px',
                   borderRadius: '10px',
                   background: 'rgba(244, 63, 94, 0.15)',
                   display: 'flex',
@@ -175,13 +237,14 @@ export const HomeworkScanner: React.FC<HomeworkScannerProps> = ({
               <div>
                 <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>AI Root-Cause Diagnosis</h3>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
-                  Pinpointed from Step {selectedProblem.steps.find(s => s.isError)?.stepNumber}
+                  Pinpointed from Step {((customAnalysis?.steps || selectedProblem.steps).find((s: any) => s.isError)?.stepNumber) || 2}
                 </span>
               </div>
             </div>
 
             {(() => {
-              const errorStep = selectedProblem.steps.find(s => s.isError);
+              const activeSteps = customAnalysis?.steps || selectedProblem.steps;
+              const errorStep = activeSteps.find((s: any) => s.isError);
               if (!errorStep) return null;
 
               return (
@@ -198,10 +261,10 @@ export const HomeworkScanner: React.FC<HomeworkScannerProps> = ({
                       Identified Error Type:
                     </div>
                     <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#ffffff', marginBottom: '10px' }}>
-                      {errorStep.errorType}
+                      {errorStep.errorType || 'Algebraic / Derivative Inconsistency'}
                     </div>
                     <div style={{ fontSize: '0.85rem', color: '#e2e8f0', lineHeight: 1.5 }}>
-                      <MathRenderer text={errorStep.correctionHint || ''} />
+                      <MathRenderer text={errorStep.correctionHint || 'Check chain rule expansion and constant factors.'} />
                     </div>
                   </div>
 
@@ -227,7 +290,7 @@ export const HomeworkScanner: React.FC<HomeworkScannerProps> = ({
 
           <div style={{ paddingTop: '20px', borderTop: '1px solid var(--border-subtle)' }}>
             <button
-              onClick={() => onRemediateTopic(selectedProblem.remedialConceptId)}
+              onClick={() => onRemediateTopic(selectedProblem.remedialConceptId || 'calc-03-chain-rule')}
               className="btn btn-primary"
               style={{ width: '100%' }}
             >

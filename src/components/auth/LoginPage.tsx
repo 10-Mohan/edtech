@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { AuthUser, ColorThemeId, UserRole } from '../../types';
 import { mockAuthUsers } from '../../data/mockData';
+import { BackendService } from '../../services/backendService';
+import { AIProviderService } from '../../services/aiProvider';
+import { SupabaseService } from '../../services/supabaseClient';
+import { RegisterModal } from './RegisterModal';
 import {
   GraduationCap,
   Users,
@@ -18,7 +22,10 @@ import {
   Mail,
   Palette,
   Sun,
-  Moon
+  Moon,
+  UserPlus,
+  Bot,
+  Database
 } from 'lucide-react';
 
 interface LoginPageProps {
@@ -27,6 +34,8 @@ interface LoginPageProps {
   onToggleTheme: () => void;
   colorTheme: ColorThemeId;
   onOpenThemeModal: () => void;
+  onOpenAISettings?: () => void;
+  onOpenBackendSettings?: () => void;
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({
@@ -34,11 +43,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   theme,
   onToggleTheme,
   colorTheme,
-  onOpenThemeModal
+  onOpenThemeModal,
+  onOpenAISettings,
+  onOpenBackendSettings
 }) => {
   const [selectedRole, setSelectedRole] = useState<UserRole>('student');
   const [email, setEmail] = useState<string>('maya.lin@student.waypoint.edu');
   const [password, setPassword] = useState<string>('demo123');
+  const [isRegisterOpen, setIsRegisterOpen] = useState<boolean>(false);
+
+  const isLiveAI = AIProviderService.isLiveProviderActive();
+  const isCloudDB = SupabaseService.isCloudConfigured();
 
   const handleRoleChange = (role: UserRole) => {
     setSelectedRole(role);
@@ -54,14 +69,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const user = mockAuthUsers.find(u => u.role === selectedRole);
+    const users = BackendService.getUsers();
+    let user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (!user) {
+      user = users.find(u => u.role === selectedRole) || mockAuthUsers.find(u => u.role === selectedRole);
+    }
     if (user) {
       onLogin(user);
     }
   };
 
   const handleDirectDemoLogin = (role: UserRole) => {
-    const user = mockAuthUsers.find(u => u.role === role);
+    const users = BackendService.getUsers();
+    const user = users.find(u => u.role === role) || mockAuthUsers.find(u => u.role === role);
     if (user) {
       onLogin(user);
     }
@@ -106,7 +126,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         }}
       />
 
-      {/* Top Floating Theme & Appearance Controls */}
+      {/* Top Floating Controls */}
       <div
         style={{
           position: 'fixed',
@@ -123,6 +143,28 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           padding: '4px 10px'
         }}
       >
+        {onOpenAISettings && (
+          <button
+            onClick={onOpenAISettings}
+            className="btn btn-secondary btn-icon"
+            title={`AI Engine Config • ${isLiveAI ? 'Live LLM Active' : 'Offline Mode'}`}
+            style={{ width: '32px', height: '32px', borderColor: isLiveAI ? '#10b981' : undefined }}
+          >
+            <Bot size={15} color={isLiveAI ? '#10b981' : 'var(--text-dim)'} />
+          </button>
+        )}
+
+        {onOpenBackendSettings && (
+          <button
+            onClick={onOpenBackendSettings}
+            className="btn btn-secondary btn-icon"
+            title={`Database Config • ${isCloudDB ? 'Supabase Connected' : 'Local Sync'}`}
+            style={{ width: '32px', height: '32px', borderColor: isCloudDB ? '#06b6d4' : undefined }}
+          >
+            <Database size={15} color={isCloudDB ? '#06b6d4' : 'var(--text-dim)'} />
+          </button>
+        )}
+
         <button
           onClick={onOpenThemeModal}
           className="btn btn-secondary btn-icon"
@@ -264,7 +306,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#f8fafc' }}>Parent Portal</span>
-                      <span className="badge badge-emerald">Linked to Maya</span>
+                      <span className="badge badge-emerald">Linked to Maya & Leo</span>
                     </div>
                     <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '2px' }}>
                       Live Attendance (96.8%), multi-subject grade cards, weak areas radar & dinner prompts.
@@ -345,7 +387,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Welcome to Waypoint</h2>
             <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
               {selectedRole === 'parent'
-                ? 'Sign in to access Maya Lin\'s full academic profile, attendance, and weekly recommendations.'
+                ? 'Sign in to access Maya and Leo\'s full academic profiles, attendance, and weekly recommendations.'
                 : selectedRole === 'student'
                 ? 'Sign in to continue your calculus mastery path and daily recall streak.'
                 : 'Sign in to orchestrate classroom instruction and generate differentiated materials.'}
@@ -442,21 +484,29 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               style={{ justifyContent: 'flex-start', fontSize: '0.8125rem' }}
             >
               <Users size={15} color="#34d399" />
-              <span>1-Click Login as <strong>Parent (Elena Lin - Linked to Maya)</strong></span>
+              <span>1-Click Login as <strong>Parent (Elena Lin - Multi-Student)</strong></span>
             </button>
 
             <button
               type="button"
-              onClick={() => handleDirectDemoLogin('teacher')}
+              onClick={() => setIsRegisterOpen(true)}
               className="btn btn-secondary btn-sm"
-              style={{ justifyContent: 'flex-start', fontSize: '0.8125rem' }}
+              style={{ justifyContent: 'center', marginTop: '4px', borderStyle: 'dashed' }}
             >
-              <Briefcase size={15} color="#22d3ee" />
-              <span>1-Click Login as <strong>Teacher (Dr. Eleanor Vance)</strong></span>
+              <UserPlus size={15} />
+              <span>New to Waypoint? <strong>Create Custom Account</strong></span>
             </button>
           </div>
         </div>
       </div>
+
+      <RegisterModal
+        isOpen={isRegisterOpen}
+        onClose={() => setIsRegisterOpen(false)}
+        onRegistered={user => {
+          onLogin(user);
+        }}
+      />
     </div>
   );
 };

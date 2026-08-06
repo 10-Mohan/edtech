@@ -1,6 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ParentWeeklySummary, StudentComprehensiveReport } from '../../types';
-import { mockParentSummary, mockStudentComprehensiveReport } from '../../data/mockData';
+import {
+  mockParentSummary,
+  mockStudentComprehensiveReport,
+  mockLeoStudentReport,
+  mockStudentReportsMap
+} from '../../data/mockData';
 import { MathRenderer } from '../common/MathRenderer';
 import {
   CalendarCheck,
@@ -13,7 +18,9 @@ import {
   CheckCircle2,
   AlertTriangle,
   UserCheck,
-  ShieldCheck
+  ShieldCheck,
+  Users,
+  GraduationCap
 } from 'lucide-react';
 
 interface ParentDashboardProps {
@@ -23,12 +30,14 @@ interface ParentDashboardProps {
 export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   activeParentTab
 }) => {
+  const [selectedChildId, setSelectedChildId] = useState<string>('stu_maya_01');
   const summary: ParentWeeklySummary = mockParentSummary;
-  const studentReport: StudentComprehensiveReport = mockStudentComprehensiveReport;
+  const studentReport: StudentComprehensiveReport =
+    mockStudentReportsMap[selectedChildId] || mockStudentComprehensiveReport;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Top Linked Child Banner */}
+      {/* Top Linked Child Selector & Banner */}
       <div className="glass-panel" style={{ padding: '24px 28px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -39,7 +48,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             />
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-                <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>{studentReport.studentName}</h1>
+                <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>{studentReport.studentName}</h1>
                 <span className="badge badge-emerald">Live Student Sync</span>
                 <span className="badge badge-indigo">{studentReport.grade}</span>
               </div>
@@ -49,19 +58,40 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+          {/* Child Switcher Tabs */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', background: 'var(--bg-surface-elevated)', padding: '4px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+              <button
+                onClick={() => setSelectedChildId('stu_maya_01')}
+                className="btn btn-sm"
+                style={{
+                  background: selectedChildId === 'stu_maya_01' ? 'var(--primary-gradient)' : 'transparent',
+                  color: selectedChildId === 'stu_maya_01' ? '#fff' : 'var(--text-muted)'
+                }}
+              >
+                <GraduationCap size={14} />
+                <span>Maya (Gr 11)</span>
+              </button>
+              <button
+                onClick={() => setSelectedChildId('stu_leo_02')}
+                className="btn btn-sm"
+                style={{
+                  background: selectedChildId === 'stu_leo_02' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'transparent',
+                  color: selectedChildId === 'stu_leo_02' ? '#fff' : 'var(--text-muted)'
+                }}
+              >
+                <Users size={14} />
+                <span>Leo (Gr 9)</span>
+              </button>
+            </div>
+
+            <div style={{ width: '1px', height: '36px', background: 'var(--border-subtle)' }} />
+
             <div style={{ textAlign: 'right' }}>
-              <div className="theme-stat-val" style={{ fontSize: '1.4rem' }}>
+              <div className="theme-stat-val" style={{ fontSize: '1.35rem' }}>
                 {studentReport.attendance.overallRate}%
               </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Term Attendance</div>
-            </div>
-            <div style={{ width: '1px', height: '36px', background: 'var(--border-subtle)' }} />
-            <div style={{ textAlign: 'right' }}>
-              <div className="theme-stat-val" style={{ fontSize: '1.4rem' }}>
-                +{summary.masteryGainPercent}%
-              </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Mastery Gain</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>Term Attendance</div>
             </div>
           </div>
         </div>
@@ -74,7 +104,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             <div>
               <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)' }}>Subject-by-Subject Mastery & Strengths</h2>
               <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-dim)' }}>
-                Comprehensive evaluation across all current enrolled courses and teacher assessments.
+                Comprehensive evaluation across all current enrolled courses and teacher assessments for {studentReport.studentName}.
               </p>
             </div>
           </div>
@@ -120,18 +150,20 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   </div>
 
                   {/* Weak Sections */}
-                  <div style={{ marginBottom: '14px' }}>
-                    <div className="theme-text-subtle" style={{ marginBottom: '6px' }}>
-                      Sections Requiring Reinforcement
+                  {item.weakSections.length > 0 && (
+                    <div style={{ marginBottom: '14px' }}>
+                      <div className="theme-text-subtle" style={{ marginBottom: '6px' }}>
+                        Sections Requiring Reinforcement
+                      </div>
+                      <ul style={{ paddingLeft: '16px', margin: 0, fontSize: '0.8125rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                        {item.weakSections.map((wk, wIdx) => (
+                          <li key={wIdx}>
+                            <MathRenderer text={wk} />
+                          </li>
+                        ))}
+                      </ul>
                     </div>
-                    <ul style={{ paddingLeft: '16px', margin: 0, fontSize: '0.8125rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                      {item.weakSections.map((wk, wIdx) => (
-                        <li key={wIdx}>
-                          <MathRenderer text={wk} />
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  )}
                 </div>
 
                 {/* Teacher Remark Quote */}
@@ -190,7 +222,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               <div className="theme-stat-val" style={{ fontSize: '1.8rem' }}>
                 {studentReport.attendance.tardies} Day
               </div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Transit delay excused</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Excused on file</span>
             </div>
 
             <div className="glass-card" style={{ padding: '20px' }}>
@@ -201,7 +233,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               <div className="theme-stat-val" style={{ fontSize: '1.8rem' }}>
                 {studentReport.attendance.excusedAbsences} Days
               </div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Medical documentation on file</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Medical documentation verified</span>
             </div>
           </div>
 
@@ -310,7 +342,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 <span className="theme-text-heading">Focus Study Time</span>
               </div>
               <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-main)' }}>{studentReport.studyHabits.weeklyFocusHours} Hours</div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Across 5 active sessions</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Across active sessions</span>
             </div>
 
             <div className="glass-card" style={{ padding: '20px' }}>
@@ -374,7 +406,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)' }}>Dinner Table Conversation Starters</h2>
           </div>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '24px' }}>
-            Instead of asking "How was school today?", try these curated questions connected to Maya's exact learning breakthroughs this week:
+            Instead of asking "How was school today?", try these curated questions connected to {studentReport.studentName}'s exact learning breakthroughs this week:
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

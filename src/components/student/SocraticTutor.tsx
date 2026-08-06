@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { ChatMessage, ConceptNode } from '../../types';
-import { evaluateFeynmanExplanation, generateSocraticResponse } from '../../services/aiEngine';
+import {
+  evaluateFeynmanExplanationAsync,
+  generateSocraticResponseAsync
+} from '../../services/aiEngine';
+import { AIProviderService } from '../../services/aiProvider';
 import { MathRenderer } from '../common/MathRenderer';
 import {
   Send,
@@ -13,7 +17,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Lightbulb,
-  Zap
+  Zap,
+  Activity
 } from 'lucide-react';
 
 interface SocraticTutorProps {
@@ -29,21 +34,24 @@ export const SocraticTutor: React.FC<SocraticTutorProps> = ({
   const [inputMessage, setInputMessage] = useState<string>('');
   const [isTyping, setIsTyping] = useState<boolean>(false);
 
+  const isLiveAI = AIProviderService.isLiveProviderActive();
+  const providerName = AIProviderService.getActiveProviderName();
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'msg_01',
       sender: 'assistant',
       text: initialTopic
-        ? `Hello Maya! I see you are exploring **${initialTopic.title}**. What specific problem or intuition would you like to investigate together?`
-        : `Hello Maya! I'm your Waypoint AI Tutor. Would you like to investigate a tough topic using step-by-step **Socratic Inquiry**, or test your mastery by **teaching me in Feynman Mode**?`,
+        ? `Hello! I see you are exploring **${initialTopic.title}**. What specific problem or intuition would you like to investigate together?`
+        : `Hello! I'm your Waypoint AI Tutor. Would you like to investigate a tough topic using step-by-step **Socratic Inquiry**, or test your mastery by **teaching me in Feynman Mode**?`,
       timestamp: 'Just now',
       mode: 'socratic'
     }
   ]);
 
-  const handleSendMessage = (e?: React.FormEvent) => {
+  const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!inputMessage.trim()) return;
+    if (!inputMessage.trim() || isTyping) return;
 
     const userText = inputMessage.trim();
     const userMsg: ChatMessage = {
@@ -58,16 +66,16 @@ export const SocraticTutor: React.FC<SocraticTutorProps> = ({
     setInputMessage('');
     setIsTyping(true);
 
-    setTimeout(() => {
+    try {
       if (tutorMode === 'feynman') {
-        const feedback = evaluateFeynmanExplanation(
+        const feedback = await evaluateFeynmanExplanationAsync(
           initialTopic ? initialTopic.title : 'Calculus Concepts',
           userText
         );
         const aiMsg: ChatMessage = {
           id: `ai_${Date.now()}`,
           sender: 'assistant',
-          text: feedback?.praise + ' ' + (feedback?.suggestion || ''),
+          text: feedback ? `${feedback.praise} ${feedback.suggestion || ''}` : 'Thank you for your explanation!',
           timestamp: 'Just now',
           mode: 'feynman',
           feynmanFeedback: feedback
@@ -75,7 +83,7 @@ export const SocraticTutor: React.FC<SocraticTutorProps> = ({
         setMessages(prev => [...prev, aiMsg]);
         onAddXP(30);
       } else {
-        const reply = generateSocraticResponse(userText, initialTopic?.title);
+        const reply = await generateSocraticResponseAsync(userText, initialTopic?.title);
         const aiMsg: ChatMessage = {
           id: `ai_${Date.now()}`,
           sender: 'assistant',
@@ -84,10 +92,13 @@ export const SocraticTutor: React.FC<SocraticTutorProps> = ({
           mode: 'socratic'
         };
         setMessages(prev => [...prev, aiMsg]);
-        onAddXP(10);
+        onAddXP(15);
       }
+    } catch (err) {
+      console.error('Tutor error:', err);
+    } finally {
       setIsTyping(false);
-    }, 650);
+    }
   };
 
   const handleQuickPrompt = (prompt: string) => {
@@ -104,6 +115,10 @@ export const SocraticTutor: React.FC<SocraticTutorProps> = ({
               <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>AI Pedagogical Companion</h1>
               <span className={`badge ${tutorMode === 'socratic' ? 'badge-indigo' : 'badge-emerald'}`}>
                 {tutorMode === 'socratic' ? 'Socratic Inquiry' : 'Feynman Teach-Back'}
+              </span>
+              <span className={`badge ${isLiveAI ? 'badge-emerald' : 'badge-cyan'}`} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Activity size={12} />
+                {isLiveAI ? `Live LLM: ${providerName}` : 'Deterministic Heuristic'}
               </span>
             </div>
             <p style={{ margin: 0 }}>
@@ -251,7 +266,7 @@ export const SocraticTutor: React.FC<SocraticTutorProps> = ({
           {isTyping && (
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', color: 'var(--text-dim)', fontSize: '0.8125rem', paddingLeft: '50px' }}>
               <Sparkles size={14} className="animate-spin" />
-              <span>Waypoint AI is formulating a Socratic response...</span>
+              <span>Waypoint AI is formulating a pedagogical response...</span>
             </div>
           )}
         </div>
@@ -305,7 +320,12 @@ export const SocraticTutor: React.FC<SocraticTutorProps> = ({
                 outline: 'none'
               }}
             />
-            <button type="submit" className="btn btn-primary" style={{ padding: '0 20px' }}>
+            <button
+              type="submit"
+              disabled={isTyping}
+              className="btn btn-primary"
+              style={{ padding: '0 20px' }}
+            >
               <Send size={16} />
               <span>Send</span>
             </button>

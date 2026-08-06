@@ -16,6 +16,7 @@ import {
   mockAuthUsers,
   mockStudentComprehensiveReport
 } from '../data/mockData';
+import { BackendService } from './backendService';
 
 const KEYS = {
   USER_ROLE: 'waypoint_user_role',
@@ -44,6 +45,7 @@ export const StorageService = {
   login(user: AuthUser): void {
     localStorage.setItem(KEYS.AUTH_USER, JSON.stringify(user));
     this.setRole(user.role);
+    BackendService.broadcast('USER_REGISTERED', user, user.role);
   },
 
   logout(): void {
@@ -74,8 +76,12 @@ export const StorageService = {
     localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify(profile));
   },
 
-  getStudentReport(_studentId?: string): StudentComprehensiveReport {
-    return mockStudentComprehensiveReport;
+  getStudentReport(studentId: string = 'stu_maya_01'): StudentComprehensiveReport {
+    return BackendService.getStudentReport(studentId);
+  },
+
+  saveStudentReport(report: StudentComprehensiveReport): void {
+    BackendService.saveStudentReport(report);
   },
 
   addXP(amount: number): UserProfile {
@@ -139,6 +145,7 @@ export const StorageService = {
       return node;
     });
     this.saveConceptNodes(updated);
+    BackendService.broadcast('NODE_MASTERY_UPDATED', { nodeId, delta }, this.getRole());
     return updated;
   },
 
@@ -169,22 +176,15 @@ export const StorageService = {
       updated = [card, ...cards];
     }
     this.saveRecallCards(updated);
+    BackendService.broadcast('CARD_REVIEWED', card, this.getRole());
     return updated;
   },
 
   getWorksheets(): DifferentiatedWorksheet[] {
-    const data = localStorage.getItem(KEYS.WORKSHEETS);
-    if (data) {
-      try {
-        return JSON.parse(data);
-      } catch (e) {
-        // fallback
-      }
-    }
-    return mockWorksheets;
+    return BackendService.getWorksheets();
   },
 
   saveWorksheets(worksheets: DifferentiatedWorksheet[]): void {
-    localStorage.setItem(KEYS.WORKSHEETS, JSON.stringify(worksheets));
+    BackendService.saveWorksheets(worksheets);
   }
 };

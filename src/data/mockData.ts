@@ -722,3 +722,91 @@ export const mockStudentComprehensiveReport: StudentComprehensiveReport = {
   }
 };
 
+export const mockLeoStudentReport: StudentComprehensiveReport = {
+  studentId: 'stu_leo',
+  studentName: 'Leo Lin',
+  avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+  grade: 'Grade 9 (STEM Foundations & Geometry)',
+  school: 'Oakwood Horizon Junior High',
+  academicYear: '2025 - 2026 Academic Term',
+  studentEmail: 'leo.lin@student.waypoint.edu',
+  parentEmail: 'elena.lin@parent.waypoint.edu',
+  parentName: 'Elena Lin',
+
+  attendance: {
+    overallRate: 98.4,
+    presentDays: 49,
+    totalDays: 50,
+    excusedAbsences: 1,
+    unexcusedAbsences: 0,
+    tardies: 0,
+    recentLog: [
+      { date: 'Aug 05, 2026', status: 'present', subject: 'Honors Geometry', note: 'Mastered circle theorem proofs' },
+      { date: 'Aug 04, 2026', status: 'present', subject: 'Integrated Science', note: 'Lab on kinetic energy transformations' },
+      { date: 'Aug 03, 2026', status: 'present', subject: 'Intro to Python', note: 'Built an interactive text adventure game' }
+    ]
+  },
+
+  subjectBreakdown: [
+    {
+      subject: 'Honors Geometry & Trigonometry',
+      score: 92,
+      gradeLetter: 'A',
+      rankInClass: 'Top 8%',
+      strengths: [
+        'Congruent triangle proofs and coordinate geometry',
+        'Special right triangles and Pythagorean triples'
+      ],
+      weakSections: [
+        '3D solid surface area vs volume conversions'
+      ],
+      teacherName: 'Ms. Rebecca Ross',
+      teacherRemarks: 'Leo is doing great in geometric logic. Consistently participates and helps peers.'
+    },
+    {
+      subject: 'Intro to Python & Algorithmic Thinking',
+      score: 98,
+      gradeLetter: 'A+',
+      rankInClass: 'Top 1%',
+      strengths: [
+        'Loops, dictionaries, functions, and boolean logic',
+        'Exceptional problem decomposition'
+      ],
+      weakSections: [],
+      teacherName: 'Mr. David Lin',
+      teacherRemarks: 'Leo is coding with university-level elegance. Highly recommended for advanced tracks.'
+    }
+  ],
+
+  weakAreasRadar: [
+    {
+      topic: '3D Solid Surface Area vs Volume',
+      subject: 'Honors Geometry',
+      severity: 'moderate',
+      misconceptionSummary: 'Confuses square unit scaling with cubic unit scaling during geometry proofs.',
+      recommendedHomeAction: 'Have Leo calculate paint needed for a cardboard box vs how much sand it can hold.'
+    }
+  ],
+
+  studyHabits: {
+    weeklyFocusHours: 3.8,
+    activeRecallStreakDays: 14,
+    masteredCardsCount: 31,
+    socraticSessionsCompleted: 9,
+    completionRate: 99
+  }
+};
+
+export const mockStudentReport = mockStudentComprehensiveReport;
+export const mockConceptNodes = initialConceptNodes;
+export const mockRecallCards = initialRecallCards;
+export const mockUserProfile = initialStudentProfile;
+
+export const mockStudentReportsMap: Record<string, StudentComprehensiveReport> = {
+  'stu_maya_01': mockStudentComprehensiveReport,
+  'stu_maya': mockStudentComprehensiveReport,
+  'stu_leo_02': mockLeoStudentReport,
+  'stu_leo': mockLeoStudentReport
+};
+
+
