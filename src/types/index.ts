@@ -344,3 +344,81 @@ export interface GeneratedCurriculum {
   edges: GraphEdge[];
   sampleWorksheets?: DifferentiatedWorksheet[];
 }
+
+// -------------------------------------------------------------
+// Vector Storage & Qdrant Configuration Types
+// -------------------------------------------------------------
+export interface QdrantConfig {
+  url: string;
+  apiKey: string;
+  collectionName: string;
+  dimension: number;
+  isConnected: boolean;
+  indexedPointsCount?: number;
+  lastIndexedAt?: string;
+}
+
+export interface RAGSearchResult {
+  nodeId: string;
+  title: string;
+  subject: SubjectId;
+  score: number;
+  category: string;
+  description: string;
+  commonMisconception?: string;
+  keyTakeaways: string[];
+  prerequisites: string[];
+}
+
+// -------------------------------------------------------------
+// Enterprise AI Guardrails & Governance Types
+// -------------------------------------------------------------
+export type GuardrailProviderId = 'enkrypt' | 'local_regex' | 'hybrid';
+
+export interface GuardrailConfig {
+  provider: GuardrailProviderId;
+  enkryptApiKey: string;
+  enkryptEndpoint?: string;
+  maskPII: boolean;
+  blockPromptInjections: boolean;
+  contentSafetyThreshold: 'strict' | 'moderate' | 'relaxed';
+}
+
+export type SafetyViolationType =
+  | 'PROMPT_INJECTION'
+  | 'SYSTEM_PROMPT_EXTRACTION'
+  | 'PII_DETECTED'
+  | 'TOXIC_CONTENT'
+  | 'ACADEMIC_CHEATING'
+  | 'JAILBREAK_ATTEMPT';
+
+export interface GuardrailCheckResult {
+  passed: boolean;
+  blocked: boolean;
+  sanitizedText: string;
+  violations: SafetyViolationType[];
+  redactedFields: string[];
+  riskScore: number; // 0.0 - 1.0
+  reason?: string;
+  enkryptScanId?: string;
+}
+
+export interface AIAuditLogEntry {
+  id: string;
+  timestamp: string;
+  userId: string;
+  userRole: UserRole;
+  promptOriginal: string;
+  promptSanitized: string;
+  ragCitations?: string[];
+  guardrailStatus: 'passed' | 'flagged' | 'blocked';
+  violations: SafetyViolationType[];
+  redactedFields: string[];
+  riskScore: number;
+  latencyMs: number;
+  tokensEstimate: number;
+  model: string;
+  provider: string;
+  responseSnippet?: string;
+}
+

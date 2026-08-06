@@ -1,4 +1,7 @@
-import { AIConfig, AIProviderId, ChatMessage, HomeworkProblem, SubjectId, VisionScanResult } from '../types';
+import { AIConfig, AIProviderId, ChatMessage, HomeworkProblem, SubjectId, UserRole, VisionScanResult } from '../types';
+import { GuardrailService } from './guardrailService';
+import { VectorService } from './vectorService';
+import { AuditLogService } from './auditLogService';
 
 const AI_CONFIG_KEY = 'waypoint_ai_config';
 
@@ -42,28 +45,139 @@ export const AIProviderService = {
   },
 
   // -------------------------------------------------------------
-  // Real LLM API Dispatchers (OpenAI / Anthropic / Gemini)
+  // Real LLM API Dispatchers (Guardrails + RAG + Proxy + Audit)
   // -------------------------------------------------------------
   async callChatCompletion(
     systemPrompt: string,
     messages: { role: 'user' | 'assistant' | 'system'; content: string }[],
-    options?: { jsonMode?: boolean; maxTokens?: number }
+    options?: {
+      jsonMode?: boolean;
+      maxTokens?: number;
+      subject?: SubjectId;
+      userRole?: UserRole;
+      userId?: string;
+      enableRAG?: boolean;
+    }
   ): Promise<string> {
+    const startTime = Date.now();
     const config = this.getConfig();
+    const lastUserMsg = messages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
+    const userId = options?.userId || 'usr_current';
+    const userRole = options?.userRole || 'student';
+    const subject = options?.subject || 'math';
 
-    if (!this.isLiveProviderActive()) {
+    // 1. Pre-flight Guardrails & PII Sanitization
+    const guardrailCheck = await GuardrailService.validateAndSanitizeInput(lastUserMsg, userRole);
+
+    if (guardrailCheck.blocked) {
+      AuditLogService.recordLog({
+        userId,
+        userRole,
+        promptOriginal: lastUserMsg,
+        promptSanitized: guardrailCheck.sanitizedText,
+        guardrailStatus: 'blocked',
+        violations: guardrailCheck.violations,
+        redactedFields: guardrailCheck.redactedFields,
+        riskScore: guardrailCheck.riskScore,
+        latencyMs: Date.now() - startTime,
+        tokensEstimate: Math.ceil(lastUserMsg.length / 4),
+        model: config.model || 'gpt-4o-mini',
+        provider: config.provider,
+        responseSnippet: guardrailCheck.sanitizedText
+      });
+      return guardrailCheck.sanitizedText;
+    }
+
+    // Replace user message with sanitized version
+    const sanitizedMessages = messages.map(m => {
+      if (m.role === 'user' && m.content === lastUserMsg) {
+        return { ...m, content: guardrailCheck.sanitizedText };
+      }
+      return m;
+    });
+
+    // 2. Vector Semantic Search & Knowledge Graph RAG Augmentation
+    let effectiveSystemPrompt = systemPrompt;
+    let ragCitations: string[] = [];
+
+    if (options?.enableRAG !== false && lastUserMsg.length > 3) {
+      try {
+        const ragRes = await VectorService.augmentPromptWithRAG(guardrailCheck.sanitizedText, subject);
+        if (ragRes.augmentedContext) {
+          effectiveSystemPrompt = `${systemPrompt}\n\n${ragRes.augmentedContext}`;
+          ragCitations = ragRes.citations;
+        }
+      } catch (err) {
+        console.warn('RAG augmentation notice:', err);
+      }
+    }
+
+    let rawResponse = '';
+
+    // 3. Try Secure Serverless Backend Proxy (/api/chat)
+    try {
+      const proxyRes = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          provider: config.provider !== 'simulated' ? config.provider : 'openai',
+          systemPrompt: effectiveSystemPrompt,
+          messages: sanitizedMessages,
+          model: config.model,
+          temperature: config.temperature,
+          maxTokens: options?.maxTokens,
+          jsonMode: options?.jsonMode
+        })
+      });
+
+      if (proxyRes.ok) {
+        const data = await proxyRes.json();
+        if (data.content) rawResponse = data.content;
+      }
+    } catch (e) {
+      // Continue to direct client dispatch
+    }
+
+    // 4. Direct Client Dispatch (BYOK fallback)
+    if (!rawResponse && this.isLiveProviderActive()) {
+      if (config.provider === 'openai') {
+        rawResponse = await this.callOpenAI(config, effectiveSystemPrompt, sanitizedMessages, options);
+      } else if (config.provider === 'anthropic') {
+        rawResponse = await this.callAnthropic(config, effectiveSystemPrompt, sanitizedMessages, options);
+      } else if (config.provider === 'gemini') {
+        rawResponse = await this.callGemini(config, effectiveSystemPrompt, sanitizedMessages, options);
+      }
+    }
+
+    if (!rawResponse) {
       throw new Error('No active live AI provider configured. Using offline simulator.');
     }
 
-    if (config.provider === 'openai') {
-      return this.callOpenAI(config, systemPrompt, messages, options);
-    } else if (config.provider === 'anthropic') {
-      return this.callAnthropic(config, systemPrompt, messages, options);
-    } else if (config.provider === 'gemini') {
-      return this.callGemini(config, systemPrompt, messages, options);
-    }
+    // 5. Post-generation Output Guardrail Validation
+    const outputCheck = await GuardrailService.validateOutput(rawResponse);
+    const finalResponse = outputCheck.sanitizedText;
+    const latencyMs = Date.now() - startTime;
+    const tokensEstimate = Math.ceil((lastUserMsg.length + finalResponse.length) / 4);
 
-    throw new Error(`Unsupported AI provider: ${config.provider}`);
+    // 6. Record in Enterprise AI Audit Log
+    AuditLogService.recordLog({
+      userId,
+      userRole,
+      promptOriginal: lastUserMsg,
+      promptSanitized: guardrailCheck.sanitizedText,
+      ragCitations,
+      guardrailStatus: guardrailCheck.violations.length > 0 ? 'flagged' : 'passed',
+      violations: guardrailCheck.violations,
+      redactedFields: guardrailCheck.redactedFields,
+      riskScore: guardrailCheck.riskScore,
+      latencyMs,
+      tokensEstimate,
+      model: config.model || 'gpt-4o-mini',
+      provider: config.provider,
+      responseSnippet: finalResponse.substring(0, 120)
+    });
+
+    return finalResponse;
   },
 
   async callOpenAI(
@@ -180,17 +294,34 @@ export const AIProviderService = {
   },
 
   // -------------------------------------------------------------
-  // Real Multimodal / Vision OCR Homework Analysis
+  // Multimodal Vision OCR Homework Analysis
   // -------------------------------------------------------------
   async analyzeHomeworkImage(imageBase64: string, mimeType: string = 'image/jpeg'): Promise<VisionScanResult> {
     const config = this.getConfig();
 
+    // 1. Try secure backend serverless vision proxy
+    try {
+      const proxyRes = await fetch('/api/vision', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64, mimeType })
+      });
+
+      if (proxyRes.ok) {
+        const parsed = await proxyRes.json();
+        if (parsed.steps && parsed.steps.length > 0) return parsed;
+      }
+    } catch (e) {
+      // Continue to direct client fallback
+    }
+
+    // 2. Direct client-side OpenAI vision if key available
     const visionSystemPrompt = `You are an expert STEM Homework Inspector and Computer Vision Logic Engine.
 Inspect the provided image of handwritten or typed student mathematical/scientific derivations.
 1. Extract the title and main problem statement.
 2. Break down each logical or algebraic step into sequential derivation steps.
 3. Check the mathematical validity of each step.
-4. If there is an algebraic, sign, or conceptual error, mark that exact step as isError: true, identify the errorType, provide a gentle correctionHint, and assign a remedialConceptId (e.g. "calc-03-chain-rule", "linalg-02-matrix-mult", "phys-01-newton-laws").
+4. If there is an algebraic, sign, or conceptual error, mark that exact step as isError: true, identify the errorType, provide a gentle correctionHint, and assign a remedialConceptId.
 
 CRITICAL: Return ONLY valid JSON in this exact structure:
 {
@@ -210,7 +341,7 @@ CRITICAL: Return ONLY valid JSON in this exact structure:
       "explanation": "Brief description of step",
       "isError": true,
       "errorType": "Chain Rule Derivative Omission",
-      "correctionHint": "Remember to multiply by the inner derivative \\frac{d}{dx}[g(x)]"
+      "correctionHint": "Remember to multiply by the inner derivative \\\\frac{d}{dx}[g(x)]"
     }
   ],
   "conceptTested": "Chain Rule on Composite Functions",

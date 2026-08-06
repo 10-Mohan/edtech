@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CloudBackendConfig, CloudProviderId } from '../../types';
 import { SupabaseService, SUPABASE_SQL_SCHEMA } from '../../services/supabaseClient';
+import { BackendService } from '../../services/backendService';
 import {
   Database,
   X,
@@ -92,6 +93,7 @@ export const BackendSettingsModal: React.FC<BackendSettingsModalProps> = ({ isOp
 
   const handleSave = () => {
     SupabaseService.saveConfig(config);
+    BackendService.initSupabaseRealtime();
     onClose();
   };
 

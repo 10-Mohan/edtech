@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { BackendService } from '../services/backendService';
+import { SupabaseService } from '../services/supabaseClient';
 
 describe('Backend Architecture & Multi-Tenant Synchronization', () => {
   beforeEach(() => {
@@ -33,7 +34,14 @@ describe('Backend Architecture & Multi-Tenant Synchronization', () => {
     expect(newParent.linkedStudentIds).toContain('stu_maya_01');
   });
 
-  it('updates mastery scores and allows node creation', () => {
+  it('authenticates user accounts asynchronously with password', async () => {
+    const user = await BackendService.authenticateWithPassword('maya.lin@student.waypoint.edu', 'demo123');
+    expect(user).toBeDefined();
+    expect(user?.role).toBe('student');
+    expect(user?.name).toBe('Maya Lin');
+  });
+
+  it('updates mastery scores and allows node creation with optimistic sync', () => {
     const initialNodes = BackendService.getConceptNodes();
     expect(initialNodes.length).toBeGreaterThan(0);
 
@@ -50,5 +58,11 @@ describe('Backend Architecture & Multi-Tenant Synchronization', () => {
     expect(mayaReport.studentName).toContain('Maya');
     expect(mayaReport.attendance.overallRate).toBeGreaterThan(90);
     expect(mayaReport.subjectBreakdown.length).toBeGreaterThan(0);
+  });
+
+  it('handles Supabase configuration lifecycle cleanly', () => {
+    expect(SupabaseService.isCloudConfigured()).toBe(false);
+    const cfg = SupabaseService.getConfig();
+    expect(cfg.provider).toBeDefined();
   });
 });

@@ -36,6 +36,7 @@ interface LoginPageProps {
   onOpenThemeModal: () => void;
   onOpenAISettings?: () => void;
   onOpenBackendSettings?: () => void;
+  onOpenGovernanceMonitor?: () => void;
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({
@@ -45,8 +46,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   colorTheme,
   onOpenThemeModal,
   onOpenAISettings,
-  onOpenBackendSettings
+  onOpenBackendSettings,
+  onOpenGovernanceMonitor
 }) => {
+
   const [selectedRole, setSelectedRole] = useState<UserRole>('student');
   const [email, setEmail] = useState<string>('maya.lin@student.waypoint.edu');
   const [password, setPassword] = useState<string>('demo123');
@@ -67,19 +70,28 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     setPassword('demo123');
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const users = BackendService.getUsers();
-    let user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    if (!user) {
-      user = users.find(u => u.role === selectedRole) || mockAuthUsers.find(u => u.role === selectedRole);
-    }
-    if (user) {
-      onLogin(user);
+    setIsLoggingIn(true);
+    try {
+      let user = await BackendService.authenticateWithPassword(email.trim(), password);
+      if (!user) {
+        const users = BackendService.getUsers();
+        user = users.find(u => u.role === selectedRole) || mockAuthUsers.find(u => u.role === selectedRole) || null;
+      }
+      if (user) {
+        onLogin(user);
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
-  const handleDirectDemoLogin = (role: UserRole) => {
+  const handleDirectDemoLogin = async (role: UserRole) => {
     const users = BackendService.getUsers();
     const user = users.find(u => u.role === role) || mockAuthUsers.find(u => u.role === role);
     if (user) {
@@ -164,6 +176,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             <Database size={15} color={isCloudDB ? '#06b6d4' : 'var(--text-dim)'} />
           </button>
         )}
+
+        {onOpenGovernanceMonitor && (
+          <button
+            onClick={onOpenGovernanceMonitor}
+            className="btn btn-secondary btn-icon"
+            title="AI Governance & Safety Monitor"
+            style={{ width: '32px', height: '32px', borderColor: 'rgba(14, 165, 233, 0.4)' }}
+          >
+            <ShieldCheck size={15} color="#0ea5e9" />
+          </button>
+        )}
+
 
         <button
           onClick={onOpenThemeModal}

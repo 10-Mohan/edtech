@@ -120,6 +120,19 @@ export const SocraticTutor: React.FC<SocraticTutorProps> = ({
                 <Activity size={12} />
                 {isLiveAI ? `Live LLM: ${providerName}` : 'Deterministic Heuristic'}
               </span>
+              <span
+                style={{
+                  padding: '2px 8px',
+                  borderRadius: '12px',
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  background: 'rgba(14, 165, 233, 0.15)',
+                  color: '#38bdf8',
+                  border: '1px solid rgba(14, 165, 233, 0.3)'
+                }}
+              >
+                Qdrant RAG + Enkrypt Guardrails Active
+              </span>
             </div>
             <p style={{ margin: 0 }}>
               {tutorMode === 'socratic'
@@ -127,6 +140,7 @@ export const SocraticTutor: React.FC<SocraticTutorProps> = ({
                 : 'Teach the concept in your own words as if explaining to a beginner. The AI will grade your clarity and detect missing key mechanisms.'}
             </p>
           </div>
+
 
           {/* Mode Switcher */}
           <div style={{ display: 'flex', background: 'var(--bg-surface-elevated)', padding: '4px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>

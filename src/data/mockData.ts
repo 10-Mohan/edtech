@@ -144,6 +144,10 @@ export const initialConceptNodes: ConceptNode[] = [
   }
 ];
 
+export const mockMathConceptNodes: ConceptNode[] = initialConceptNodes.filter(n => n.subject === 'math');
+export const mockPhysicsConceptNodes: ConceptNode[] = initialConceptNodes.filter(n => n.subject === 'physics');
+
+
 export const initialRecallCards: RecallCard[] = [
   {
     id: 'card_01',

@@ -16,7 +16,8 @@ import {
   Palette,
   Bot,
   Database,
-  Cloud
+  Cloud,
+  ShieldCheck
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -31,6 +32,7 @@ interface HeaderProps {
   onOpenDiagnostic: () => void;
   onOpenAISettings?: () => void;
   onOpenBackendSettings?: () => void;
+  onOpenGovernanceMonitor?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -44,10 +46,12 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenThemeModal,
   onOpenDiagnostic,
   onOpenAISettings,
-  onOpenBackendSettings
+  onOpenBackendSettings,
+  onOpenGovernanceMonitor
 }) => {
   const isLiveAI = AIProviderService.isLiveProviderActive();
   const isCloudDB = SupabaseService.isCloudConfigured();
+
 
   return (
     <header
@@ -218,6 +222,24 @@ export const Header: React.FC<HeaderProps> = ({
             <Database size={17} color={isCloudDB ? '#06b6d4' : 'var(--text-dim)'} />
           </button>
         )}
+
+        {/* Enterprise AI Governance & Safety Monitor Button */}
+        {onOpenGovernanceMonitor && (
+          <button
+            onClick={onOpenGovernanceMonitor}
+            className="btn btn-secondary btn-icon"
+            title="AI Governance, Guardrails & Vector Index Monitor"
+            style={{
+              width: '38px',
+              height: '38px',
+              position: 'relative',
+              borderColor: 'rgba(14, 165, 233, 0.4)'
+            }}
+          >
+            <ShieldCheck size={17} color="#0ea5e9" />
+          </button>
+        )}
+
 
         {/* Streak Counter (Student only) */}
         {currentRole === 'student' && (

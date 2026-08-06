@@ -12,7 +12,9 @@ import {
   Key,
   ShieldCheck,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Lock,
+  Loader2
 } from 'lucide-react';
 
 interface RegisterModalProps {
@@ -29,12 +31,14 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
   const [role, setRole] = useState<UserRole>('student');
   const [name, setName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('password123');
   const [studentCode, setStudentCode] = useState<string>('STU-MAYA-99');
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -43,17 +47,21 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
       return;
     }
 
+    setIsSubmitting(true);
     try {
-      const newUser = BackendService.registerUser(
+      const newUser = await BackendService.registerUserAccount(
         email.trim(),
         name.trim(),
         role,
-        role === 'parent' ? studentCode : undefined
+        role === 'parent' ? studentCode : undefined,
+        password
       );
       onRegistered(newUser);
       onClose();
     } catch (err: any) {
       setError(err?.message || 'Registration failed. Try a different email.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -106,7 +114,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                 Create New Account
               </h2>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-dim)', margin: 0 }}>
-                Join Waypoint with role-specific permissions
+                Join Waypoint with role-specific permissions & cloud sync
               </p>
             </div>
           </div>
@@ -255,6 +263,32 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
             </div>
           </div>
 
+          {/* Password */}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-dim)', marginBottom: '6px' }}>
+              Password
+            </label>
+            <div style={{ position: 'relative' }}>
+              <Lock size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-dim)' }} />
+              <input
+                type="password"
+                placeholder="Create a secure password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px 10px 38px',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'var(--bg-surface-elevated)',
+                  border: '1px solid var(--border-medium)',
+                  color: 'var(--text-main)',
+                  fontSize: '0.875rem'
+                }}
+                required
+              />
+            </div>
+          </div>
+
           {/* Parent Student Code Link */}
           {role === 'parent' && (
             <div>
@@ -287,7 +321,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.72rem', color: 'var(--text-dim)' }}>
             <ShieldCheck size={14} color="#10b981" />
-            <span>FERPA / COPPA Secure • Persistent multi-role sync</span>
+            <span>FERPA / COPPA Secure • Persistent multi-role Supabase sync</span>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
@@ -302,11 +336,12 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className="btn btn-primary"
               style={{ fontSize: '0.85rem' }}
             >
-              <CheckCircle2 size={14} />
-              <span>Complete Registration</span>
+              {isSubmitting ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+              <span>{isSubmitting ? 'Creating Account...' : 'Complete Registration'}</span>
             </button>
           </div>
         </form>

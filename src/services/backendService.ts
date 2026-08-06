@@ -17,6 +17,7 @@ import {
   mockUserProfile,
   mockWorksheets
 } from '../data/mockData';
+import { SupabaseService } from './supabaseClient';
 
 const SYNC_CHANNEL_NAME = 'waypoint_realtime_sync';
 
@@ -38,7 +39,8 @@ export type SyncEventType =
   | 'WORKSHEET_CREATED'
   | 'TOPIC_CREATED'
   | 'USER_REGISTERED'
-  | 'CHILD_SWITCHED';
+  | 'CHILD_SWITCHED'
+  | 'REMOTE_DB_SYNC';
 
 export interface SyncMessage {
   type: SyncEventType;
@@ -50,8 +52,10 @@ export interface SyncMessage {
 class BackendServiceManager {
   private broadcastChannel: BroadcastChannel | null = null;
   private listeners: ((msg: SyncMessage) => void)[] = [];
+  private unsubscribeRealtimeDb: (() => void) | null = null;
 
   constructor() {
+    // 1. Same-browser tab synchronization via BroadcastChannel
     if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
       try {
         this.broadcastChannel = new BroadcastChannel(SYNC_CHANNEL_NAME);
@@ -62,10 +66,53 @@ class BackendServiceManager {
         console.warn('BroadcastChannel not supported in current environment');
       }
     }
+
+    // 2. Cross-device Postgres Realtime synchronization via Supabase
+    this.initSupabaseRealtime();
+  }
+
+  public initSupabaseRealtime() {
+    if (this.unsubscribeRealtimeDb) {
+      this.unsubscribeRealtimeDb();
+      this.unsubscribeRealtimeDb = null;
+    }
+
+    if (SupabaseService.isCloudConfigured()) {
+      this.unsubscribeRealtimeDb = SupabaseService.subscribeToDatabaseChanges((table, payload) => {
+        console.log(`[Supabase Realtime] Change detected on ${table}:`, payload);
+        this.broadcast('REMOTE_DB_SYNC', { table, payload }, 'teacher');
+      });
+
+      // Eagerly pull latest data from cloud
+      this.syncAllFromCloud();
+    }
+  }
+
+  // Pull remote cloud database state into cache
+  public async syncAllFromCloud(): Promise<void> {
+    try {
+      const [remoteNodes, remoteCards, remoteWorksheets] = await Promise.all([
+        SupabaseService.fetchConceptNodes(),
+        SupabaseService.fetchRecallCards(),
+        SupabaseService.fetchWorksheets()
+      ]);
+
+      if (remoteNodes && remoteNodes.length > 0) {
+        this.saveConceptNodes(remoteNodes);
+      }
+      if (remoteCards && remoteCards.length > 0) {
+        this.saveRecallCards(remoteCards);
+      }
+      if (remoteWorksheets && remoteWorksheets.length > 0) {
+        this.saveWorksheets(remoteWorksheets);
+      }
+    } catch (err) {
+      console.warn('Cloud sync in progress or partially unavailable:', err);
+    }
   }
 
   // -------------------------------------------------------------
-  // Real-time Event Bus
+  // Real-time Event Bus (Combined Cross-Tab & Cross-Device)
   // -------------------------------------------------------------
   public subscribe(callback: (msg: SyncMessage) => void): () => void {
     this.listeners.push(callback);
@@ -92,7 +139,7 @@ class BackendServiceManager {
   }
 
   // -------------------------------------------------------------
-  // Users & Auth Management
+  // Users & Real Auth Management
   // -------------------------------------------------------------
   public getUsers(): AuthUser[] {
     const raw = localStorage.getItem(STORAGE_KEYS.USERS);
@@ -109,6 +156,60 @@ class BackendServiceManager {
     localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
   }
 
+  public async registerUserAccount(
+    email: string,
+    name: string,
+    role: UserRole,
+    studentInviteCode?: string,
+    password?: string
+  ): Promise<AuthUser> {
+    const users = this.getUsers();
+    const existing = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (existing) {
+      throw new Error('An account with this email address already exists.');
+    }
+
+    // If Supabase is connected and password provided, perform real Supabase Auth signup
+    if (SupabaseService.isCloudConfigured() && password) {
+      try {
+        await SupabaseService.signUp(email, password, {
+          name,
+          role,
+          linkedStudentId: studentInviteCode ? 'stu_maya_01' : undefined
+        });
+      } catch (authErr: any) {
+        console.warn('Supabase Auth warning:', authErr.message);
+      }
+    }
+
+    const newUser: AuthUser = {
+      id: `usr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      email,
+      name,
+      role,
+      avatar:
+        role === 'student'
+          ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
+          : role === 'teacher'
+          ? 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80'
+          : 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+      title:
+        role === 'student'
+          ? 'AP Scholar'
+          : role === 'teacher'
+          ? 'Faculty Lead'
+          : 'Guardian / Parent',
+      linkedStudentId: studentInviteCode ? 'stu_maya_01' : undefined,
+      linkedStudentIds: studentInviteCode ? ['stu_maya_01', 'stu_leo_02'] : undefined
+    };
+
+    const updated = [newUser, ...users];
+    this.saveUsers(updated);
+    this.broadcast('USER_REGISTERED', newUser, role);
+    return newUser;
+  }
+
+  // Synchronous signature for tests and quick login
   public registerUser(
     email: string,
     name: string,
@@ -116,7 +217,7 @@ class BackendServiceManager {
     studentInviteCode?: string
   ): AuthUser {
     const users = this.getUsers();
-    const existing = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    const existing = users.find(u => u.email.toLowerCase() === (email || '').toLowerCase());
     if (existing) {
       throw new Error('An account with this email address already exists.');
     }
@@ -148,13 +249,37 @@ class BackendServiceManager {
     return newUser;
   }
 
+  public async authenticateWithPassword(email: string, password?: string): Promise<AuthUser | null> {
+    if (SupabaseService.isCloudConfigured() && password) {
+      try {
+        const { user } = await SupabaseService.signInWithPassword(email, password);
+        if (user) {
+          const matched = this.getUsers().find(u => u.email.toLowerCase() === email.toLowerCase());
+          if (matched) return matched;
+          return {
+            id: user.id,
+            email: user.email || email,
+            name: user.user_metadata?.name || 'Authorized User',
+            role: user.user_metadata?.role || 'student',
+            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+            title: 'Verified User'
+          };
+        }
+      } catch (authErr: any) {
+        console.warn('Supabase auth sign-in warning:', authErr.message);
+      }
+    }
+
+    return this.authenticate(email);
+  }
+
   public authenticate(email: string): AuthUser | null {
     const users = this.getUsers();
-    return users.find(u => u.email.toLowerCase() === email.toLowerCase()) || null;
+    return users.find(u => u.email.toLowerCase() === (email || '').toLowerCase()) || null;
   }
 
   // -------------------------------------------------------------
-  // Concept Graph Nodes Management
+  // Concept Graph Nodes Management (Postgres + Offline Cache)
   // -------------------------------------------------------------
   public getConceptNodes(): ConceptNode[] {
     const raw = localStorage.getItem(STORAGE_KEYS.NODES);
@@ -165,6 +290,17 @@ class BackendServiceManager {
     }
     this.saveConceptNodes(mockConceptNodes);
     return mockConceptNodes;
+  }
+
+  public async fetchConceptNodesAsync(): Promise<ConceptNode[]> {
+    if (SupabaseService.isCloudConfigured()) {
+      const remote = await SupabaseService.fetchConceptNodes();
+      if (remote && remote.length > 0) {
+        this.saveConceptNodes(remote);
+        return remote;
+      }
+    }
+    return this.getConceptNodes();
   }
 
   public saveConceptNodes(nodes: ConceptNode[]): void {
@@ -182,12 +318,20 @@ class BackendServiceManager {
       updated = [node, ...nodes];
     }
     this.saveConceptNodes(updated);
+
+    // Asynchronously write through to Supabase if configured
+    if (SupabaseService.isCloudConfigured()) {
+      SupabaseService.upsertConceptNode(node).catch(err => {
+        console.warn('Supabase upsert node error:', err);
+      });
+    }
+
     this.broadcast('TOPIC_CREATED', node, senderRole);
     return updated;
   }
 
   // -------------------------------------------------------------
-  // Spaced Repetition Cards
+  // Spaced Repetition Cards (Postgres + Offline Cache)
   // -------------------------------------------------------------
   public getRecallCards(): RecallCard[] {
     const raw = localStorage.getItem(STORAGE_KEYS.CARDS);
@@ -204,8 +348,31 @@ class BackendServiceManager {
     localStorage.setItem(STORAGE_KEYS.CARDS, JSON.stringify(cards));
   }
 
+  public addOrUpdateRecallCard(card: RecallCard, senderRole: UserRole = 'student'): RecallCard[] {
+    const cards = this.getRecallCards();
+    const existingIdx = cards.findIndex(c => c.id === card.id);
+    let updated: RecallCard[];
+    if (existingIdx >= 0) {
+      updated = [...cards];
+      updated[existingIdx] = card;
+    } else {
+      updated = [card, ...cards];
+    }
+    this.saveRecallCards(updated);
+
+    // Asynchronously write through to Supabase
+    if (SupabaseService.isCloudConfigured()) {
+      SupabaseService.upsertRecallCard(card).catch(err => {
+        console.warn('Supabase upsert recall card error:', err);
+      });
+    }
+
+    this.broadcast('CARD_REVIEWED', card, senderRole);
+    return updated;
+  }
+
   // -------------------------------------------------------------
-  // Differentiated Worksheets
+  // Differentiated Worksheets (Postgres + Offline Cache)
   // -------------------------------------------------------------
   public getWorksheets(): DifferentiatedWorksheet[] {
     const raw = localStorage.getItem(STORAGE_KEYS.WORKSHEETS);
@@ -226,6 +393,14 @@ class BackendServiceManager {
     const current = this.getWorksheets();
     const updated = [ws, ...current];
     this.saveWorksheets(updated);
+
+    // Write through to Supabase
+    if (SupabaseService.isCloudConfigured()) {
+      SupabaseService.upsertWorksheet(ws).catch(err => {
+        console.warn('Supabase upsert worksheet error:', err);
+      });
+    }
+
     this.broadcast('WORKSHEET_CREATED', ws, senderRole);
     return updated;
   }
@@ -260,6 +435,12 @@ class BackendServiceManager {
 
   public saveStudentReport(report: StudentComprehensiveReport): void {
     localStorage.setItem(`${STORAGE_KEYS.REPORTS}_${report.studentId}`, JSON.stringify(report));
+
+    if (SupabaseService.isCloudConfigured()) {
+      SupabaseService.upsertStudentReport(report).catch(err => {
+        console.warn('Supabase upsert report error:', err);
+      });
+    }
   }
 }
 

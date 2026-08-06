@@ -16,6 +16,7 @@ import { DiagnosticTestModal } from './components/student/DiagnosticTestModal';
 import { ThemeSelectorModal } from './components/common/ThemeSelectorModal';
 import { AISettingsModal } from './components/common/AISettingsModal';
 import { BackendSettingsModal } from './components/common/BackendSettingsModal';
+import { GovernanceMonitorModal } from './components/common/GovernanceMonitorModal';
 import { TeacherDashboard } from './components/teacher/TeacherDashboard';
 import { ParentDashboard } from './components/parent/ParentDashboard';
 
@@ -27,6 +28,8 @@ export const App: React.FC = () => {
   const [isThemeModalOpen, setIsThemeModalOpen] = useState<boolean>(false);
   const [isAISettingsOpen, setIsAISettingsOpen] = useState<boolean>(false);
   const [isBackendSettingsOpen, setIsBackendSettingsOpen] = useState<boolean>(false);
+  const [isGovernanceOpen, setIsGovernanceOpen] = useState<boolean>(false);
+
   const [profile, setProfile] = useState<UserProfile>(StorageService.getProfile());
   const [conceptNodes, setConceptNodes] = useState<ConceptNode[]>(StorageService.getConceptNodes());
   const [recallCards, setRecallCards] = useState<RecallCard[]>(StorageService.getRecallCards());
@@ -126,6 +129,7 @@ export const App: React.FC = () => {
           onOpenThemeModal={() => setIsThemeModalOpen(true)}
           onOpenAISettings={() => setIsAISettingsOpen(true)}
           onOpenBackendSettings={() => setIsBackendSettingsOpen(true)}
+          onOpenGovernanceMonitor={() => setIsGovernanceOpen(true)}
         />
         <ThemeSelectorModal
           isOpen={isThemeModalOpen}
@@ -143,9 +147,14 @@ export const App: React.FC = () => {
           isOpen={isBackendSettingsOpen}
           onClose={() => setIsBackendSettingsOpen(false)}
         />
+        <GovernanceMonitorModal
+          isOpen={isGovernanceOpen}
+          onClose={() => setIsGovernanceOpen(false)}
+        />
       </>
     );
   }
+
 
   const dueCardsCount = recallCards.filter(isCardDue).length;
 
@@ -183,7 +192,9 @@ export const App: React.FC = () => {
           onOpenDiagnostic={() => setIsDiagnosticOpen(true)}
           onOpenAISettings={() => setIsAISettingsOpen(true)}
           onOpenBackendSettings={() => setIsBackendSettingsOpen(true)}
+          onOpenGovernanceMonitor={() => setIsGovernanceOpen(true)}
         />
+
 
         {/* Page Body */}
         <main className="page-wrapper animate-fade-in">
@@ -273,8 +284,15 @@ export const App: React.FC = () => {
         isOpen={isBackendSettingsOpen}
         onClose={() => setIsBackendSettingsOpen(false)}
       />
+
+      {/* Enterprise AI Governance & Safety Monitor Modal */}
+      <GovernanceMonitorModal
+        isOpen={isGovernanceOpen}
+        onClose={() => setIsGovernanceOpen(false)}
+      />
     </div>
   );
+
 };
 
 export default App;
