@@ -43,6 +43,11 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
   const [isTesting, setIsTesting] = useState<boolean>(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [savedSuccess, setSavedSuccess] = useState<boolean>(false);
+  const [serverlessHealth, setServerlessHealth] = useState<{
+    isServerlessReachable: boolean;
+    providers?: { openai: boolean; anthropic: boolean; gemini: boolean; qdrant: boolean; enkrypt: boolean };
+    isProductionGrade?: boolean;
+  } | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -51,8 +56,13 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
       setGuardrailConfig(GuardrailService.getConfig());
       setTestResult(null);
       setSavedSuccess(false);
+
+      AIProviderService.checkServerlessHealth().then(res => {
+        setServerlessHealth(res);
+      });
     }
   }, [isOpen]);
+
 
   if (!isOpen) return null;
 
@@ -214,8 +224,77 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
           </button>
         </div>
 
+        {/* Vercel Serverless Environment Security Status Banner */}
+        <div
+          style={{
+            marginBottom: '16px',
+            padding: '12px 16px',
+            borderRadius: 'var(--radius-md)',
+            background: serverlessHealth?.isProductionGrade
+              ? 'rgba(16, 185, 129, 0.08)'
+              : serverlessHealth?.isServerlessReachable
+              ? 'rgba(245, 158, 11, 0.08)'
+              : 'rgba(99, 102, 241, 0.06)',
+            border: `1px solid ${
+              serverlessHealth?.isProductionGrade
+                ? 'rgba(16, 185, 129, 0.3)'
+                : serverlessHealth?.isServerlessReachable
+                ? 'rgba(245, 158, 11, 0.3)'
+                : 'var(--border-subtle)'
+            }`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            fontSize: '0.8rem'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Lock
+              size={18}
+              color={
+                serverlessHealth?.isProductionGrade
+                  ? '#10b981'
+                  : serverlessHealth?.isServerlessReachable
+                  ? '#f59e0b'
+                  : 'var(--primary-light)'
+              }
+            />
+            <div>
+              <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>
+                {serverlessHealth?.isProductionGrade
+                  ? 'Vercel Serverless Proxy Active (Zero-Key Client Exposure)'
+                  : serverlessHealth?.isServerlessReachable
+                  ? 'Serverless Reachable (Environment Variables Pending on Host)'
+                  : 'Local / BYOK Key Mode Active'}
+              </div>
+              <div style={{ color: 'var(--text-dim)', fontSize: '0.75rem', marginTop: '2px' }}>
+                {serverlessHealth?.isProductionGrade
+                  ? 'All serverless routes (/api/chat, /api/vector, /api/guardrails) are live with server-side environment variables.'
+                  : serverlessHealth?.isServerlessReachable
+                  ? 'Set OPENAI_API_KEY, QDRANT_URL, etc. in Vercel Project Settings for server-side key isolation.'
+                  : 'Running in standalone dev mode. Browser-stored keys will be used as fallback.'}
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className="btn btn-xs btn-secondary"
+            onClick={async () => {
+              const res = await AIProviderService.checkServerlessHealth();
+              setServerlessHealth(res);
+            }}
+            title="Re-test Vercel /api/health endpoint"
+            style={{ flexShrink: 0 }}
+          >
+            Check Host Status
+          </button>
+        </div>
+
         {/* Navigation Tabs */}
         <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
+
           <button
             type="button"
             onClick={() => { setActiveTab('llm'); setTestResult(null); }}

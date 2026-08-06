@@ -44,6 +44,36 @@ export const AIProviderService = {
     return 'Active AI Engine';
   },
 
+  async checkServerlessHealth(): Promise<{
+    isServerlessReachable: boolean;
+    providers?: {
+      openai: boolean;
+      anthropic: boolean;
+      gemini: boolean;
+      qdrant: boolean;
+      enkrypt: boolean;
+    };
+    isProductionGrade?: boolean;
+  }> {
+    try {
+      const res = await fetch('/api/health');
+      if (res.ok) {
+        const data = await res.json();
+        return {
+          isServerlessReachable: true,
+          providers: data.providers,
+          isProductionGrade: data.isProductionGrade
+        };
+      }
+    } catch {
+      // Serverless endpoint not reachable (e.g., standard Vite dev server without proxy)
+    }
+    return {
+      isServerlessReachable: false
+    };
+  },
+
+
   // -------------------------------------------------------------
   // Real LLM API Dispatchers (Guardrails + RAG + Proxy + Audit)
   // -------------------------------------------------------------
