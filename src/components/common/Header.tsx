@@ -96,12 +96,12 @@ export const Header: React.FC<HeaderProps> = ({
               gap: '8px',
               padding: '6px 16px',
               borderRadius: 'var(--radius-full)',
-              background: 'rgba(99, 102, 241, 0.12)',
-              border: '1px solid rgba(99, 102, 241, 0.3)'
+              background: 'var(--primary-subtle)',
+              border: '1px solid var(--border-highlight)'
             }}
           >
             <GraduationCap size={16} color="var(--primary-light)" />
-            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e0e7ff' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
               Student Learning Hub
             </span>
           </div>
@@ -115,12 +115,12 @@ export const Header: React.FC<HeaderProps> = ({
               gap: '8px',
               padding: '6px 16px',
               borderRadius: 'var(--radius-full)',
-              background: 'rgba(16, 185, 129, 0.12)',
-              border: '1px solid rgba(16, 185, 129, 0.3)'
+              background: 'var(--primary-subtle)',
+              border: '1px solid var(--border-highlight)'
             }}
           >
-            <Users size={16} color="#34d399" />
-            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#d1fae5' }}>
+            <Users size={16} color="var(--primary-light)" />
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
               Parent Portal • Linked Student: Maya Lin
             </span>
           </div>
@@ -134,12 +134,12 @@ export const Header: React.FC<HeaderProps> = ({
               gap: '8px',
               padding: '6px 16px',
               borderRadius: 'var(--radius-full)',
-              background: 'rgba(6, 182, 212, 0.12)',
-              border: '1px solid rgba(6, 182, 212, 0.3)'
+              background: 'var(--primary-subtle)',
+              border: '1px solid var(--border-highlight)'
             }}
           >
-            <Briefcase size={16} color="#22d3ee" />
-            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#cffafe' }}>
+            <Briefcase size={16} color="var(--primary-light)" />
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
               Teacher Orchestration Cockpit
             </span>
           </div>
@@ -173,7 +173,7 @@ export const Header: React.FC<HeaderProps> = ({
             }}
             title="Daily Active Streak"
           >
-            <Flame size={16} color="#f59e0b" fill="#f59e0b" />
+            <Flame size={16} color="var(--primary-light)" fill="var(--primary-light)" />
             <span>{profile.streakDays} Days</span>
           </div>
         )}
@@ -182,8 +182,8 @@ export const Header: React.FC<HeaderProps> = ({
         {currentRole === 'student' && (
           <div
             style={{
-              background: 'rgba(99, 102, 241, 0.1)',
-              border: '1px solid rgba(99, 102, 241, 0.25)',
+              background: 'var(--primary-surface)',
+              border: '1px solid var(--primary-border)',
               borderRadius: 'var(--radius-full)',
               padding: '4px 12px',
               display: 'flex',
@@ -191,7 +191,7 @@ export const Header: React.FC<HeaderProps> = ({
               gap: '8px'
             }}
           >
-            <Award size={16} color="#818cf8" />
+            <Award size={16} color="var(--primary-light)" />
             <div style={{ fontSize: '0.8125rem', fontWeight: 600 }}>
               <span style={{ color: 'var(--primary-light)' }}>Lvl {profile.level}</span>
               <span style={{ color: 'var(--text-dim)', margin: '0 4px' }}>•</span>

@@ -4,8 +4,6 @@ import { mockParentSummary, mockStudentComprehensiveReport } from '../../data/mo
 import { MathRenderer } from '../common/MathRenderer';
 import {
   CalendarCheck,
-  BookOpen,
-  AlertTriangle,
   Sparkles,
   TrendingUp,
   Clock,
@@ -13,11 +11,9 @@ import {
   Award,
   MessageCircle,
   CheckCircle2,
-  AlertCircle,
-  HelpCircle,
+  AlertTriangle,
   UserCheck,
-  ShieldCheck,
-  GraduationCap
+  ShieldCheck
 } from 'lucide-react';
 
 interface ParentDashboardProps {
@@ -43,7 +39,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             />
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-                <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>{studentReport.studentName}</h1>
+                <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>{studentReport.studentName}</h1>
                 <span className="badge badge-emerald">Live Student Sync</span>
                 <span className="badge badge-indigo">{studentReport.grade}</span>
               </div>
@@ -55,14 +51,14 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
 
           <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#34d399' }}>
+              <div className="theme-stat-val" style={{ fontSize: '1.4rem' }}>
                 {studentReport.attendance.overallRate}%
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Term Attendance</div>
             </div>
             <div style={{ width: '1px', height: '36px', background: 'var(--border-subtle)' }} />
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#67e8f9' }}>
+              <div className="theme-stat-val" style={{ fontSize: '1.4rem' }}>
                 +{summary.masteryGainPercent}%
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Mastery Gain</div>
@@ -76,7 +72,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <h2 style={{ fontSize: '1.35rem', fontWeight: 800 }}>Subject-by-Subject Mastery & Strengths</h2>
+              <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)' }}>Subject-by-Subject Mastery & Strengths</h2>
               <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-dim)' }}>
                 Comprehensive evaluation across all current enrolled courses and teacher assessments.
               </p>
@@ -98,7 +94,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
                     <div>
-                      <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '2px' }}>{item.subject}</h3>
+                      <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '2px', color: 'var(--text-main)' }}>{item.subject}</h3>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Instructor: {item.teacherName}</span>
                     </div>
                     <div style={{ textAlign: 'right' }}>
@@ -107,16 +103,16 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                           {item.gradeLetter} ({item.score}%)
                         </span>
                       </div>
-                      <span style={{ fontSize: '0.72rem', color: '#67e8f9', fontWeight: 600 }}>{item.rankInClass}</span>
+                      <span className="theme-text-primary" style={{ fontSize: '0.72rem', fontWeight: 600 }}>{item.rankInClass}</span>
                     </div>
                   </div>
 
                   {/* Strengths */}
                   <div style={{ marginBottom: '12px' }}>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', color: '#34d399', marginBottom: '6px' }}>
+                    <div className="theme-text-heading" style={{ marginBottom: '6px' }}>
                       Key Strengths & Mastery Highlights
                     </div>
-                    <ul style={{ paddingLeft: '16px', margin: 0, fontSize: '0.8125rem', color: '#e2e8f0', lineHeight: 1.5 }}>
+                    <ul style={{ paddingLeft: '16px', margin: 0, fontSize: '0.8125rem', color: 'var(--text-main)', lineHeight: 1.5 }}>
                       {item.strengths.map((str, sIdx) => (
                         <li key={sIdx}>{str}</li>
                       ))}
@@ -125,10 +121,10 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
 
                   {/* Weak Sections */}
                   <div style={{ marginBottom: '14px' }}>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', color: '#fda4af', marginBottom: '6px' }}>
+                    <div className="theme-text-subtle" style={{ marginBottom: '6px' }}>
                       Sections Requiring Reinforcement
                     </div>
-                    <ul style={{ paddingLeft: '16px', margin: 0, fontSize: '0.8125rem', color: '#cbd5e1', lineHeight: 1.5 }}>
+                    <ul style={{ paddingLeft: '16px', margin: 0, fontSize: '0.8125rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
                       {item.weakSections.map((wk, wIdx) => (
                         <li key={wIdx}>
                           <MathRenderer text={wk} />
@@ -165,11 +161,11 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
           {/* Attendance Stats Cards */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
             <div className="glass-card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#34d399', marginBottom: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-light)', marginBottom: '6px' }}>
                 <CalendarCheck size={18} />
-                <span style={{ fontSize: '0.8125rem', fontWeight: 700, textTransform: 'uppercase' }}>Attendance Rate</span>
+                <span className="theme-text-heading">Attendance Rate</span>
               </div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#34d399' }}>
+              <div className="theme-stat-val" style={{ fontSize: '1.8rem' }}>
                 {studentReport.attendance.overallRate}%
               </div>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Target: 95%+ required</span>
@@ -178,31 +174,31 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             <div className="glass-card" style={{ padding: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-light)', marginBottom: '6px' }}>
                 <UserCheck size={18} />
-                <span style={{ fontSize: '0.8125rem', fontWeight: 700, textTransform: 'uppercase' }}>Days Present</span>
+                <span className="theme-text-heading">Days Present</span>
               </div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#f8fafc' }}>
+              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-main)' }}>
                 {studentReport.attendance.presentDays} / {studentReport.attendance.totalDays}
               </div>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Academic school days</span>
             </div>
 
             <div className="glass-card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fbbf24', marginBottom: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-light)', marginBottom: '6px' }}>
                 <Clock size={18} />
-                <span style={{ fontSize: '0.8125rem', fontWeight: 700, textTransform: 'uppercase' }}>Tardies Logged</span>
+                <span className="theme-text-heading">Tardies Logged</span>
               </div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#fbbf24' }}>
+              <div className="theme-stat-val" style={{ fontSize: '1.8rem' }}>
                 {studentReport.attendance.tardies} Day
               </div>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Transit delay excused</span>
             </div>
 
             <div className="glass-card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#67e8f9', marginBottom: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-light)', marginBottom: '6px' }}>
                 <ShieldCheck size={18} />
-                <span style={{ fontSize: '0.8125rem', fontWeight: 700, textTransform: 'uppercase' }}>Excused Absences</span>
+                <span className="theme-text-heading">Excused Absences</span>
               </div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#67e8f9' }}>
+              <div className="theme-stat-val" style={{ fontSize: '1.8rem' }}>
                 {studentReport.attendance.excusedAbsences} Days
               </div>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Medical documentation on file</span>
@@ -211,7 +207,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
 
           {/* Recent Attendance Timeline Log */}
           <div className="glass-panel" style={{ padding: '24px' }}>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '16px' }}>Recent Attendance & Class Period Log</h3>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '16px', color: 'var(--text-main)' }}>Recent Attendance & Class Period Log</h3>
 
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
@@ -225,7 +221,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               <tbody>
                 {studentReport.attendance.recentLog.map((log, lIdx) => (
                   <tr key={lIdx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td style={{ padding: '12px 14px', fontWeight: 600, color: '#f8fafc' }}>{log.date}</td>
+                    <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-main)' }}>{log.date}</td>
                     <td style={{ padding: '12px 14px', color: 'var(--text-main)' }}>{log.subject}</td>
                     <td style={{ padding: '12px 14px' }}>
                       {log.status === 'present' && <span className="badge badge-emerald">Present</span>}
@@ -248,7 +244,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       {activeParentTab === 'weak_sections' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div>
-            <h2 style={{ fontSize: '1.35rem', fontWeight: 800 }}>Weak Areas & Remediation Radar</h2>
+            <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)' }}>Weak Areas & Remediation Radar</h2>
             <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-dim)' }}>
               Identifies exact conceptual gaps across subjects with actionable home guidance (no advanced math degree needed!).
             </p>
@@ -258,25 +254,26 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             {studentReport.weakAreasRadar.map((radar, rIdx) => (
               <div
                 key={rIdx}
+                className="glass-panel"
                 style={{
                   padding: '22px',
                   borderRadius: 'var(--radius-lg)',
-                  background: radar.severity === 'critical' ? 'rgba(244, 63, 94, 0.08)' : 'rgba(245, 158, 11, 0.08)',
-                  border: radar.severity === 'critical' ? '1px solid rgba(244, 63, 94, 0.3)' : '1px solid rgba(245, 158, 11, 0.3)'
+                  background: 'var(--primary-surface)',
+                  border: '1px solid var(--primary-border)'
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <AlertTriangle size={18} color={radar.severity === 'critical' ? '#f43f5e' : '#f59e0b'} />
-                    <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#ffffff' }}>{radar.topic}</span>
+                    <AlertTriangle size={18} color="var(--primary-light)" />
+                    <span style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-main)' }}>{radar.topic}</span>
                     <span className="badge badge-indigo">{radar.subject}</span>
                   </div>
-                  <span className={`badge ${radar.severity === 'critical' ? 'badge-rose' : 'badge-amber'}`}>
+                  <span className="badge badge-amber">
                     {radar.severity === 'critical' ? 'High Priority Gap' : 'Moderate Blocker'}
                   </span>
                 </div>
 
-                <div style={{ fontSize: '0.875rem', color: '#e2e8f0', marginBottom: '12px' }}>
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-main)', marginBottom: '12px' }}>
                   <strong>Root Cause Misconception:</strong> <MathRenderer text={radar.misconceptionSummary} />
                 </div>
 
@@ -287,13 +284,13 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     background: 'var(--bg-surface)',
                     border: '1px solid var(--border-subtle)',
                     fontSize: '0.85rem',
-                    color: '#67e8f9',
+                    color: 'var(--text-main)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px'
                   }}
                 >
-                  <Sparkles size={16} color="#67e8f9" />
+                  <Sparkles size={16} color="var(--primary-light)" />
                   <span><strong>Recommended Home Action:</strong> {radar.recommendedHomeAction}</span>
                 </div>
               </div>
@@ -310,36 +307,36 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             <div className="glass-card" style={{ padding: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary-light)', marginBottom: '8px' }}>
                 <Clock size={18} />
-                <span style={{ fontSize: '0.8125rem', fontWeight: 700, textTransform: 'uppercase' }}>Focus Study Time</span>
+                <span className="theme-text-heading">Focus Study Time</span>
               </div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#f8fafc' }}>{studentReport.studyHabits.weeklyFocusHours} Hours</div>
+              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-main)' }}>{studentReport.studyHabits.weeklyFocusHours} Hours</div>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Across 5 active sessions</span>
             </div>
 
             <div className="glass-card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#34d399', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary-light)', marginBottom: '8px' }}>
                 <TrendingUp size={18} />
-                <span style={{ fontSize: '0.8125rem', fontWeight: 700, textTransform: 'uppercase' }}>Mastery Growth</span>
+                <span className="theme-text-heading">Mastery Growth</span>
               </div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#34d399' }}>+{summary.masteryGainPercent}%</div>
+              <div className="theme-stat-val" style={{ fontSize: '1.8rem' }}>+{summary.masteryGainPercent}%</div>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Net conceptual score gain</span>
             </div>
 
             <div className="glass-card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#fbbf24', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary-light)', marginBottom: '8px' }}>
                 <Flame size={18} />
-                <span style={{ fontSize: '0.8125rem', fontWeight: 700, textTransform: 'uppercase' }}>Recall Streak</span>
+                <span className="theme-text-heading">Recall Streak</span>
               </div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#fbbf24' }}>{studentReport.studyHabits.activeRecallStreakDays} Consecutive Days</div>
+              <div className="theme-stat-val" style={{ fontSize: '1.8rem' }}>{studentReport.studyHabits.activeRecallStreakDays} Consecutive Days</div>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Daily flashcard habit active</span>
             </div>
 
             <div className="glass-card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#22d3ee', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary-light)', marginBottom: '8px' }}>
                 <Award size={18} />
-                <span style={{ fontSize: '0.8125rem', fontWeight: 700, textTransform: 'uppercase' }}>Cards Mastered</span>
+                <span className="theme-text-heading">Cards Mastered</span>
               </div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#22d3ee' }}>{studentReport.studyHabits.masteredCardsCount} Cards</div>
+              <div className="theme-stat-val" style={{ fontSize: '1.8rem' }}>{studentReport.studyHabits.masteredCardsCount} Cards</div>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Moved to long-term memory</span>
             </div>
           </div>
@@ -347,10 +344,10 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
           {/* Headline Summary & Celebrations */}
           <div className="glass-panel" style={{ padding: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-              <Sparkles size={20} color="#fbbf24" />
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Weekly Executive Summary for Parents</h3>
+              <Sparkles size={20} color="var(--primary-light)" />
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)' }}>Weekly Executive Summary for Parents</h3>
             </div>
-            <p style={{ fontSize: '0.95rem', color: '#f8fafc', lineHeight: 1.6, marginBottom: '20px' }}>
+            <p style={{ fontSize: '0.95rem', color: 'var(--text-main)', lineHeight: 1.6, marginBottom: '20px' }}>
               {summary.headlineSummary}
             </p>
 
@@ -359,8 +356,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {summary.celebrations.map((item, idx) => (
-                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.25)', borderRadius: 'var(--radius-md)', fontSize: '0.875rem' }}>
-                  <CheckCircle2 size={16} color="#10b981" />
+                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', background: 'var(--primary-surface)', border: '1px solid var(--primary-border)', borderRadius: 'var(--radius-md)', fontSize: '0.875rem', color: 'var(--text-main)' }}>
+                  <CheckCircle2 size={16} color="var(--primary-light)" />
                   <span>{item}</span>
                 </div>
               ))}
@@ -373,8 +370,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       {activeParentTab === 'dinner_prompts' && (
         <div className="glass-panel" style={{ padding: '28px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-            <MessageCircle size={24} color="#6366f1" />
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>Dinner Table Conversation Starters</h2>
+            <MessageCircle size={24} color="var(--primary-light)" />
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)' }}>Dinner Table Conversation Starters</h2>
           </div>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '24px' }}>
             Instead of asking "How was school today?", try these curated questions connected to Maya's exact learning breakthroughs this week:
@@ -387,11 +384,11 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 style={{
                   padding: '24px',
                   borderRadius: 'var(--radius-xl)',
-                  background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(16, 21, 34, 0.7) 100%)',
-                  border: '1px solid rgba(99, 102, 241, 0.3)'
+                  background: 'var(--primary-surface)',
+                  border: '1px solid var(--primary-border)'
                 }}
               >
-                <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#ffffff', marginBottom: '10px', lineHeight: 1.5 }}>
+                <div style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '10px', lineHeight: 1.5 }}>
                   <MathRenderer text={item.prompt} />
                 </div>
 
@@ -399,8 +396,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   <strong>Background Context:</strong> {item.context}
                 </div>
 
-                <div style={{ padding: '10px 14px', borderRadius: 'var(--radius-md)', background: 'rgba(6, 182, 212, 0.1)', border: '1px solid rgba(6, 182, 212, 0.25)', fontSize: '0.8125rem', color: '#67e8f9' }}>
-                  <strong>Fun Follow-Up:</strong> <MathRenderer text={item.followUp} />
+                <div style={{ padding: '10px 14px', borderRadius: 'var(--radius-md)', background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', fontSize: '0.8125rem', color: 'var(--text-main)' }}>
+                  <strong style={{ color: 'var(--primary-light)' }}>Fun Follow-Up:</strong> <MathRenderer text={item.followUp} />
                 </div>
               </div>
             ))}

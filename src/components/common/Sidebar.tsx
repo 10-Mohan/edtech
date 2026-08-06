@@ -185,13 +185,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
         className="glass-card"
         style={{
           padding: '16px',
-          background: 'linear-gradient(180deg, rgba(99, 102, 241, 0.08) 0%, rgba(16, 21, 34, 0.6) 100%)',
-          border: '1px solid rgba(99, 102, 241, 0.2)',
+          background: 'var(--primary-surface)',
+          border: '1px solid var(--primary-border)',
           borderRadius: 'var(--radius-md)'
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-          <div className="pulse-beacon" style={{ background: '#10b981' }} />
+          <div className="pulse-beacon" style={{ background: 'var(--primary)' }} />
           <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-main)' }}>
             Knowledge Engine Online
           </span>
@@ -233,8 +233,8 @@ const NavItem: React.FC<NavItemProps> = ({
         width: '100%',
         padding: '10px 14px',
         borderRadius: 'var(--radius-md)',
-        background: active ? 'rgba(99, 102, 241, 0.14)' : 'transparent',
-        border: active ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid transparent',
+        background: active ? 'var(--primary-subtle)' : 'transparent',
+        border: active ? '1px solid var(--border-highlight)' : '1px solid transparent',
         color: active ? 'var(--text-main)' : 'var(--text-muted)',
         fontFamily: 'var(--font-body)',
         fontSize: '0.875rem',
