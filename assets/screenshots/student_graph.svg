@@ -1,0 +1,97 @@
+<svg width="800" height="520" viewBox="0 0 800 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="520" rx="12" fill="#ECE5D4" />
+  
+  <!-- Window Container -->
+  <rect x="20" y="20" width="760" height="480" rx="8" fill="#F3EEE2" stroke="#D8CFB8" stroke-width="2" />
+  
+  <!-- Header Bar -->
+  <rect x="20" y="20" width="760" height="48" rx="8" fill="#EAE2CE" />
+  <circle cx="48" cy="44" r="14" fill="#C4562F" />
+  <text x="70" y="48" font-family="'Source Serif 4', serif" font-size="16" font-weight="700" fill="#23281F">Maya Lin</text>
+  <text x="145" y="48" font-family="'Inter', sans-serif" font-size="11" font-weight="600" fill="#75736B">Grade 11 AP STEM</text>
+  
+  <!-- Streak / XP stats -->
+  <rect x="520" y="32" width="110" height="24" rx="12" fill="rgba(196, 86, 47, 0.1)" />
+  <text x="575" y="48" font-family="'Inter', sans-serif" font-size="11" font-weight="700" fill="#C4562F" text-anchor="middle">🔥 8 Day Streak</text>
+  
+  <rect x="640" y="32" width="120" height="24" rx="12" fill="rgba(47, 111, 99, 0.1)" />
+  <text x="700" y="48" font-family="'Inter', sans-serif" font-size="11" font-weight="700" fill="#2F6F63" text-anchor="middle">⚡ 420 XP (Lvl 3)</text>
+
+  <!-- Main Canvas -->
+  <g transform="translate(35, 80)">
+    <!-- Sub Nav -->
+    <text x="0" y="16" font-family="'Source Serif 4', serif" font-size="20" font-weight="700" fill="#23281F">AP Calculus AB — Knowledge Graph (DAG)</text>
+    <rect x="530" y="0" width="195" height="26" rx="4" fill="#E5DEC9" />
+    <text x="627" y="17" font-family="'Inter', sans-serif" font-size="11" font-weight="600" fill="#23281F" text-anchor="middle">Status: 4 Mastered · 1 Weak</text>
+
+    <!-- Graph Canvas Background -->
+    <rect x="0" y="35" width="490" height="360" rx="8" fill="#FDFBF7" stroke="#D8CFB8" />
+    
+    <!-- Graph Grid Lines -->
+    <line x1="0" y1="120" x2="490" y2="120" stroke="#F1EAD8" stroke-dasharray="4 4" />
+    <line x1="0" y1="240" x2="490" y2="240" stroke="#F1EAD8" stroke-dasharray="4 4" />
+    <line x1="160" y1="35" x2="160" y2="395" stroke="#F1EAD8" stroke-dasharray="4 4" />
+    <line x1="320" y1="35" x2="320" y2="395" stroke="#F1EAD8" stroke-dasharray="4 4" />
+
+    <!-- Connecting Edges -->
+    <path d="M 90 200 L 220 120" stroke="#2F6F63" stroke-width="3" />
+    <path d="M 220 120 L 350 180" stroke="#2F6F63" stroke-width="3" />
+    <path d="M 350 180 L 410 290" stroke="#C4562F" stroke-width="3" stroke-dasharray="5 3" />
+
+    <!-- Node 1: Algebraic Polynomials (Mastered) -->
+    <g transform="translate(90, 200)">
+      <circle r="26" fill="#E8F4F1" stroke="#2F6F63" stroke-width="2.5" />
+      <text y="5" font-family="'Inter', sans-serif" font-size="11" font-weight="700" fill="#2F6F63" text-anchor="middle">95%</text>
+      <text y="42" font-family="'Inter', sans-serif" font-size="10" font-weight="600" fill="#23281F" text-anchor="middle">Polynomials</text>
+    </g>
+
+    <!-- Node 2: Functions (Mastered) -->
+    <g transform="translate(220, 120)">
+      <circle r="26" fill="#E8F4F1" stroke="#2F6F63" stroke-width="2.5" />
+      <text y="5" font-family="'Inter', sans-serif" font-size="11" font-weight="700" fill="#2F6F63" text-anchor="middle">88%</text>
+      <text y="42" font-family="'Inter', sans-serif" font-size="10" font-weight="600" fill="#23281F" text-anchor="middle">Functions</text>
+    </g>
+
+    <!-- Node 3: Limits (Mastered) -->
+    <g transform="translate(350, 180)">
+      <circle r="26" fill="#E8F4F1" stroke="#2F6F63" stroke-width="2.5" />
+      <text y="5" font-family="'Inter', sans-serif" font-size="11" font-weight="700" fill="#2F6F63" text-anchor="middle">92%</text>
+      <text y="42" font-family="'Inter', sans-serif" font-size="10" font-weight="600" fill="#23281F" text-anchor="middle">Limits &amp; Cont.</text>
+    </g>
+
+    <!-- Node 4: Derivatives (Weak - Blocker) -->
+    <g transform="translate(410, 290)">
+      <circle r="30" fill="#FDF0EB" stroke="#C4562F" stroke-width="3" />
+      <text y="5" font-family="'Inter', sans-serif" font-size="12" font-weight="800" fill="#C4562F" text-anchor="middle">54%</text>
+      <text y="45" font-family="'Inter', sans-serif" font-size="11" font-weight="700" fill="#C4562F" text-anchor="middle">Optimization</text>
+    </g>
+
+    <!-- Sidebar Detail Panel -->
+    <g transform="translate(505, 35)">
+      <rect width="220" height="360" rx="8" fill="#FBF8F1" stroke="#D8CFB8" />
+      <rect x="15" y="15" width="190" height="24" rx="4" fill="rgba(196, 86, 47, 0.15)" />
+      <text x="110" y="31" font-family="'Inter', sans-serif" font-size="10" font-weight="700" fill="#C4562F" text-anchor="middle">⚠️ CONCEPT GAP DETECTED</text>
+
+      <text x="15" y="65" font-family="'Source Serif 4', serif" font-size="15" font-weight="700" fill="#23281F">Optimization &amp; Extrema</text>
+      <text x="15" y="85" font-family="'Inter', sans-serif" font-size="11" fill="#5B5F52">Mastery: 54% · 20 mins study</text>
+
+      <line x1="15" y1="100" x2="205" y2="100" stroke="#E5DEC9" />
+
+      <text x="15" y="120" font-family="'Inter', sans-serif" font-size="10" font-weight="700" fill="#75736B">KEY MISCONCEPTION</text>
+      <rect x="15" y="130" width="190" height="60" rx="4" fill="#F3EDE0" />
+      <text x="22" y="150" font-family="'Inter', sans-serif" font-size="10" fill="#23281F">Confusing critical points</text>
+      <text x="22" y="165" font-family="'Inter', sans-serif" font-size="10" fill="#23281F">(f'(x)=0) with inflection</text>
+      <text x="22" y="180" font-family="'Inter', sans-serif" font-size="10" fill="#23281F">points (f''(x)=0).</text>
+
+      <!-- Action Buttons -->
+      <rect x="15" y="210" width="190" height="36" rx="6" fill="#C4562F" />
+      <text x="110" y="233" font-family="'Inter', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">Teach Feynman AI →</text>
+
+      <rect x="15" y="255" width="190" height="34" rx="6" fill="#2F6F63" />
+      <text x="110" y="277" font-family="'Inter', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">Socratic Tutor Session →</text>
+
+      <rect x="15" y="300" width="190" height="34" rx="6" fill="#ECE5D4" stroke="#D8CFB8" />
+      <text x="110" y="322" font-family="'Inter', sans-serif" font-size="11" font-weight="600" fill="#23281F" text-anchor="middle">Review Flashcards (5)</text>
+    </g>
+  </g>
+</svg>

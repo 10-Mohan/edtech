@@ -5,21 +5,21 @@
 ```
 ========================================================================================
                                 WAYPOINT ACADEMIC SUITE
-                   University Student • Faculty • Administration Portal
+                   Student • Faculty • Parent Cognitive Learning Hub
 ========================================================================================
 ```
 
 <p align="center">
-  <img src="assets/banner.svg" width="100%" alt="Waypoint University Student &amp; Faculty Academic Portal Banner">
+  <img src="assets/banner.svg" width="100%" alt="Waypoint Academic Suite Banner">
 </p>
 
 <!-- ========================================================= -->
-<!-- 2. TITLE -->
+<!-- 2. TITLE & TAGLINE -->
 <!-- ========================================================= -->
 
 # 🎓 Waypoint — University Student & Faculty Portal
 
-> **A modern, intelligent academic portal that digitizes university operations, cognitive learning, and curriculum mastery for students, faculty, and administrators.**
+> **A tactile, cognitive learning platform that unifies academic operations, Socratic & Feynman AI tutoring, and curriculum knowledge graphs for students, educators, and families.**
 
 ---
 
@@ -31,7 +31,7 @@
   <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19.0-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 19"></a>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript"></a>
   <a href="https://vitejs.dev/"><img src="https://img.shields.io/badge/Vite-6.0-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite"></a>
-  <a href="https://supabase.com/"><img src="https://img.shields.io/badge/Database-Supabase%20Postgres-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase Postgres"></a>
+  <a href="https://ai.google.dev/"><img src="https://img.shields.io/badge/AI-Google%20Gemini%202.5-8E75B2?style=for-the-badge&logo=google&logoColor=white" alt="Google Gemini 2.5"></a>
   <a href="https://vercel.com/"><img src="https://img.shields.io/badge/Deployment-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-F59E0B?style=for-the-badge" alt="MIT License"></a>
   <a href="https://github.com/10-Mohan/edtech/pulls"><img src="https://img.shields.io/badge/PRs-Welcome-brightgreen?style=for-the-badge" alt="PRs Welcome"></a>
@@ -45,13 +45,13 @@
 
 ## 📖 About
 
-The **Waypoint University Student & Faculty Portal** is a full-stack academic platform designed to unify university coursework, pedagogical analytics, and autonomous cognitive learning. 
+The **Waypoint University Student & Faculty Portal** is an open-access, cognitive learning platform built to replace traditional rote memorization with deep conceptual mastery.
 
-Built on tactile notebook aesthetics and grounded in cognitive learning science, Waypoint replaces outdated Learning Management Systems (LMS) with an interactive ecosystem:
+Structured around a paper-and-ink tactile notebook aesthetic, Waypoint brings together three core academic stakeholders:
 
-- 👨‍🎓 **Students** master difficult STEM and academic concepts using interactive **Directed Acyclic Knowledge Graphs (DAGs)**, **SuperMemo SM-2 spaced repetition**, step-by-step **Socratic inquiry**, and **Feynman "Teach-Back" evaluation**.
-- 👩‍🏫 **Faculty Members** orchestrate cohorts with **Live Mastery Heatmaps**, auto-generate **3-Tier Differentiated Worksheets** (Scaffolded, Standard, and Proof Extensions), and detect systemic cohort misconceptions before exams.
-- 🏛️ **Administrators & Guardians** monitor academic health, track real-time attendance, enforce AI safety guardrails, and access weekly digests.
+- 👨‍🎓 **Students**: Explore curriculum prerequisite chains via interactive **Directed Acyclic Knowledge Graphs (DAGs)**, review concept flashcards with the **SuperMemo SM-2** spaced repetition algorithm, practice step-by-step with **Socratic AI**, and test their understanding using **Feynman "Teach-Back" AI evaluations**.
+- 👩‍🏫 **Faculty (Teachers)**: Track cohort proficiency using a **Live Classroom Mastery Heatmap**, generate **3-Tier Differentiated Worksheets** (Tier 1 Scaffolded, Tier 2 Standard AP, Tier 3 Analytical Proofs) in one click, and isolate misconceptions with the **Cohort Misconception Radar**.
+- 👨‍👩‍👧 **Parents & Guardians**: Access plain-language weekly learning digests, view attendance logs, and explore conversation starters connecting classroom theory to real-world engineering.
 
 ---
 
@@ -62,30 +62,27 @@ Built on tactile notebook aesthetics and grounded in cognitive learning science,
 ## ✨ Features
 
 ### 👨‍🎓 Student Hub
-- [x] **Secure Role-Based Authentication**: Strict credential verification and dedicated Student / Faculty login validation.
-- [x] **Interactive Concept Graph (DAG)**: Real-time visual prerequisite tree connecting foundational topics to advanced mastery.
-- [x] **SM-2 Spaced Repetition**: Dynamic interval scheduling flashcard engine with 3D flip card animations.
+- [x] **Strict Credential-Verified Authentication**: Role validation with error reporting for unregistered accounts or mismatched passwords.
+- [x] **Interactive Concept Graph (DAG)**: Visual prerequisite tree showing foundational topics (Polynomials $\rightarrow$ Functions $\rightarrow$ Limits $\rightarrow$ Derivatives $\rightarrow$ Optimization) with color-coded mastery states.
+- [x] **SuperMemo SM-2 Active Recall Engine**: 3D flip card animations with calculated ease factor ($EF$), interval progression, and repetition logging.
 - [x] **Dual-Mode Socratic & Feynman AI Tutor**:
-  - *Socratic Inquiry*: Step-by-step guidance without spoon-feeding answers.
-  - *Feynman Technique ("Teach Me")*: Student explains concepts; AI evaluates completeness, misconceptions, and clarity.
-- [x] **Multi-Step AI Homework Scanner**: Optical derivation parser that isolates the exact mathematical step where an error occurred.
-- [x] **Adaptive Diagnostic Assessment**: Identifies conceptual gaps and auto-generates personalized remediation decks.
-- [x] **Engineering Career Roadmaps**: "Why am I learning this?" real-world bridges connecting curriculum to careers (Robotics, Game Physics, Bio-computation).
-- [x] **Attendance & Comprehensive Gradebook**: Real-time attendance percentage, period-by-period logs, and term scores.
+  - *Socratic Inquiry*: Step-by-step guidance without spoon-feeding solutions.
+  - *Feynman Technique ("Teach Me")*: Student explains concepts; AI evaluates conceptual depth, missing boundary conditions, and assigns a mastery score.
+- [x] **AI Multi-Step Homework Scanner**: Optical derivation analyzer that parses handwriting/photos to pinpoint the exact step where an algebraic mistake was made.
+- [x] **Engineering Career Roadmaps**: "Why am I learning this?" simulation challenges connecting calculus to Robotics, 3D Game Engines, and Bio-computation.
+- [x] **Academic Progress & Attendance Tracking**: Live term score overview, subject breakdowns, and attendance percentage.
 
 ### 👩‍🏫 Faculty Roll Book
-- [x] **Classroom Mastery Heatmap**: Real-time matrix view of individual and cohort understanding across all curriculum nodes.
-- [x] **3-Tier Differentiated Worksheet Studio**: 1-click generation of Scaffolded (Tier 1), Standard (Tier 2), and Proof/Extension (Tier 3) assignments with print-ready layouts.
-- [x] **Cohort Misconception Radar**: Groups students struggling with identical blockers for targeted small-group intervention.
-- [x] **Curriculum Node Authoring Studio**: Create, edit, and reorganize concept nodes, prerequisites, and key takeaways.
-- [x] **Live Attendance Roster**: Instant presence, absence, and tardy logging.
-- [x] **At-Risk Student Intervention Alerts**: Automatic flagging of students facing prerequisite chain collapse.
+- [x] **Classroom Mastery Heatmap**: Matrix view tracking individual student and cohort-wide proficiency across all curriculum nodes.
+- [x] **3-Tier Differentiated Worksheet Studio**: Instant generation of Scaffolded (Tier 1), Standard (Tier 2), and Proof Extension (Tier 3) assignments with clean export layout.
+- [x] **Cohort Misconception Radar**: Automatically clusters students struggling with identical conceptual blockers for targeted intervention.
+- [x] **Curriculum Node Editor Studio**: Author, edit, and reorganize concept nodes, prerequisites, and learning takeaways.
+- [x] **Live Attendance & Engagement Logging**: Quick attendance status tracking across periods.
 
-### 🏛️ Admin & Governance
-- [x] **Multi-Tenant User Management**: Unified role access control across Students, Teachers, and Parents.
-- [x] **AI Safety & Governance Monitor**: Real-time prompt injection detection, answer-leak prevention, and hallucination scoring.
-- [x] **Hybrid Postgres Cloud & Offline Cache**: Instant sync with Supabase PostgreSQL and reliable offline fallback.
-- [x] **Comprehensive Academic Analytics**: Cohort progression rate, daily active study time, and recall retention curves.
+### 👨‍👩‍👧 Parent & Family Bridge
+- [x] **Plain-Language Weekly Digest**: Translates cognitive metrics into understandable weekly progress highlights.
+- [x] **Dinner Table Conversation Starters**: Friendly, real-world discussion prompts that encourage students to explain topics at home without pressure.
+- [x] **Student Attendance & Course Health Report**: Printable academic breakdown with period-by-period attendance logs.
 
 ---
 
@@ -95,38 +92,38 @@ Built on tactile notebook aesthetics and grounded in cognitive learning science,
 
 ## 📷 Interface Previews
 
-| 🔐 **Notebook Authentication** | 🧭 **Student Knowledge Graph** |
+| 🔐 **Notebook Authentication** | 🧭 **Student Knowledge Graph (DAG)** |
 |:---:|:---:|
-| <img src="assets/banner.svg" width="100%" alt="Login Portal"> | <img src="assets/banner.svg" width="100%" alt="Knowledge Graph"> |
+| <a href="assets/screenshots/login.svg"><img src="assets/screenshots/login.svg" width="100%" alt="Login Portal Preview"></a> | <a href="assets/screenshots/student_graph.svg"><img src="assets/screenshots/student_graph.svg" width="100%" alt="Student Knowledge Graph Preview"></a> |
 | *Strict credential check & tactile open-notebook UI* | *Interactive DAG prerequisite nodes & mastery scoring* |
 
 | 👩‍🏫 **Faculty Mastery Heatmap** | 📝 **Differentiated Worksheet Studio** |
 |:---:|:---:|
-| <img src="assets/banner.svg" width="100%" alt="Faculty Portal"> | <img src="assets/banner.svg" width="100%" alt="Worksheet Studio"> |
+| <a href="assets/screenshots/faculty_portal.svg"><img src="assets/screenshots/faculty_portal.svg" width="100%" alt="Faculty Portal Preview"></a> | <a href="assets/screenshots/worksheet_studio.svg"><img src="assets/screenshots/worksheet_studio.svg" width="100%" alt="Worksheet Studio Preview"></a> |
 | *Real-time cohort matrix & misconception radar* | *3-Tiered automated assignment generator (Scaffolded to Proof)* |
 
-| 🤖 **Feynman "Teach-Back" AI** | 📊 **Attendance & Gradebook** |
+| 🤖 **Feynman "Teach-Back" AI** | 👨‍👩‍👧 **Parent Digest & Academic Report** |
 |:---:|:---:|
-| <img src="assets/banner.svg" width="100%" alt="Feynman Tutor"> | <img src="assets/banner.svg" width="100%" alt="Attendance Report"> |
-| *Cognitive evaluation of student-explained concepts* | *Student academic breakdown, logs, and parent reports* |
+| <a href="assets/screenshots/feynman_tutor.svg"><img src="assets/screenshots/feynman_tutor.svg" width="100%" alt="Feynman Tutor Preview"></a> | <a href="assets/screenshots/parent_report.svg"><img src="assets/screenshots/parent_report.svg" width="100%" alt="Parent Report Preview"></a> |
+| *Cognitive evaluation of student-explained concepts* | *Plain-language weekly summary, conversation prompts & logs* |
 
 ---
 
 <!-- ========================================================= -->
-<!-- 7. DEMO -->
+<!-- 7. DEMO CREDENTIALS -->
 <!-- ========================================================= -->
 
-## 🎥 Demo & Quick Access
+## 🔑 Demo Access & Registration
 
-Try out the live demonstration accounts directly on the platform:
+You can log in immediately using the pre-registered demo accounts or create your own custom account:
 
-| Role | Email | Password |
-|:---|:---|:---|
-| 👨‍🎓 **Student** | `maya.lin@student.waypoint.edu` | `demo123` |
-| 👩‍🏫 **Faculty** | `dr.vance@faculty.waypoint.edu` | `demo123` |
-| 👨‍👩‍👧 **Parent** | `elena.lin@parent.waypoint.edu` | `demo123` |
+| Role | Registered Email | Password | Account Details |
+|:---|:---|:---|:---|
+| 👨‍🎓 **Student** | `maya.lin@student.waypoint.edu` | `demo123` | Maya Lin — Grade 11 AP Calculus AB |
+| 👩‍🏫 **Faculty** | `dr.vance@faculty.waypoint.edu` | `demo123` | Dr. Eleanor Vance — Faculty Instructor |
+| 👨‍👩‍👧 **Parent** | `elena.lin@parent.waypoint.edu` | `demo123` | Elena Lin — Parent of Maya Lin |
 
-> 💡 *Or click **"Register new account"** on the login page to create your own custom profile with custom credentials.*
+> 📝 **Custom Registration**: Click **"Register new account"** directly on the login page to register your own custom email, password, and role.
 
 ---
 
@@ -136,26 +133,22 @@ Try out the live demonstration accounts directly on the platform:
 
 ## 🚀 Tech Stack
 
-### Frontend
-- ⚛️ **React 19** — Next-generation component architecture
+### Frontend & UI
+- ⚛️ **React 19** — Next-generation component state & hooks
 - 🟦 **TypeScript 5.7** — Strict end-to-end type safety
-- ⚡ **Vite 6** — Ultra-fast HMR and optimized bundler
-- 🎨 **Notebook Design System** — Custom CSS variables with light/dark/tactile themes
-- 🔣 **Lucide React** — Modern, lightweight iconography
-- 📊 **Canvas Confetti & SVG DAG Renderers** — Interactive graph and milestone animations
-
-### Backend & Serverless
-- 🌐 **Vercel Serverless Functions** (`/api/chat`, `/api/vision`, `/api/vector`, `/api/health`)
-- 🛡️ **Edge Middleware** — Per-user rate limiting, CORS headers, and payload validation
-
-### Database & Vector Storage
-- 🐘 **Supabase (PostgreSQL)** — Relational tables for Users, Nodes, Attendance, and Mastery Logs
-- 🔍 **Qdrant Vector Database** — Semantic similarity search for concept embeddings
-- 💾 **Resilient Local Storage Layer** — Instant zero-latency offline operation
+- ⚡ **Vite 6** — Instant Hot Module Replacement (HMR) and optimized rollup bundle
+- 🎨 **Notebook Design System** — Custom CSS design tokens with warm paper/ink palette & dark/light modes
+- 🔣 **Lucide React** — Minimalist, clean iconography
+- 📊 **Canvas Confetti & SVG DAG Renderers** — Interactive graph rendering and celebration effects
 
 ### AI & Cognitive Engines
-- 🧠 **Google Gemini 2.5 (Flash & Pro)** — Dual-mode Socratic dialogue and multimodal vision reasoning
-- 📈 **SuperMemo SM-2 Algorithm** — Spaced repetition active recall scheduling
+- 🧠 **Google Gemini 2.5 (Flash & Pro)** — Dual-mode Socratic dialogue and multimodal homework vision reasoning
+- 📉 **SuperMemo SM-2 Algorithm** — Spaced repetition mathematical scheduling
+- 💡 **Offline Cognitive Heuristic Fallback** — In-browser Socratic fallback when running without an active API key
+
+### Storage & Sync Architecture
+- 💾 **Persistent Browser Storage (`localStorage`)** — Zero-configuration local database for accounts, nodes, and reviews
+- 🐘 **Optional Supabase Cloud Connector (`PostgreSQL`)** — Cloud schema ready for team and multi-device sync
 
 ---
 
@@ -167,42 +160,42 @@ Try out the live demonstration accounts directly on the platform:
 
 ```mermaid
 flowchart TD
-    subgraph Client["Client Tier (React 19 + TypeScript)"]
-        UI[Tactile Notebook UI]
-        KG[Interactive DAG Graph]
-        FEYN[Socratic & Feynman Tutor]
-        TEACH[Faculty Roll Book & Studio]
+    subgraph Client["Client Application (React 19 + TypeScript)"]
+        AUTH[Strict Auth & Role Validator]
+        KG[Interactive DAG Knowledge Graph]
+        FEYN[Socratic & Feynman AI Tutor]
+        TEACH[Faculty Mastery Heatmap & Roll Book]
+        PARENT[Parent Digest & Academic Reports]
     end
 
-    subgraph API["Edge & Serverless Tier (Vercel)"]
-        ROUTER[/api Gateway Router]
-        CHAT_EP[/api/chat - Socratic AI]
-        VISION_EP[/api/vision - Homework OCR]
-        VECTOR_EP[/api/vector - Concept Search]
-        HEALTH_EP[/api/health - Diagnostics]
+    subgraph Logic["Business Logic & Service Layer"]
+        BACKEND[BackendService - Storage & Auth]
+        SM2_SRV[StorageService - SM-2 Algorithm]
+        AI_SRV[AIService - Gemini Gateway]
     end
 
-    subgraph AI["Cognitive & AI Services"]
-        GEMINI[Google Gemini 2.5 LLM]
-        SM2[SuperMemo SM-2 Engine]
+    subgraph AI_Engines["AI & Cognitive Gateway"]
+        GEMINI[Google Gemini 2.5 Flash / Pro]
+        FALLBACK[Local Socratic Heuristic Engine]
     end
 
-    subgraph Data["Database & Storage Tier"]
-        SUPA[(Supabase PostgreSQL)]
-        QDRANT[(Qdrant Vector Store)]
-        CACHE[(Local Storage Cache)]
+    subgraph Data["Persistent Storage Layer"]
+        LOCAL[(Zero-Config Local Database)]
+        SUPA[(Optional Supabase PostgreSQL)]
     end
 
-    UI --> ROUTER
-    KG --> ROUTER
-    FEYN --> CHAT_EP
-    TEACH --> ROUTER
+    AUTH --> BACKEND
+    KG --> BACKEND
+    TEACH --> BACKEND
+    PARENT --> BACKEND
+    KG --> SM2_SRV
 
-    CHAT_EP --> GEMINI
-    VISION_EP --> GEMINI
-    VECTOR_EP --> QDRANT
-    ROUTER --> SUPA
-    UI <--> CACHE
+    FEYN --> AI_SRV
+    AI_SRV -->|API Key Configured| GEMINI
+    AI_SRV -->|No Key / Offline| FALLBACK
+
+    BACKEND <--> LOCAL
+    BACKEND -.->|If Enabled| SUPA
 ```
 
 ---
@@ -215,13 +208,20 @@ flowchart TD
 
 ```
 edtech/
-├── 📁 api/                        # Serverless Edge backend endpoints
+├── 📁 api/                        # Serverless edge API handlers
 │   ├── chat.ts                   # Socratic & Feynman AI dialogue handler
 │   ├── health.ts                 # Real-time service uptime & diagnostic check
-│   ├── vector.ts                 # Qdrant vector semantic search
+│   ├── vector.ts                 # Vector semantic search gateway
 │   └── vision.ts                 # Multimodal homework derivation scanner
-├── 📁 assets/                     # High-DPI banners, SVGs, and graphics
-│   └── banner.svg
+├── 📁 assets/                     # Vector graphics and interface previews
+│   ├── banner.svg                # High-DPI repository banner
+│   └── 📁 screenshots/           # UI diagrams for all portal views
+│       ├── faculty_portal.svg
+│       ├── feynman_tutor.svg
+│       ├── login.svg
+│       ├── parent_report.svg
+│       ├── student_graph.svg
+│       └── worksheet_studio.svg
 ├── 📁 public/                     # Static web assets & icons
 ├── 📁 src/                        # Core React frontend application
 │   ├── 📁 components/
@@ -243,7 +243,8 @@ edtech/
 │   ├── App.tsx                   # Top-level state orchestration & routing
 │   ├── main.tsx                  # React DOM mount point
 │   └── index.css                 # Global notebook tokens & theme palette
-├── .env.example                  # Environment variable blueprint
+├── .env.example                  # Environment variable template
+├── LICENSE                       # MIT License
 ├── package.json                  # Dependencies and scripts
 ├── tsconfig.json                 # TypeScript compiler configuration
 ├── vercel.json                   # Serverless routing & deployment configuration
@@ -259,8 +260,8 @@ edtech/
 ## 🛠️ Installation & Setup
 
 ### Prerequisites
-- **Node.js**: v18.0.0 or higher
-- **npm**: v9.0.0 or higher
+- **Node.js**: `v18.0.0` or higher
+- **npm**: `v9.0.0` or higher
 - **Git**
 
 ### 1. Clone the Repository
@@ -274,8 +275,8 @@ cd edtech
 npm install
 ```
 
-### 3. Configure Environment Variables
-Copy the template and fill in your keys:
+### 3. Configure Environment Variables (Optional)
+The platform runs immediately out-of-the-box with full offline local storage and built-in heuristics. To connect live Google Gemini AI, copy `.env.example`:
 ```bash
 cp .env.example .env
 ```
@@ -284,7 +285,7 @@ cp .env.example .env
 ```bash
 npm run dev
 ```
-Open your browser at `http://localhost:5173`.
+Open `http://localhost:5173` in your browser.
 
 ### 5. Build for Production
 ```bash
@@ -300,24 +301,24 @@ npm run preview
 
 ## 🔐 Environment Variables
 
-Create a `.env` file in the root directory:
+Create a `.env` file in the root directory if you wish to configure live cloud AI or external database features:
 
 ```ini
 # =======================================================
-# AI Gateway & LLM Orchestration
+# AI Gateway & LLM Orchestration (Optional)
 # =======================================================
 VITE_GEMINI_API_KEY=your_gemini_api_key_here
 GEMINI_API_KEY=your_gemini_api_key_here
 
 # =======================================================
-# Cloud Database (Supabase PostgreSQL)
+# Cloud Database (Optional - Supabase PostgreSQL)
 # =======================================================
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 
 # =======================================================
-# Vector Search Engine (Qdrant)
+# Vector Search Engine (Optional - Qdrant)
 # =======================================================
 VITE_QDRANT_URL=https://your-qdrant-cluster.qdrant.io
 VITE_QDRANT_API_KEY=your-qdrant-api-key
@@ -334,26 +335,26 @@ PORT=5173
 <!-- 13. API REFERENCE -->
 <!-- ========================================================= -->
 
-## 📡 API Reference
-
-### Edge Endpoints
-
-| Method | Endpoint | Description | Payload Example |
-|:---|:---|:---|:---|
-| `POST` | `/api/chat` | Conducts Socratic or Feynman dialogue | `{ "prompt": "Explain limits", "mode": "socratic" }` |
-| `POST` | `/api/vision` | Analyzes handwritten homework derivation | `{ "image": "data:image/png;base64,...", "topic": "Calculus" }` |
-| `POST` | `/api/vector` | Semantic search across concept embeddings | `{ "query": "optimization derivatives", "topK": 5 }` |
-| `GET` | `/api/health` | Healthcheck & provider diagnostics | *None* |
+## 📡 API & Service Reference
 
 ### Core TypeScript Services
 
 | Service | Method | Purpose |
 |:---|:---|:---|
-| **`BackendService`** | `authenticateWithPassword(email, pass, role)` | Strict credential verification |
+| **`BackendService`** | `authenticateWithPassword(email, pass, role)` | Strict verification against registered accounts |
 | **`BackendService`** | `registerUserAccount(email, name, role, code, pass)` | Registers and persists a new user |
 | **`BackendService`** | `getConceptNodes()` | Retrieves active DAG nodes |
 | **`StorageService`** | `updateCardReview(cardId, quality)` | Runs SM-2 active recall scheduling |
-| **`SupabaseService`**| `syncClassroomMastery(studentId, metrics)` | Persists metrics to PostgreSQL |
+| **`AIService`** | `explainConcept(prompt, mode)` | Sends request to Gemini 2.5 or local fallback |
+
+### Edge Serverless Endpoints
+
+| Method | Endpoint | Description |
+|:---|:---|:---|
+| `POST` | `/api/chat` | Conducts Socratic or Feynman dialogue |
+| `POST` | `/api/vision` | Analyzes handwritten homework derivation |
+| `POST` | `/api/vector` | Semantic search across concept embeddings |
+| `GET` | `/api/health` | Service uptime & diagnostic check |
 
 ---
 
@@ -361,7 +362,7 @@ PORT=5173
 <!-- 14. DATABASE SCHEMA -->
 <!-- ========================================================= -->
 
-## 🗄️ Database Schema & Entities
+## 🗄️ Data Model & Relationships
 
 ```mermaid
 erDiagram
@@ -369,15 +370,13 @@ erDiagram
     USERS ||--o{ ATTENDANCE : has
     USERS ||--o{ FLASHCARD_REVIEWS : reviews
     CONCEPT_NODES ||--o{ MASTERY_LOGS : evaluates
-    CONCEPT_NODES ||--o{ PREREQUISITES : depends_on
 
     USERS {
         string id PK
         string email UK
         string name
-        string role "student | teacher | parent"
+        string role "student | faculty | parent"
         string password
-        string avatar
     }
 
     CONCEPT_NODES {
@@ -425,12 +424,11 @@ erDiagram
 
 ## 🚀 Future Scope & Roadmap
 
-- [ ] 📱 **Cross-Platform Mobile App**: React Native / Expo build for iOS and Android.
-- [ ] 👤 **Automated Facial Recognition Attendance**: Edge camera integration for automated roll call.
-- [ ] 🎙️ **Real-Time Voice Socratic AI**: Low-latency spoken conversational tutoring using WebRTC audio.
-- [ ] 🔗 **LMS & Canvas LTI 1.3 Integration**: Direct Gradebook and Roster sync for universities and schools.
-- [ ] 💳 **Integrated Tuition & Lab Fee Payment Gateway**: Stripe / Razorpay academic billing checkout.
-- [ ] 📝 **Proctored Online Examination Engine**: Browser lockdown and AI anomaly detection for tests.
+- [ ] 📱 **Cross-Platform Mobile App**: React Native / Expo companion app for iOS and Android.
+- [ ] 🎙️ **Real-Time Voice Socratic AI**: Low-latency spoken conversational tutoring using WebSockets / WebRTC.
+- [ ] 👤 **Facial Recognition Roll Call**: Edge webcam attendance logging.
+- [ ] 🔗 **LMS & Canvas LTI 1.3 Integration**: Direct Gradebook and Roster sync for schools.
+- [ ] 💳 **Integrated Academic Billing**: Tuition & lab fee payments via Stripe.
 
 ---
 
@@ -451,19 +449,3 @@ erDiagram
 ## 📄 License
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
-
-```
-MIT License
-
-Copyright (c) 2026 Mohan S
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-```

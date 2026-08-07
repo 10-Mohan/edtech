@@ -1,0 +1,81 @@
+<svg width="800" height="520" viewBox="0 0 800 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="520" rx="12" fill="#ECE5D4" />
+  
+  <!-- Window Container -->
+  <rect x="20" y="20" width="760" height="480" rx="8" fill="#F3EEE2" stroke="#D8CFB8" stroke-width="2" />
+  
+  <!-- Header Bar -->
+  <rect x="20" y="20" width="760" height="48" rx="8" fill="#E2DAD0" />
+  <text x="40" y="49" font-family="'Source Serif 4', serif" font-size="16" font-weight="700" fill="#23281F">3-Tier Differentiated Worksheet Studio</text>
+  <rect x="630" y="32" width="130" height="24" rx="4" fill="#2F6F63" />
+  <text x="695" y="48" font-family="'Inter', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">📄 Export Ready (PDF)</text>
+
+  <!-- 3 Columns / Cards -->
+  <g transform="translate(35, 85)">
+    <!-- Column 1: Tier 1 Scaffolded -->
+    <g transform="translate(0, 0)">
+      <rect width="230" height="385" rx="8" fill="#FDFBF7" stroke="#D8CFB8" />
+      <rect x="12" y="12" width="206" height="28" rx="4" fill="#FEF3EE" />
+      <text x="115" y="30" font-family="'Inter', sans-serif" font-size="11" font-weight="700" fill="#C4562F" text-anchor="middle">Tier 1 · Scaffolded</text>
+
+      <text x="15" y="65" font-family="'Source Serif 4', serif" font-size="13" font-weight="700" fill="#23281F">Guided Derivations</text>
+      <text x="15" y="82" font-family="'Inter', sans-serif" font-size="10" fill="#75736B">Targeted for: Maya, James, Lucas</text>
+
+      <!-- Problem Preview -->
+      <rect x="12" y="98" width="206" height="225" rx="6" fill="#FBF8F1" stroke="#E3DAC5" />
+      <text x="20" y="120" font-family="'Inter', sans-serif" font-size="10" font-weight="700" fill="#23281F">Problem 1: Box Volume</text>
+      <text x="20" y="140" font-family="'Inter', sans-serif" font-size="9.5" fill="#5B5F52">Find max volume of open box:</text>
+      <text x="20" y="158" font-family="'Courier New', monospace" font-size="10" font-weight="700" fill="#C4562F">V(x) = x(20-2x)(12-2x)</text>
+
+      <!-- Step-by-step hint bubble -->
+      <rect x="18" y="175" width="194" height="60" rx="4" fill="rgba(196, 86, 47, 0.08)" />
+      <text x="24" y="193" font-family="'Inter', sans-serif" font-size="9" font-weight="700" fill="#C4562F">💡 Scaffold Step 1:</text>
+      <text x="24" y="210" font-family="'Inter', sans-serif" font-size="9" fill="#5B5F52">Expand polynomial before</text>
+      <text x="24" y="224" font-family="'Inter', sans-serif" font-size="9" fill="#5B5F52">applying Power Rule.</text>
+
+      <rect x="12" y="335" width="206" height="34" rx="4" fill="#C4562F" />
+      <text x="115" y="356" font-family="'Inter', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">Assign to 3 Students</text>
+    </g>
+
+    <!-- Column 2: Tier 2 Standard -->
+    <g transform="translate(250, 0)">
+      <rect width="230" height="385" rx="8" fill="#FDFBF7" stroke="#D8CFB8" />
+      <rect x="12" y="12" width="206" height="28" rx="4" fill="#FDF3DD" />
+      <text x="115" y="30" font-family="'Inter', sans-serif" font-size="11" font-weight="700" fill="#B08A2E" text-anchor="middle">Tier 2 · Standard AP</text>
+
+      <text x="15" y="65" font-family="'Source Serif 4', serif" font-size="13" font-weight="700" fill="#23281F">Free Response Questions</text>
+      <text x="15" y="82" font-family="'Inter', sans-serif" font-size="10" fill="#75736B">Targeted for: General Cohort</text>
+
+      <!-- Problem Preview -->
+      <rect x="12" y="98" width="206" height="225" rx="6" fill="#FBF8F1" stroke="#E3DAC5" />
+      <text x="20" y="120" font-family="'Inter', sans-serif" font-size="10" font-weight="700" fill="#23281F">Problem 1: Particle Motion</text>
+      <text x="20" y="140" font-family="'Inter', sans-serif" font-size="9.5" fill="#5B5F52">Position s(t) = t³ - 6t² + 9t + 2</text>
+      <text x="20" y="160" font-family="'Inter', sans-serif" font-size="9.5" fill="#5B5F52">1. Find velocity v(t) &amp; rest times.</text>
+      <text x="20" y="180" font-family="'Inter', sans-serif" font-size="9.5" fill="#5B5F52">2. Find total distance on [0, 5].</text>
+
+      <rect x="12" y="335" width="206" height="34" rx="4" fill="#B08A2E" />
+      <text x="115" y="356" font-family="'Inter', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">Assign Standard</text>
+    </g>
+
+    <!-- Column 3: Tier 3 Extension & Proof -->
+    <g transform="translate(500, 0)">
+      <rect width="230" height="385" rx="8" fill="#FDFBF7" stroke="#D8CFB8" />
+      <rect x="12" y="12" width="206" height="28" rx="4" fill="#E8F4F1" />
+      <text x="115" y="30" font-family="'Inter', sans-serif" font-size="11" font-weight="700" fill="#2F6F63" text-anchor="middle">Tier 3 · Proof Extension</text>
+
+      <text x="15" y="65" font-family="'Source Serif 4', serif" font-size="13" font-weight="700" fill="#23281F">Rigorous Analytical Proof</text>
+      <text x="15" y="82" font-family="'Inter', sans-serif" font-size="10" fill="#75736B">Targeted for: Sophia Patel</text>
+
+      <!-- Problem Preview -->
+      <rect x="12" y="98" width="206" height="225" rx="6" fill="#FBF8F1" stroke="#E3DAC5" />
+      <text x="20" y="120" font-family="'Inter', sans-serif" font-size="10" font-weight="700" fill="#2F6F63">Problem 1: Fermat's Theorem</text>
+      <text x="20" y="140" font-family="'Inter', sans-serif" font-size="9.5" fill="#5B5F52">Prove analytically that if f has</text>
+      <text x="20" y="155" font-family="'Inter', sans-serif" font-size="9.5" fill="#5B5F52">a local extremum at c and f'(c)</text>
+      <text x="20" y="170" font-family="'Inter', sans-serif" font-size="9.5" fill="#5B5F52">exists, then f'(c) = 0 using the</text>
+      <text x="20" y="185" font-family="'Inter', sans-serif" font-size="9.5" fill="#5B5F52">definition of limits.</text>
+
+      <rect x="12" y="335" width="206" height="34" rx="4" fill="#2F6F63" />
+      <text x="115" y="356" font-family="'Inter', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">Assign to Sophia</text>
+    </g>
+  </g>
+</svg>
