@@ -43,13 +43,13 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({
   const getNodeColor = (status: NodeStatus) => {
     switch (status) {
       case 'mastered':
-        return { stroke: '#10b981', fill: 'rgba(16, 185, 129, 0.18)', glow: 'rgba(16, 185, 129, 0.4)' };
+        return { stroke: '#2F6F63', fill: 'rgba(47, 111, 99, 0.15)', glow: 'rgba(47, 111, 99, 0.35)' };
       case 'in_progress':
-        return { stroke: '#06b6d4', fill: 'rgba(6, 182, 212, 0.18)', glow: 'rgba(6, 182, 212, 0.4)' };
+        return { stroke: '#B08A2E', fill: 'rgba(176, 138, 46, 0.15)', glow: 'rgba(176, 138, 46, 0.35)' };
       case 'weak':
-        return { stroke: '#f43f5e', fill: 'rgba(244, 63, 94, 0.22)', glow: 'rgba(244, 63, 94, 0.5)' };
+        return { stroke: '#C4562F', fill: 'rgba(196, 86, 47, 0.20)', glow: 'rgba(196, 86, 47, 0.45)' };
       case 'locked':
-        return { stroke: '#475569', fill: 'rgba(71, 85, 105, 0.2)', glow: 'transparent' };
+        return { stroke: '#C8BEA5', fill: 'rgba(200, 190, 165, 0.18)', glow: 'transparent' };
     }
   };
 
@@ -58,11 +58,11 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({
       case 'mastered':
         return <span className="badge badge-emerald"><CheckCircle2 size={12} /> Mastered ({score}%)</span>;
       case 'in_progress':
-        return <span className="badge badge-cyan"><Clock size={12} /> In Progress ({score}%)</span>;
+        return <span className="badge badge-amber"><Clock size={12} /> In Progress ({score}%)</span>;
       case 'weak':
         return <span className="badge badge-rose"><AlertCircle size={12} /> Gap Identified ({score}%)</span>;
       case 'locked':
-        return <span className="badge" style={{ background: 'rgba(100, 116, 139, 0.2)', color: '#94a3b8' }}><Lock size={12} /> Locked</span>;
+        return <span className="badge" style={{ background: 'var(--bg-surface-elevated)', color: 'var(--text-dim)' }}><Lock size={12} /> Locked</span>;
     }
   };
 
@@ -83,15 +83,15 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({
 
           {/* Quick Filter & Legend */}
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', gap: '8px', background: 'var(--bg-surface)', padding: '6px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ display: 'flex', gap: '8px', background: 'var(--bg-surface-elevated)', padding: '6px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }} /> Mastered
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2F6F63' }} /> Mastered
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#06b6d4' }} /> Learning
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#B08A2E' }} /> Learning
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f43f5e' }} /> Gap / Misconception
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#C4562F' }} /> Gap / Misconception
               </div>
             </div>
           </div>
@@ -107,19 +107,19 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({
             position: 'relative',
             minHeight: '520px',
             overflow: 'hidden',
-            background: 'radial-gradient(ellipse at center, rgba(16, 21, 34, 0.8) 0%, rgba(10, 13, 20, 0.95) 100%)',
+            background: 'var(--bg-surface)',
             border: '1px solid var(--border-medium)',
             borderRadius: 'var(--radius-xl)'
           }}
         >
-          {/* Subtle Grid Background */}
+          {/* Subtle Ruled Grid Background */}
           <div
             style={{
               position: 'absolute',
               inset: 0,
-              backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px)',
+              backgroundImage: 'radial-gradient(var(--border-subtle) 1.2px, transparent 1.2px)',
               backgroundSize: '24px 24px',
-              opacity: 0.5,
+              opacity: 0.7,
               pointerEvents: 'none'
             }}
           />
@@ -139,7 +139,7 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({
                 markerHeight="6"
                 orient="auto-start-reverse"
               >
-                <path d="M 0 1 L 9 5 L 0 9 z" fill="rgba(99, 102, 241, 0.45)" />
+                <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--border-medium)" />
               </marker>
 
               {/* Glow filter */}
@@ -165,7 +165,7 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({
                   <path
                     d={d}
                     fill="none"
-                    stroke={isWeakEdge ? 'rgba(244, 63, 94, 0.6)' : 'rgba(99, 102, 241, 0.35)'}
+                    stroke={isWeakEdge ? 'var(--coral)' : 'var(--border-medium)'}
                     strokeWidth={isWeakEdge ? 2.5 : 1.8}
                     strokeDasharray={isWeakEdge ? '5,5' : 'none'}
                     markerEnd="url(#arrow)"
@@ -202,20 +202,20 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({
                   <circle
                     r={26}
                     fill={colors.fill}
-                    stroke={isSelected ? '#ffffff' : colors.stroke}
+                    stroke={isSelected ? 'var(--coral)' : colors.stroke}
                     strokeWidth={isSelected ? 3 : 2}
                   />
 
                   {/* Icon or Mastery Text */}
                   {node.status === 'locked' ? (
                     <g transform="translate(-7, -7)">
-                      <Lock size={14} color="#94a3b8" />
+                      <Lock size={14} color="var(--text-dim)" />
                     </g>
                   ) : (
                     <text
                       textAnchor="middle"
                       dy="5"
-                      fill="#ffffff"
+                      fill="var(--text-main)"
                       fontSize="12"
                       fontWeight="700"
                       fontFamily="var(--font-mono)"
@@ -228,7 +228,7 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({
                   <text
                     textAnchor="middle"
                     dy="46"
-                    fill={isSelected ? '#ffffff' : 'var(--text-main)'}
+                    fill={isSelected ? 'var(--coral)' : 'var(--text-main)'}
                     fontSize="13"
                     fontWeight={isSelected ? '700' : '600'}
                     fontFamily="var(--font-display)"

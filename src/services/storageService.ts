@@ -98,7 +98,7 @@ export const StorageService = {
   },
 
   getTheme(): 'dark' | 'light' {
-    return (localStorage.getItem(KEYS.THEME) as 'dark' | 'light') || 'dark';
+    return (localStorage.getItem(KEYS.THEME) as 'dark' | 'light') || 'light';
   },
 
   setTheme(theme: 'dark' | 'light'): void {
@@ -107,7 +107,7 @@ export const StorageService = {
   },
 
   getColorTheme(): ColorThemeId {
-    return (localStorage.getItem(KEYS.COLOR_THEME) as ColorThemeId) || 'indigo';
+    return (localStorage.getItem(KEYS.COLOR_THEME) as ColorThemeId) || 'coral';
   },
 
   setColorTheme(colorTheme: ColorThemeId): void {
