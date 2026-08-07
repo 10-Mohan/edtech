@@ -16,6 +16,7 @@ import {
   ExternalLink,
   ShieldCheck
 } from 'lucide-react';
+import { ServiceHealthBanner } from './ServiceHealthBanner';
 
 interface BackendSettingsModalProps {
   isOpen: boolean;
@@ -163,6 +164,9 @@ export const BackendSettingsModal: React.FC<BackendSettingsModalProps> = ({ isOp
             <X size={16} />
           </button>
         </div>
+
+        {/* Live Service Health Banner */}
+        <ServiceHealthBanner />
 
         {/* Backend Provider Selector */}
         <div style={{ marginBottom: '20px' }}>

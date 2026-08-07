@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { AuthUser, ColorThemeId, ConceptNode, RecallCard, UserProfile, UserRole } from './types';
 import { StorageService } from './services/storageService';
 import { isCardDue } from './services/srsEngine';
@@ -10,15 +10,37 @@ import { Sidebar } from './components/common/Sidebar';
 import { KnowledgeGraph } from './components/student/KnowledgeGraph';
 import { ActiveRecallDeck } from './components/student/ActiveRecallDeck';
 import { SocraticTutor } from './components/student/SocraticTutor';
-import { HomeworkScanner } from './components/student/HomeworkScanner';
-import { CareerRoadmap } from './components/student/CareerRoadmap';
-import { DiagnosticTestModal } from './components/student/DiagnosticTestModal';
-import { ThemeSelectorModal } from './components/common/ThemeSelectorModal';
-import { AISettingsModal } from './components/common/AISettingsModal';
-import { BackendSettingsModal } from './components/common/BackendSettingsModal';
-import { GovernanceMonitorModal } from './components/common/GovernanceMonitorModal';
-import { TeacherDashboard } from './components/teacher/TeacherDashboard';
-import { ParentDashboard } from './components/parent/ParentDashboard';
+import { LoadingFallback } from './components/common/LoadingFallback';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
+
+// Code-split heavy and role-specific modules to optimize initial bundle size
+const HomeworkScanner = lazy(() =>
+  import('./components/student/HomeworkScanner').then(m => ({ default: m.HomeworkScanner }))
+);
+const CareerRoadmap = lazy(() =>
+  import('./components/student/CareerRoadmap').then(m => ({ default: m.CareerRoadmap }))
+);
+const TeacherDashboard = lazy(() =>
+  import('./components/teacher/TeacherDashboard').then(m => ({ default: m.TeacherDashboard }))
+);
+const ParentDashboard = lazy(() =>
+  import('./components/parent/ParentDashboard').then(m => ({ default: m.ParentDashboard }))
+);
+const DiagnosticTestModal = lazy(() =>
+  import('./components/student/DiagnosticTestModal').then(m => ({ default: m.DiagnosticTestModal }))
+);
+const ThemeSelectorModal = lazy(() =>
+  import('./components/common/ThemeSelectorModal').then(m => ({ default: m.ThemeSelectorModal }))
+);
+const AISettingsModal = lazy(() =>
+  import('./components/common/AISettingsModal').then(m => ({ default: m.AISettingsModal }))
+);
+const BackendSettingsModal = lazy(() =>
+  import('./components/common/BackendSettingsModal').then(m => ({ default: m.BackendSettingsModal }))
+);
+const GovernanceMonitorModal = lazy(() =>
+  import('./components/common/GovernanceMonitorModal').then(m => ({ default: m.GovernanceMonitorModal }))
+);
 
 export const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(StorageService.getCurrentUser());
@@ -131,30 +153,45 @@ export const App: React.FC = () => {
           onOpenBackendSettings={() => setIsBackendSettingsOpen(true)}
           onOpenGovernanceMonitor={() => setIsGovernanceOpen(true)}
         />
-        <ThemeSelectorModal
-          isOpen={isThemeModalOpen}
-          onClose={() => setIsThemeModalOpen(false)}
-          currentColorTheme={colorTheme}
-          onSelectColorTheme={handleSelectColorTheme}
-          themeMode={theme}
-          onToggleThemeMode={handleToggleTheme}
-        />
-        <AISettingsModal
-          isOpen={isAISettingsOpen}
-          onClose={() => setIsAISettingsOpen(false)}
-        />
-        <BackendSettingsModal
-          isOpen={isBackendSettingsOpen}
-          onClose={() => setIsBackendSettingsOpen(false)}
-        />
-        <GovernanceMonitorModal
-          isOpen={isGovernanceOpen}
-          onClose={() => setIsGovernanceOpen(false)}
-        />
+        {isThemeModalOpen && (
+          <Suspense fallback={<LoadingFallback message="Loading Theme Preferences..." />}>
+            <ThemeSelectorModal
+              isOpen={isThemeModalOpen}
+              onClose={() => setIsThemeModalOpen(false)}
+              currentColorTheme={colorTheme}
+              onSelectColorTheme={handleSelectColorTheme}
+              themeMode={theme}
+              onToggleThemeMode={handleToggleTheme}
+            />
+          </Suspense>
+        )}
+        {isAISettingsOpen && (
+          <Suspense fallback={<LoadingFallback message="Loading AI Gateway..." />}>
+            <AISettingsModal
+              isOpen={isAISettingsOpen}
+              onClose={() => setIsAISettingsOpen(false)}
+            />
+          </Suspense>
+        )}
+        {isBackendSettingsOpen && (
+          <Suspense fallback={<LoadingFallback message="Loading Cloud Database Config..." />}>
+            <BackendSettingsModal
+              isOpen={isBackendSettingsOpen}
+              onClose={() => setIsBackendSettingsOpen(false)}
+            />
+          </Suspense>
+        )}
+        {isGovernanceOpen && (
+          <Suspense fallback={<LoadingFallback message="Loading AI Safety Governance..." />}>
+            <GovernanceMonitorModal
+              isOpen={isGovernanceOpen}
+              onClose={() => setIsGovernanceOpen(false)}
+            />
+          </Suspense>
+        )}
       </>
     );
   }
-
 
   const dueCardsCount = recallCards.filter(isCardDue).length;
 
@@ -195,104 +232,132 @@ export const App: React.FC = () => {
           onOpenGovernanceMonitor={() => setIsGovernanceOpen(true)}
         />
 
-
         {/* Page Body */}
         <main className="page-wrapper animate-fade-in">
-          {/* STUDENT PORTAL VIEWS */}
-          {role === 'student' && (
-            <>
-              {studentTab === 'knowledge_graph' && (
-                <KnowledgeGraph
+          <ErrorBoundary isSection>
+            {/* STUDENT PORTAL VIEWS */}
+            {role === 'student' && (
+              <>
+                {studentTab === 'knowledge_graph' && (
+                  <KnowledgeGraph
+                    nodes={conceptNodes}
+                    onSelectNodeForPractice={handlePracticeNodeInSocratic}
+                    onUpdateNodeMastery={handleUpdateNodeMastery}
+                  />
+                )}
+
+                {studentTab === 'active_recall' && (
+                  <ActiveRecallDeck
+                    cards={recallCards}
+                    onSaveCard={handleSaveCard}
+                    onAddXP={handleAddXP}
+                  />
+                )}
+
+                {studentTab === 'socratic_tutor' && (
+                  <SocraticTutor
+                    initialTopic={practiceTopic}
+                    onAddXP={handleAddXP}
+                  />
+                )}
+
+                {studentTab === 'homework_scanner' && (
+                  <Suspense fallback={<LoadingFallback message="Initializing AI Multimodal Scanner..." />}>
+                    <HomeworkScanner
+                      onRemediateTopic={handleRemediateFromScanner}
+                      onAddXP={handleAddXP}
+                    />
+                  </Suspense>
+                )}
+
+                {studentTab === 'career_roadmap' && (
+                  <Suspense fallback={<LoadingFallback message="Loading Career STEM Roadmaps..." />}>
+                    <CareerRoadmap onAddXP={handleAddXP} />
+                  </Suspense>
+                )}
+              </>
+            )}
+
+            {/* TEACHER PORTAL VIEWS */}
+            {role === 'teacher' && (
+              <Suspense fallback={<LoadingFallback message="Loading Teacher Studio & Class Analytics..." />}>
+                <TeacherDashboard
                   nodes={conceptNodes}
-                  onSelectNodeForPractice={handlePracticeNodeInSocratic}
-                  onUpdateNodeMastery={handleUpdateNodeMastery}
+                  activeTeacherTab={teacherTab}
                 />
-              )}
+              </Suspense>
+            )}
 
-              {studentTab === 'active_recall' && (
-                <ActiveRecallDeck
-                  cards={recallCards}
-                  onSaveCard={handleSaveCard}
-                  onAddXP={handleAddXP}
+            {/* PARENT PORTAL VIEWS */}
+            {role === 'parent' && (
+              <Suspense fallback={<LoadingFallback message="Loading Guardian Portal & Progress Reports..." />}>
+                <ParentDashboard
+                  activeParentTab={parentTab}
                 />
-              )}
-
-              {studentTab === 'socratic_tutor' && (
-                <SocraticTutor
-                  initialTopic={practiceTopic}
-                  onAddXP={handleAddXP}
-                />
-              )}
-
-              {studentTab === 'homework_scanner' && (
-                <HomeworkScanner
-                  onRemediateTopic={handleRemediateFromScanner}
-                  onAddXP={handleAddXP}
-                />
-              )}
-
-              {studentTab === 'career_roadmap' && (
-                <CareerRoadmap onAddXP={handleAddXP} />
-              )}
-            </>
-          )}
-
-          {/* TEACHER PORTAL VIEWS */}
-          {role === 'teacher' && (
-            <TeacherDashboard
-              nodes={conceptNodes}
-              activeTeacherTab={teacherTab}
-            />
-          )}
-
-          {/* PARENT PORTAL VIEWS */}
-          {role === 'parent' && (
-            <ParentDashboard
-              activeParentTab={parentTab}
-            />
-          )}
+              </Suspense>
+            )}
+          </ErrorBoundary>
         </main>
       </div>
 
       {/* Adaptive Diagnostic Modal */}
-      <DiagnosticTestModal
-        questions={mockDiagnosticQuestions}
-        isOpen={isDiagnosticOpen}
-        onClose={() => setIsDiagnosticOpen(false)}
-        onAutoGenerateCards={handleAutoGenerateCards}
-        onAddXP={handleAddXP}
-      />
+      {isDiagnosticOpen && (
+        <Suspense fallback={<LoadingFallback message="Preparing Adaptive Diagnostic..." />}>
+          <DiagnosticTestModal
+            questions={mockDiagnosticQuestions}
+            isOpen={isDiagnosticOpen}
+            onClose={() => setIsDiagnosticOpen(false)}
+            onAutoGenerateCards={handleAutoGenerateCards}
+            onAddXP={handleAddXP}
+          />
+        </Suspense>
+      )}
 
       {/* 9 Monochrome Single-Tone Theme Selector Modal */}
-      <ThemeSelectorModal
-        isOpen={isThemeModalOpen}
-        onClose={() => setIsThemeModalOpen(false)}
-        currentColorTheme={colorTheme}
-        onSelectColorTheme={handleSelectColorTheme}
-        themeMode={theme}
-        onToggleThemeMode={handleToggleTheme}
-      />
+      {isThemeModalOpen && (
+        <Suspense fallback={<LoadingFallback message="Loading Color Palette..." />}>
+          <ThemeSelectorModal
+            isOpen={isThemeModalOpen}
+            onClose={() => setIsThemeModalOpen(false)}
+            currentColorTheme={colorTheme}
+            onSelectColorTheme={handleSelectColorTheme}
+            themeMode={theme}
+            onToggleThemeMode={handleToggleTheme}
+          />
+        </Suspense>
+      )}
 
       {/* AI LLM Settings Modal */}
-      <AISettingsModal
-        isOpen={isAISettingsOpen}
-        onClose={() => setIsAISettingsOpen(false)}
-      />
+      {isAISettingsOpen && (
+        <Suspense fallback={<LoadingFallback message="Loading AI Gateway..." />}>
+          <AISettingsModal
+            isOpen={isAISettingsOpen}
+            onClose={() => setIsAISettingsOpen(false)}
+          />
+        </Suspense>
+      )}
 
       {/* Backend & Cloud Database Sync Modal */}
-      <BackendSettingsModal
-        isOpen={isBackendSettingsOpen}
-        onClose={() => setIsBackendSettingsOpen(false)}
-      />
+      {isBackendSettingsOpen && (
+        <Suspense fallback={<LoadingFallback message="Loading Database Sync..." />}>
+          <BackendSettingsModal
+            isOpen={isBackendSettingsOpen}
+            onClose={() => setIsBackendSettingsOpen(false)}
+          />
+        </Suspense>
+      )}
 
       {/* Enterprise AI Governance & Safety Monitor Modal */}
-      <GovernanceMonitorModal
-        isOpen={isGovernanceOpen}
-        onClose={() => setIsGovernanceOpen(false)}
-      />
+      {isGovernanceOpen && (
+        <Suspense fallback={<LoadingFallback message="Loading AI Governance & Spend Analytics..." />}>
+          <GovernanceMonitorModal
+            isOpen={isGovernanceOpen}
+            onClose={() => setIsGovernanceOpen(false)}
+          />
+        </Suspense>
+      )}
     </div>
   );
-
 };
 
 export default App;

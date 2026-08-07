@@ -1,6 +1,6 @@
 import { checkRateLimit } from './rateLimiter';
 
-// Vercel Serverless Function: Secure LLM Proxy with Server-Side Guardrails & Rate Limiting
+// Vercel Serverless Function: Secure LLM Proxy with Server-Side Guardrails, Rate Limiting, and SSE Streaming
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
@@ -12,14 +12,23 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const { provider = 'openai', systemPrompt, messages, model, temperature = 0.7, maxTokens = 1200, jsonMode = false } = req.body;
+    const {
+      provider = 'openai',
+      systemPrompt,
+      messages,
+      model,
+      temperature = 0.7,
+      maxTokens = 1200,
+      jsonMode = false,
+      stream = false
+    } = req.body;
 
     const openaiKey = process.env.OPENAI_API_KEY;
     const anthropicKey = process.env.ANTHROPIC_API_KEY;
     const geminiKey = process.env.GEMINI_API_KEY;
 
     // Server-side Prompt Injection & Jailbreak Guardrail
-    const lastUserMessage = messages.filter((m: any) => m.role === 'user').slice(-1)[0]?.content || '';
+    const lastUserMessage = messages?.filter((m: any) => m.role === 'user').slice(-1)[0]?.content || '';
     const injectionPatterns = [
       /ignore\s+(all\s+)?(previous|prior)\s+(instructions|prompts|rules)/i,
       /disregard\s+(all\s+)?(previous|prior)\s+(instructions|directives)/i,
@@ -31,11 +40,24 @@ export default async function handler(req: any, res: any) {
 
     const isInjected = injectionPatterns.some(pat => pat.test(lastUserMessage));
     if (isInjected) {
-      return res.status(200).json({
-        content: 'I am unable to fulfill requests that attempt to bypass pedagogical safety boundaries or extract system instructions. How can I help you master your current STEM topic?'
-      });
+      const blockedMsg = 'I am unable to fulfill requests that attempt to bypass pedagogical safety boundaries or extract system instructions. How can I help you master your current STEM topic?';
+      if (stream && res.writeHead) {
+        res.writeHead(200, {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache, no-transform',
+          'Connection': 'keep-alive'
+        });
+        res.write(`data: ${JSON.stringify({ chunk: blockedMsg })}\n\n`);
+        res.write('data: [DONE]\n\n');
+        res.end();
+        return;
+      }
+      return res.status(200).json({ content: blockedMsg });
     }
 
+    // -------------------------------------------------------------
+    // 1. OPENAI (Streaming & Non-Streaming)
+    // -------------------------------------------------------------
     if (provider === 'openai') {
       if (!openaiKey) {
         return res.status(500).json({ error: 'Server OPENAI_API_KEY is not set' });
@@ -55,7 +77,8 @@ export default async function handler(req: any, res: any) {
           ],
           temperature,
           max_tokens: maxTokens,
-          ...(jsonMode ? { response_format: { type: 'json_object' } } : {})
+          stream: !!stream,
+          ...(jsonMode && !stream ? { response_format: { type: 'json_object' } } : {})
         })
       });
 
@@ -64,10 +87,55 @@ export default async function handler(req: any, res: any) {
         return res.status(openAiRes.status).json({ error: `OpenAI error: ${errText}` });
       }
 
+      if (stream && res.writeHead) {
+        res.writeHead(200, {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache, no-transform',
+          'Connection': 'keep-alive'
+        });
+
+        const reader = openAiRes.body?.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        if (reader) {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (!trimmed || !trimmed.startsWith('data: ')) continue;
+              const dataStr = trimmed.slice(6);
+              if (dataStr === '[DONE]') {
+                res.write('data: [DONE]\n\n');
+                continue;
+              }
+              try {
+                const parsed = JSON.parse(dataStr);
+                const chunk = parsed.choices?.[0]?.delta?.content || '';
+                if (chunk) {
+                  res.write(`data: ${JSON.stringify({ chunk })}\n\n`);
+                }
+              } catch (e) {}
+            }
+          }
+        }
+        res.write('data: [DONE]\n\n');
+        res.end();
+        return;
+      }
+
       const data = await openAiRes.json();
       return res.status(200).json({ content: data.choices?.[0]?.message?.content || '' });
     }
 
+    // -------------------------------------------------------------
+    // 2. ANTHROPIC (Streaming & Non-Streaming)
+    // -------------------------------------------------------------
     if (provider === 'anthropic') {
       if (!anthropicKey) {
         return res.status(500).json({ error: 'Server ANTHROPIC_API_KEY is not set' });
@@ -88,7 +156,8 @@ export default async function handler(req: any, res: any) {
             content: m.content
           })),
           max_tokens: maxTokens,
-          temperature
+          temperature,
+          stream: !!stream
         })
       });
 
@@ -97,17 +166,61 @@ export default async function handler(req: any, res: any) {
         return res.status(anthropicRes.status).json({ error: `Anthropic error: ${errText}` });
       }
 
+      if (stream && res.writeHead) {
+        res.writeHead(200, {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache, no-transform',
+          'Connection': 'keep-alive'
+        });
+
+        const reader = anthropicRes.body?.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        if (reader) {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (!trimmed || !trimmed.startsWith('data: ')) continue;
+              const dataStr = trimmed.slice(6);
+              try {
+                const parsed = JSON.parse(dataStr);
+                if (parsed.type === 'content_block_delta') {
+                  const chunk = parsed.delta?.text || '';
+                  if (chunk) {
+                    res.write(`data: ${JSON.stringify({ chunk })}\n\n`);
+                  }
+                }
+              } catch (e) {}
+            }
+          }
+        }
+        res.write('data: [DONE]\n\n');
+        res.end();
+        return;
+      }
+
       const data = await anthropicRes.json();
       return res.status(200).json({ content: data.content?.[0]?.text || '' });
     }
 
+    // -------------------------------------------------------------
+    // 3. GOOGLE GEMINI (Streaming & Non-Streaming)
+    // -------------------------------------------------------------
     if (provider === 'gemini') {
       if (!geminiKey) {
         return res.status(500).json({ error: 'Server GEMINI_API_KEY is not set' });
       }
 
       const targetModel = model || 'gemini-2.0-flash';
-      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${geminiKey.trim()}`;
+      const endpoint = stream ? 'streamGenerateContent?alt=sse&key=' : 'generateContent?key=';
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:${endpoint}${geminiKey.trim()}`;
 
       const contents = [
         {
@@ -123,7 +236,7 @@ export default async function handler(req: any, res: any) {
           contents,
           generationConfig: {
             temperature,
-            ...(jsonMode ? { responseMimeType: 'application/json' } : {})
+            ...(jsonMode && !stream ? { responseMimeType: 'application/json' } : {})
           }
         })
       });
@@ -131,6 +244,44 @@ export default async function handler(req: any, res: any) {
       if (!geminiRes.ok) {
         const errText = await geminiRes.text();
         return res.status(geminiRes.status).json({ error: `Gemini error: ${errText}` });
+      }
+
+      if (stream && res.writeHead) {
+        res.writeHead(200, {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache, no-transform',
+          'Connection': 'keep-alive'
+        });
+
+        const reader = geminiRes.body?.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        if (reader) {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (!trimmed || !trimmed.startsWith('data: ')) continue;
+              const dataStr = trimmed.slice(6);
+              try {
+                const parsed = JSON.parse(dataStr);
+                const chunk = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                if (chunk) {
+                  res.write(`data: ${JSON.stringify({ chunk })}\n\n`);
+                }
+              } catch (e) {}
+            }
+          }
+        }
+        res.write('data: [DONE]\n\n');
+        res.end();
+        return;
       }
 
       const data = await geminiRes.json();

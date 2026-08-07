@@ -1,8 +1,8 @@
 {
-  "rewrites": [
+  "crons": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "path": "/api/cron/parent-digest",
+      "schedule": "0 18 * * 0"
     }
   ]
 }

@@ -1,6 +1,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import {
   AuthUser,
+  ChatMessage,
   CloudBackendConfig,
   ConceptNode,
   DifferentiatedWorksheet,
@@ -126,6 +127,19 @@ CREATE TABLE IF NOT EXISTS public.classroom_metrics (
   topic_scores JSONB DEFAULT '{}'
 );
 
+-- 7. Student Tutoring Chat Sessions & Messages
+CREATE TABLE IF NOT EXISTS public.chat_messages (
+  id TEXT PRIMARY KEY,
+  student_id TEXT NOT NULL,
+  topic_title TEXT,
+  sender TEXT NOT NULL CHECK (sender IN ('user', 'assistant', 'system')),
+  text TEXT NOT NULL,
+  mode TEXT DEFAULT 'socratic',
+  feynman_feedback JSONB,
+  timestamp TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Enable Row Level Security (RLS)
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.concept_nodes ENABLE ROW LEVEL SECURITY;
@@ -133,6 +147,7 @@ ALTER TABLE public.recall_cards ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.worksheets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.student_reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.classroom_metrics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
 
 -- Helper function to inspect current authenticated user role
 CREATE OR REPLACE FUNCTION public.get_current_user_role()
@@ -207,16 +222,11 @@ CREATE POLICY "Teachers can manage student reports"
   USING (public.get_current_user_role() = 'teacher' OR auth.role() = 'service_role');
 
 -- 6. Classroom Metrics
--- Teachers can view and update classroom metrics
-CREATE POLICY "Teachers manage classroom metrics"
+-- Teachers and school admins can view
+CREATE POLICY "Teachers can access classroom metrics"
   ON public.classroom_metrics FOR ALL
   USING (public.get_current_user_role() = 'teacher' OR auth.role() = 'service_role');
 
--- Enable Realtime
-ALTER PUBLICATION supabase_realtime ADD TABLE public.concept_nodes;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.recall_cards;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.worksheets;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.student_reports;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.classroom_metrics;
 `;
 
@@ -596,6 +606,68 @@ export const SupabaseService = {
     };
 
     const { error } = await client.from('student_reports').upsert(row);
+    return !error;
+  },
+
+  // -------------------------------------------------------------
+  // Student Tutoring Chat History Persistence (Supabase Backend)
+  // -------------------------------------------------------------
+  async saveChatMessage(msg: ChatMessage, studentId: string, topicTitle?: string): Promise<boolean> {
+    const client = this.getClient();
+    if (!client) return false;
+
+    const row = {
+      id: msg.id,
+      student_id: studentId,
+      topic_title: topicTitle || 'General',
+      sender: msg.sender,
+      text: msg.text,
+      mode: msg.mode || 'socratic',
+      feynman_feedback: msg.feynmanFeedback || null,
+      timestamp: new Date().toISOString()
+    };
+
+    const { error } = await client.from('chat_messages').upsert(row);
+    return !error;
+  },
+
+  async getChatHistory(studentId: string, topicTitle?: string): Promise<ChatMessage[]> {
+    const client = this.getClient();
+    if (!client) return [];
+
+    let query = client
+      .from('chat_messages')
+      .select('*')
+      .eq('student_id', studentId)
+      .order('timestamp', { ascending: true });
+
+    if (topicTitle) {
+      query = query.eq('topic_title', topicTitle);
+    }
+
+    const { data, error } = await query;
+    if (error || !data) return [];
+
+    return data.map((d: any) => ({
+      id: d.id,
+      sender: d.sender,
+      text: d.text,
+      timestamp: new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      mode: d.mode,
+      feynmanFeedback: d.feynman_feedback
+    }));
+  },
+
+  async clearChatHistory(studentId: string, topicTitle?: string): Promise<boolean> {
+    const client = this.getClient();
+    if (!client) return false;
+
+    let query = client.from('chat_messages').delete().eq('student_id', studentId);
+    if (topicTitle) {
+      query = query.eq('topic_title', topicTitle);
+    }
+
+    const { error } = await query;
     return !error;
   },
 

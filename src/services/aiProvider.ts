@@ -252,6 +252,159 @@ export const AIProviderService = {
     return finalResponse;
   },
 
+  async streamChatCompletion(
+    systemPrompt: string,
+    messages: { role: 'user' | 'assistant' | 'system'; content: string }[],
+    onChunk: (chunk: string, fullAccumulated: string) => void,
+    options?: {
+      maxTokens?: number;
+      subject?: SubjectId;
+      userRole?: UserRole;
+      userId?: string;
+      enableRAG?: boolean;
+    }
+  ): Promise<string> {
+    const startTime = Date.now();
+    const config = this.getConfig();
+    const lastUserMsg = messages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
+    const userId = options?.userId || 'usr_current';
+    const userRole = options?.userRole || 'student';
+    const subject = options?.subject || 'math';
+
+    // 1. Pre-flight Guardrails & PII Sanitization
+    const guardrailCheck = await GuardrailService.validateAndSanitizeInput(lastUserMsg, userRole);
+
+    if (guardrailCheck.blocked) {
+      onChunk(guardrailCheck.sanitizedText, guardrailCheck.sanitizedText);
+      AuditLogService.recordLog({
+        userId,
+        userRole,
+        promptOriginal: lastUserMsg,
+        promptSanitized: guardrailCheck.sanitizedText,
+        guardrailStatus: 'blocked',
+        violations: guardrailCheck.violations,
+        redactedFields: guardrailCheck.redactedFields,
+        riskScore: guardrailCheck.riskScore,
+        latencyMs: Date.now() - startTime,
+        tokensEstimate: Math.ceil(lastUserMsg.length / 4),
+        model: config.model || 'gpt-4o-mini',
+        provider: config.provider,
+        responseSnippet: guardrailCheck.sanitizedText
+      });
+      return guardrailCheck.sanitizedText;
+    }
+
+    // 2. Vector Knowledge RAG Retrieval
+    let augmentedSystemPrompt = systemPrompt;
+    let ragCitations: string[] = [];
+    if (options?.enableRAG !== false) {
+      try {
+        const ragResults = await VectorService.searchRelevantKnowledge(lastUserMsg, subject, 2);
+        if (ragResults.length > 0) {
+          const contextSnippets = ragResults.map(r => `[Topic: ${r.title}]: ${r.snippet || ''}`).join('\n\n');
+          augmentedSystemPrompt += `\n\n### CURRICULUM CONTEXT (RAG Retrieval):\n${contextSnippets}\nUse this curriculum context to guide student inquiry.`;
+          ragCitations = ragResults.map(r => r.title);
+        }
+      } catch (e) {}
+    }
+
+    const sanitizedMessages = messages.map((m, idx) =>
+      idx === messages.length - 1 && m.role === 'user'
+        ? { ...m, content: guardrailCheck.sanitizedText }
+        : m
+    );
+
+    let accumulated = '';
+
+    // 3. Try Serverless SSE Streaming Proxy
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          provider: config.provider,
+          model: config.model,
+          systemPrompt: augmentedSystemPrompt,
+          messages: sanitizedMessages,
+          temperature: config.temperature ?? 0.7,
+          maxTokens: options?.maxTokens || 1200,
+          stream: true
+        })
+      });
+
+      if (response.ok && response.body) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed || !trimmed.startsWith('data: ')) continue;
+            const dataStr = trimmed.slice(6);
+            if (dataStr === '[DONE]') continue;
+            try {
+              const parsed = JSON.parse(dataStr);
+              if (parsed.chunk) {
+                accumulated += parsed.chunk;
+                onChunk(parsed.chunk, accumulated);
+              }
+            } catch (e) {}
+          }
+        }
+
+        if (accumulated.trim().length > 0) {
+          // Output guardrail check
+          const outputCheck = await GuardrailService.validateOutput(accumulated);
+          const finalResponse = outputCheck.sanitizedText;
+          AuditLogService.recordLog({
+            userId,
+            userRole,
+            promptOriginal: lastUserMsg,
+            promptSanitized: guardrailCheck.sanitizedText,
+            ragCitations,
+            guardrailStatus: guardrailCheck.violations.length > 0 ? 'flagged' : 'passed',
+            violations: guardrailCheck.violations,
+            redactedFields: guardrailCheck.redactedFields,
+            riskScore: guardrailCheck.riskScore,
+            latencyMs: Date.now() - startTime,
+            tokensEstimate: Math.ceil((lastUserMsg.length + finalResponse.length) / 4),
+            model: config.model || 'gpt-4o-mini',
+            provider: config.provider,
+            responseSnippet: finalResponse.substring(0, 120)
+          });
+          return finalResponse;
+        }
+      }
+    } catch (e) {
+      // Stream proxy failed, proceed to client fallback
+    }
+
+    // 4. Fallback: Call client-side and progressively simulate stream
+    const fullText = await this.callChatCompletion(augmentedSystemPrompt, sanitizedMessages, {
+      ...options,
+      enableRAG: false
+    });
+
+    // Smooth progressive stream simulation for UI
+    const words = fullText.split(' ');
+    accumulated = '';
+    for (let i = 0; i < words.length; i++) {
+      const piece = (i === 0 ? '' : ' ') + words[i];
+      accumulated += piece;
+      onChunk(piece, accumulated);
+      await new Promise(r => setTimeout(r, 18));
+    }
+
+    return fullText;
+  },
+
   async callOpenAI(
     config: AIConfig,
     systemPrompt: string,

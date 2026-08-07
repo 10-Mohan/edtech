@@ -1,10 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { ConceptNode, DifferentiatedWorksheet, StudentClassroomMetric } from '../../types';
 import { mockClassroomMetrics } from '../../data/mockData';
 import { MathRenderer } from '../common/MathRenderer';
 import { BackendService } from '../../services/backendService';
 import { CurriculumGeneratorService } from '../../services/curriculumGenerator';
-import { CurriculumEditorModal } from './CurriculumEditorModal';
+import { LoadingFallback } from '../common/LoadingFallback';
+
+const CurriculumEditorModal = lazy(() =>
+  import('./CurriculumEditorModal').then(m => ({ default: m.CurriculumEditorModal }))
+);
+const TeacherOnboardingModal = lazy(() =>
+  import('./TeacherOnboardingModal').then(m => ({ default: m.TeacherOnboardingModal }))
+);
 import {
   LayoutDashboard,
   FileSpreadsheet,
@@ -18,7 +25,8 @@ import {
   TrendingDown,
   Layers,
   GitFork,
-  BookOpen
+  BookOpen,
+  Compass
 } from 'lucide-react';
 
 interface TeacherDashboardProps {
@@ -38,6 +46,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [isCurriculumModalOpen, setIsCurriculumModalOpen] = useState<boolean>(false);
   const [curriculumModalTab, setCurriculumModalTab] = useState<'topics' | 'worksheets' | 'ai_synthesizer'>('topics');
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(false);
 
   const handleGenerateNewWorksheet = async () => {
     setIsGenerating(true);
@@ -78,6 +87,16 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           </div>
 
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => setIsOnboardingOpen(true)}
+              className="btn btn-secondary"
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+              title="Classroom Quickstart Setup Wizard"
+            >
+              <Compass size={16} color="#a855f7" />
+              <span>Quickstart Setup Wizard</span>
+            </button>
+
             <button
               onClick={() => {
                 setCurriculumModalTab('topics');
@@ -349,22 +368,46 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       )}
 
       {/* Curriculum Studio Modal */}
-      <CurriculumEditorModal
-        isOpen={isCurriculumModalOpen}
-        onClose={() => setIsCurriculumModalOpen(false)}
-        nodes={nodes}
-        onNodesUpdated={updated => {
-          if (onNodesUpdated) onNodesUpdated(updated);
-        }}
-        worksheets={worksheets}
-        onWorksheetsUpdated={updated => {
-          setWorksheets(updated);
-          if (updated.length > 0 && (!selectedWorksheet || !updated.find(w => w.id === selectedWorksheet.id))) {
-            setSelectedWorksheet(updated[0]);
-          }
-        }}
-        initialTab={curriculumModalTab}
-      />
+      {isCurriculumModalOpen && (
+        <Suspense fallback={<LoadingFallback message="Loading Curriculum Editor & Vector Indexer..." />}>
+          <CurriculumEditorModal
+            isOpen={isCurriculumModalOpen}
+            onClose={() => setIsCurriculumModalOpen(false)}
+            nodes={nodes}
+            onNodesUpdated={updated => {
+              if (onNodesUpdated) onNodesUpdated(updated);
+            }}
+            worksheets={worksheets}
+            onWorksheetsUpdated={updated => {
+              setWorksheets(updated);
+              if (updated.length > 0 && (!selectedWorksheet || !updated.find(w => w.id === selectedWorksheet.id))) {
+                setSelectedWorksheet(updated[0]);
+              }
+            }}
+            initialTab={curriculumModalTab}
+          />
+        </Suspense>
+      )}
+
+      {/* Teacher Onboarding Quickstart Modal */}
+      {isOnboardingOpen && (
+        <Suspense fallback={<LoadingFallback message="Loading Teacher Quickstart..." />}>
+          <TeacherOnboardingModal
+            isOpen={isOnboardingOpen}
+            onClose={() => setIsOnboardingOpen(false)}
+            onComplete={data => {
+              setIsOnboardingOpen(false);
+              const currentNodes = BackendService.getConceptNodes();
+              if (onNodesUpdated) onNodesUpdated(currentNodes);
+              const updatedWs = BackendService.getWorksheets();
+              setWorksheets(updatedWs);
+              if (updatedWs.length > 0) {
+                setSelectedWorksheet(updatedWs[0]);
+              }
+            }}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };

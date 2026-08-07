@@ -60,6 +60,45 @@ export async function generateSocraticResponseAsync(
 }
 
 /**
+ * Real Socratic AI Tutor Streamer (Async with live SSE stream + fallback simulation)
+ */
+export async function generateSocraticResponseStreamAsync(
+  userMessage: string,
+  contextTopic?: string,
+  history: ChatMessage[] = [],
+  onChunk?: (chunk: string, fullAccumulated: string) => void
+): Promise<string> {
+  const messages = history.slice(-6).map(m => ({
+    role: (m.sender === 'assistant' ? 'assistant' : 'user') as 'assistant' | 'user',
+    content: m.text
+  }));
+  messages.push({ role: 'user', content: userMessage });
+
+  const topicContext = contextTopic ? `\nCURRENT SUBJECT FOCUS: ${contextTopic}` : '';
+
+  if (onChunk) {
+    try {
+      const streamedText = await AIProviderService.streamChatCompletion(
+        SOCRATIC_SYSTEM_PROMPT + topicContext,
+        messages,
+        onChunk
+      );
+      if (streamedText.trim()) {
+        return streamedText.trim();
+      }
+    } catch (err) {
+      console.warn('Live streaming provider failed, falling back to simulated stream:', err);
+    }
+  }
+
+  const fallback = generateSocraticResponse(userMessage, contextTopic);
+  if (onChunk) {
+    onChunk(fallback, fallback);
+  }
+  return fallback;
+}
+
+/**
  * Real Feynman Evaluator (Async with live LLM JSON mode + offline fallback)
  */
 export async function evaluateFeynmanExplanationAsync(

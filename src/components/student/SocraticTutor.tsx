@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChatMessage, ConceptNode } from '../../types';
 import {
   evaluateFeynmanExplanationAsync,
-  generateSocraticResponseAsync
+  generateSocraticResponseStreamAsync
 } from '../../services/aiEngine';
 import { AIProviderService } from '../../services/aiProvider';
+import { BackendService } from '../../services/backendService';
 import { MathRenderer } from '../common/MathRenderer';
 import {
   Send,
@@ -18,49 +19,95 @@ import {
   AlertCircle,
   Lightbulb,
   Zap,
-  Activity
+  Activity,
+  Trash2,
+  History,
+  Radio
 } from 'lucide-react';
 
 interface SocraticTutorProps {
   initialTopic?: ConceptNode | null;
   onAddXP: (amount: number) => void;
+  studentId?: string;
 }
 
 export const SocraticTutor: React.FC<SocraticTutorProps> = ({
   initialTopic,
-  onAddXP
+  onAddXP,
+  studentId = 'stu_maya_01'
 }) => {
   const [tutorMode, setTutorMode] = useState<'socratic' | 'feynman'>('socratic');
   const [inputMessage, setInputMessage] = useState<string>('');
   const [isTyping, setIsTyping] = useState<boolean>(false);
+  const [isStreaming, setIsStreaming] = useState<boolean>(false);
+  const chatBottomRef = useRef<HTMLDivElement>(null);
 
   const isLiveAI = AIProviderService.isLiveProviderActive();
   const providerName = AIProviderService.getActiveProviderName();
+  const topicTitle = initialTopic?.title || 'General STEM Inquiry';
 
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 'msg_01',
-      sender: 'assistant',
-      text: initialTopic
-        ? `Hello! I see you are exploring **${initialTopic.title}**. What specific problem or intuition would you like to investigate together?`
-        : `Hello! I'm your Waypoint AI Tutor. Would you like to investigate a tough topic using step-by-step **Socratic Inquiry**, or test your mastery by **teaching me in Feynman Mode**?`,
-      timestamp: 'Just now',
-      mode: 'socratic'
+  const defaultWelcomeMessage: ChatMessage = {
+    id: `msg_welcome_${Date.now()}`,
+    sender: 'assistant',
+    text: initialTopic
+      ? `Hello! I see you are exploring **${initialTopic.title}**. What specific problem or intuition would you like to investigate together?`
+      : `Hello! I'm your Waypoint AI Tutor. Would you like to investigate a tough topic using step-by-step **Socratic Inquiry**, or test your mastery by **teaching me in Feynman Mode**?`,
+    timestamp: 'Just now',
+    mode: 'socratic'
+  };
+
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    const saved = BackendService.getChatHistory(studentId, initialTopic?.title);
+    return saved.length > 0 ? saved : [defaultWelcomeMessage];
+  });
+
+  // Reload history when topic changes
+  useEffect(() => {
+    const saved = BackendService.getChatHistory(studentId, initialTopic?.title);
+    if (saved.length > 0) {
+      setMessages(saved);
+    } else {
+      setMessages([
+        {
+          id: `msg_welcome_${Date.now()}`,
+          sender: 'assistant',
+          text: initialTopic
+            ? `Hello! I see you are exploring **${initialTopic.title}**. What specific problem or intuition would you like to investigate together?`
+            : `Hello! I'm your Waypoint AI Tutor. Would you like to investigate a tough topic using step-by-step **Socratic Inquiry**, or test your mastery by **teaching me in Feynman Mode**?`,
+          timestamp: 'Just now',
+          mode: 'socratic'
+        }
+      ]);
     }
-  ]);
+  }, [initialTopic?.title, studentId]);
+
+  // Scroll to bottom on message change
+  useEffect(() => {
+    chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isTyping, isStreaming]);
+
+  const handleClearHistory = () => {
+    if (window.confirm('Clear your conversation history for this topic?')) {
+      BackendService.clearChatHistory(studentId, initialTopic?.title);
+      setMessages([defaultWelcomeMessage]);
+    }
+  };
 
   const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!inputMessage.trim() || isTyping) return;
+    if (!inputMessage.trim() || isTyping || isStreaming) return;
 
     const userText = inputMessage.trim();
     const userMsg: ChatMessage = {
       id: `usr_${Date.now()}`,
       sender: 'user',
       text: userText,
-      timestamp: 'Just now',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       mode: tutorMode
     };
+
+    // Save user message to persistent storage (local + Supabase)
+    BackendService.saveChatMessage(userMsg, studentId, initialTopic?.title);
 
     setMessages(prev => [...prev, userMsg]);
     setInputMessage('');
@@ -69,35 +116,64 @@ export const SocraticTutor: React.FC<SocraticTutorProps> = ({
     try {
       if (tutorMode === 'feynman') {
         const feedback = await evaluateFeynmanExplanationAsync(
-          initialTopic ? initialTopic.title : 'Calculus Concepts',
+          topicTitle,
           userText
         );
         const aiMsg: ChatMessage = {
           id: `ai_${Date.now()}`,
           sender: 'assistant',
           text: feedback ? `${feedback.praise} ${feedback.suggestion || ''}` : 'Thank you for your explanation!',
-          timestamp: 'Just now',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           mode: 'feynman',
           feynmanFeedback: feedback
         };
+        BackendService.saveChatMessage(aiMsg, studentId, initialTopic?.title);
         setMessages(prev => [...prev, aiMsg]);
         onAddXP(30);
       } else {
-        const reply = await generateSocraticResponseAsync(userText, initialTopic?.title);
-        const aiMsg: ChatMessage = {
-          id: `ai_${Date.now()}`,
+        // Socratic Mode: Real-time Live SSE Streaming
+        setIsStreaming(true);
+        const aiMsgId = `ai_${Date.now()}`;
+        const placeholderMsg: ChatMessage = {
+          id: aiMsgId,
           sender: 'assistant',
-          text: reply,
-          timestamp: 'Just now',
+          text: '',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           mode: 'socratic'
         };
-        setMessages(prev => [...prev, aiMsg]);
+
+        setMessages(prev => [...prev, placeholderMsg]);
+
+        let accumulated = '';
+        const finalReply = await generateSocraticResponseStreamAsync(
+          userText,
+          initialTopic?.title,
+          [...messages, userMsg],
+          (chunk, fullAccumulated) => {
+            accumulated = fullAccumulated;
+            setMessages(prev =>
+              prev.map(m => (m.id === aiMsgId ? { ...m, text: fullAccumulated } : m))
+            );
+          }
+        );
+
+        const finalizedAiMsg: ChatMessage = {
+          id: aiMsgId,
+          sender: 'assistant',
+          text: finalReply || accumulated || 'Let us break this down step-by-step.',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          mode: 'socratic'
+        };
+
+        // Persist final AI response to local + Supabase
+        BackendService.saveChatMessage(finalizedAiMsg, studentId, initialTopic?.title);
         onAddXP(15);
       }
     } catch (err) {
       console.error('Tutor error:', err);
     } finally {
       setIsTyping(false);
+      setIsStreaming(false);
     }
   };
 
@@ -111,7 +187,7 @@ export const SocraticTutor: React.FC<SocraticTutorProps> = ({
       <div className="glass-panel" style={{ padding: '24px 28px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
               <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>AI Pedagogical Companion</h1>
               <span className={`badge ${tutorMode === 'socratic' ? 'badge-indigo' : 'badge-emerald'}`}>
                 {tutorMode === 'socratic' ? 'Socratic Inquiry' : 'Feynman Teach-Back'}
@@ -128,10 +204,13 @@ export const SocraticTutor: React.FC<SocraticTutorProps> = ({
                   fontWeight: 700,
                   background: 'rgba(14, 165, 233, 0.15)',
                   color: '#38bdf8',
-                  border: '1px solid rgba(14, 165, 233, 0.3)'
+                  border: '1px solid rgba(14, 165, 233, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
                 }}
               >
-                Qdrant RAG + Enkrypt Guardrails Active
+                <Radio size={10} className="animate-pulse" /> SSE Streaming + Qdrant RAG + Enkrypt
               </span>
             </div>
             <p style={{ margin: 0 }}>
@@ -141,30 +220,41 @@ export const SocraticTutor: React.FC<SocraticTutorProps> = ({
             </p>
           </div>
 
+          {/* Controls: Mode Switcher & History Actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', background: 'var(--bg-surface-elevated)', padding: '4px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+              <button
+                onClick={() => setTutorMode('socratic')}
+                className="btn btn-sm"
+                style={{
+                  background: tutorMode === 'socratic' ? 'var(--primary-gradient)' : 'transparent',
+                  color: tutorMode === 'socratic' ? '#fff' : 'var(--text-muted)'
+                }}
+              >
+                <MessageSquare size={15} />
+                <span>Socratic Mode</span>
+              </button>
+              <button
+                onClick={() => setTutorMode('feynman')}
+                className="btn btn-sm"
+                style={{
+                  background: tutorMode === 'feynman' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'transparent',
+                  color: tutorMode === 'feynman' ? '#fff' : 'var(--text-muted)'
+                }}
+              >
+                <GraduationCap size={15} />
+                <span>Feynman Mode ("Teach Me")</span>
+              </button>
+            </div>
 
-          {/* Mode Switcher */}
-          <div style={{ display: 'flex', background: 'var(--bg-surface-elevated)', padding: '4px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
             <button
-              onClick={() => setTutorMode('socratic')}
-              className="btn btn-sm"
-              style={{
-                background: tutorMode === 'socratic' ? 'var(--primary-gradient)' : 'transparent',
-                color: tutorMode === 'socratic' ? '#fff' : 'var(--text-muted)'
-              }}
+              onClick={handleClearHistory}
+              className="btn btn-ghost btn-sm"
+              title="Clear Saved Session History"
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-dim)' }}
             >
-              <MessageSquare size={15} />
-              <span>Socratic Mode</span>
-            </button>
-            <button
-              onClick={() => setTutorMode('feynman')}
-              className="btn btn-sm"
-              style={{
-                background: tutorMode === 'feynman' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'transparent',
-                color: tutorMode === 'feynman' ? '#fff' : 'var(--text-muted)'
-              }}
-            >
-              <GraduationCap size={15} />
-              <span>Feynman Mode ("Teach Me")</span>
+              <Trash2 size={15} />
+              <span>Clear History</span>
             </button>
           </div>
         </div>
@@ -229,7 +319,11 @@ export const SocraticTutor: React.FC<SocraticTutorProps> = ({
                   }}
                 >
                   <div style={{ fontSize: '0.9rem', lineHeight: 1.6 }}>
-                    <MathRenderer text={msg.text} />
+                    {msg.text ? (
+                      <MathRenderer text={msg.text} />
+                    ) : (
+                      <span style={{ fontStyle: 'italic', color: 'var(--text-dim)' }}>Generating response...</span>
+                    )}
                   </div>
 
                   {/* Feynman Feedback Rubric Card if present */}
@@ -277,12 +371,13 @@ export const SocraticTutor: React.FC<SocraticTutorProps> = ({
             );
           })}
 
-          {isTyping && (
+          {(isTyping && !isStreaming) && (
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', color: 'var(--text-dim)', fontSize: '0.8125rem', paddingLeft: '50px' }}>
               <Sparkles size={14} className="animate-spin" />
               <span>Waypoint AI is formulating a pedagogical response...</span>
             </div>
           )}
+          <div ref={chatBottomRef} />
         </div>
 
         {/* Quick Suggestion Chips */}
@@ -336,12 +431,12 @@ export const SocraticTutor: React.FC<SocraticTutorProps> = ({
             />
             <button
               type="submit"
-              disabled={isTyping}
+              disabled={isTyping || isStreaming || !inputMessage.trim()}
               className="btn btn-primary"
               style={{ padding: '0 20px' }}
             >
               <Send size={16} />
-              <span>Send</span>
+              <span>{isStreaming ? 'Streaming...' : 'Send'}</span>
             </button>
           </form>
         </div>

@@ -7,6 +7,7 @@ import {
   mockStudentReportsMap
 } from '../../data/mockData';
 import { MathRenderer } from '../common/MathRenderer';
+import { BackendService } from '../../services/backendService';
 import {
   CalendarCheck,
   Sparkles,
@@ -20,7 +21,11 @@ import {
   UserCheck,
   ShieldCheck,
   Users,
-  GraduationCap
+  GraduationCap,
+  Mail,
+  Send,
+  ExternalLink,
+  X
 } from 'lucide-react';
 
 interface ParentDashboardProps {
@@ -31,9 +36,53 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   activeParentTab
 }) => {
   const [selectedChildId, setSelectedChildId] = useState<string>('stu_maya_01');
+  const [parentEmailInput, setParentEmailInput] = useState<string>('parent.chen@example.com');
+  const [isSendingEmail, setIsSendingEmail] = useState<boolean>(false);
+  const [emailStatus, setEmailStatus] = useState<{
+    type: 'success' | 'error';
+    message: string;
+    delivered?: boolean;
+    previewHtml?: string;
+  } | null>(null);
+  const [showPreviewModal, setShowPreviewModal] = useState<boolean>(false);
+
   const summary: ParentWeeklySummary = mockParentSummary;
   const studentReport: StudentComprehensiveReport =
     mockStudentReportsMap[selectedChildId] || mockStudentComprehensiveReport;
+
+  const handleSendDigestEmail = async () => {
+    setIsSendingEmail(true);
+    setEmailStatus(null);
+    try {
+      const res = await BackendService.sendParentWeeklyDigestEmail({
+        studentId: selectedChildId,
+        parentEmail: parentEmailInput
+      });
+
+      if (res.success) {
+        setEmailStatus({
+          type: 'success',
+          message: res.delivered
+            ? `Weekly digest email dispatched live to ${parentEmailInput} via Resend/SendGrid!`
+            : `Digest rendered successfully in preview mode (Set RESEND_API_KEY for live delivery).`,
+          delivered: res.delivered,
+          previewHtml: res.previewHtml
+        });
+      } else {
+        setEmailStatus({
+          type: 'error',
+          message: `Email dispatch failed: ${res.error || 'Unknown error'}`
+        });
+      }
+    } catch (err: any) {
+      setEmailStatus({
+        type: 'error',
+        message: `Error sending email: ${err?.message || 'Network error'}`
+      });
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -386,13 +435,141 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             <div style={{ fontSize: '0.8125rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-dim)', marginBottom: '10px' }}>
               Highlights & Milestone Celebrations
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
               {summary.celebrations.map((item, idx) => (
                 <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', background: 'var(--primary-surface)', border: '1px solid var(--primary-border)', borderRadius: 'var(--radius-md)', fontSize: '0.875rem', color: 'var(--text-main)' }}>
                   <CheckCircle2 size={16} color="var(--primary-light)" />
                   <span>{item}</span>
                 </div>
               ))}
+            </div>
+
+            {/* Email Dispatch Control Card */}
+            <div style={{ padding: '20px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-medium)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Mail size={18} color="var(--primary-light)" />
+                  <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)' }}>Email Weekly Digest to Parent</span>
+                </div>
+                <span className="badge badge-indigo">Automated Every Sunday 18:00 UTC (Vercel Cron)</span>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <input
+                  type="email"
+                  value={parentEmailInput}
+                  onChange={e => setParentEmailInput(e.target.value)}
+                  placeholder="parent@example.com"
+                  style={{
+                    flex: '1 1 250px',
+                    padding: '8px 14px',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--border-medium)',
+                    background: 'var(--bg-surface)',
+                    color: 'var(--text-main)',
+                    fontSize: '0.85rem'
+                  }}
+                />
+                <button
+                  onClick={handleSendDigestEmail}
+                  disabled={isSendingEmail || !parentEmailInput.trim()}
+                  className="btn btn-primary btn-sm"
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Send size={14} />
+                  <span>{isSendingEmail ? 'Dispatching...' : 'Send Weekly Email'}</span>
+                </button>
+                {emailStatus?.previewHtml && (
+                  <button
+                    onClick={() => setShowPreviewModal(true)}
+                    className="btn btn-secondary btn-sm"
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <ExternalLink size={14} />
+                    <span>Preview HTML Template</span>
+                  </button>
+                )}
+              </div>
+
+              {emailStatus && (
+                <div
+                  style={{
+                    marginTop: '12px',
+                    padding: '10px 14px',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: '0.82rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    background: emailStatus.type === 'success' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                    border: emailStatus.type === 'success' ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(239, 68, 68, 0.3)',
+                    color: emailStatus.type === 'success' ? '#10b981' : '#ef4444'
+                  }}
+                >
+                  {emailStatus.type === 'success' ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
+                  <span>{emailStatus.message}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* HTML Email Preview Modal */}
+      {showPreviewModal && emailStatus?.previewHtml && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(6px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div className="glass-panel" style={{
+            width: '100%',
+            maxWidth: '680px',
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            borderRadius: 'var(--radius-xl)'
+          }}>
+            <div style={{
+              padding: '16px 20px',
+              borderBottom: '1px solid var(--border-subtle)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Mail size={18} color="var(--primary-light)" />
+                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)' }}>Weekly Digest HTML Email Preview</h3>
+              </div>
+              <button
+                onClick={() => setShowPreviewModal(false)}
+                className="btn btn-ghost btn-sm"
+                style={{ padding: '4px' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px', background: '#0b0f19' }}>
+              <iframe
+                title="Email Preview"
+                srcDoc={emailStatus.previewHtml}
+                style={{
+                  width: '100%',
+                  height: '560px',
+                  border: 'none',
+                  borderRadius: '12px'
+                }}
+              />
             </div>
           </div>
         </div>
