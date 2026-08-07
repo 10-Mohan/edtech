@@ -3,7 +3,7 @@ import { AuthUser, ColorThemeId, UserRole } from '../../types';
 import { mockAuthUsers } from '../../data/mockData';
 import { BackendService } from '../../services/backendService';
 import { RegisterModal } from './RegisterModal';
-import { Palette, Sun, Moon, Bot, Database, ShieldCheck } from 'lucide-react';
+import { Palette, Sun, Moon, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 interface LoginPageProps {
   onLogin: (user: AuthUser) => void;
@@ -21,14 +21,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   theme,
   onToggleTheme,
   colorTheme,
-  onOpenThemeModal,
-  onOpenAISettings,
-  onOpenBackendSettings,
-  onOpenGovernanceMonitor
+  onOpenThemeModal
 }) => {
   const [role, setRole] = useState<'student' | 'faculty'>('student');
   const [email, setEmail] = useState<string>('maya.lin@student.waypoint.edu');
   const [password, setPassword] = useState<string>('demo123');
+  const [loginError, setLoginError] = useState<string | null>(null);
   const [isRegisterOpen, setIsRegisterOpen] = useState<boolean>(false);
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
   const [linesRevealed, setLinesRevealed] = useState<number>(0);
@@ -52,6 +50,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
   const handleRoleToggle = (targetRole: 'student' | 'faculty') => {
     if (targetRole === role) return;
+    setLoginError(null);
 
     if (bookRef.current) {
       bookRef.current.style.transition = 'transform .55s cubic-bezier(.65,0,.35,1)';
@@ -76,31 +75,43 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoginError(null);
     setIsLoggingIn(true);
     try {
       const targetUserRole: UserRole = role === 'faculty' ? 'teacher' : 'student';
-      let user = await BackendService.authenticateWithPassword(email.trim(), password);
-      if (!user) {
-        const users = BackendService.getUsers();
-        user = users.find(u => u.role === targetUserRole) || mockAuthUsers.find(u => u.role === targetUserRole) || null;
-      }
-      if (user) {
-        onLogin(user);
-      }
-    } catch (err) {
-      console.error('Login error:', err);
+      const user = await BackendService.authenticateWithPassword(email.trim(), password, targetUserRole);
+      onLogin(user);
+    } catch (err: any) {
+      console.warn('Login validation failed:', err.message);
+      setLoginError(err?.message || 'Invalid credentials. Please verify your email and password.');
     } finally {
       setIsLoggingIn(false);
     }
   };
 
-  const handleQuickLogin = (targetRole: 'student' | 'teacher' | 'parent') => {
+  const handleQuickLogin = async (targetRole: 'student' | 'teacher' | 'parent') => {
+    setLoginError(null);
     setIsLoggingIn(true);
-    const users = BackendService.getUsers();
-    const user = users.find(u => u.role === targetRole) || mockAuthUsers.find(u => u.role === targetRole);
-    if (user) {
-      setTimeout(() => onLogin(user), 150);
-    } else {
+    try {
+      const demoEmail =
+        targetRole === 'teacher'
+          ? 'dr.vance@faculty.waypoint.edu'
+          : targetRole === 'parent'
+          ? 'elena.lin@parent.waypoint.edu'
+          : 'maya.lin@student.waypoint.edu';
+      
+      setEmail(demoEmail);
+      setPassword('demo123');
+      if (targetRole === 'teacher') {
+        setRole('faculty');
+      } else {
+        setRole('student');
+      }
+
+      const user = await BackendService.authenticateWithPassword(demoEmail, 'demo123');
+      onLogin(user);
+    } catch (err: any) {
+      setLoginError(err?.message || 'Login failed.');
       setIsLoggingIn(false);
     }
   };
@@ -527,21 +538,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
       {/* Top Floating Controls */}
       <div className="nb-controls">
-        {onOpenAISettings && (
-          <button type="button" onClick={onOpenAISettings} className="nb-icon-btn" title="AI Gateway Configuration">
-            <Bot size={15} />
-          </button>
-        )}
-        {onOpenBackendSettings && (
-          <button type="button" onClick={onOpenBackendSettings} className="nb-icon-btn" title="Cloud Database Settings">
-            <Database size={15} />
-          </button>
-        )}
-        {onOpenGovernanceMonitor && (
-          <button type="button" onClick={onOpenGovernanceMonitor} className="nb-icon-btn" title="AI Governance Monitor">
-            <ShieldCheck size={15} />
-          </button>
-        )}
         <button type="button" onClick={onOpenThemeModal} className="nb-icon-btn" title="Color Theme Palette">
           <Palette size={15} />
         </button>
@@ -602,13 +598,38 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               {role === 'faculty' ? "Your cohort's mastery, at a glance." : 'Where you left off, exactly.'}
             </div>
 
+            {loginError && (
+              <div
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: '6px',
+                  background: 'rgba(196, 86, 47, 0.12)',
+                  border: '1.5px solid var(--coral)',
+                  color: 'var(--coral)',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '8px',
+                  lineHeight: 1.4,
+                  margin: '12px 0'
+                }}
+              >
+                <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
+                <span>{loginError}</span>
+              </div>
+            )}
+
             <form onSubmit={handleFormSubmit}>
               <div className="field">
                 <label>Email</label>
                 <input
                   type="email"
                   value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  onChange={e => {
+                    setEmail(e.target.value);
+                    if (loginError) setLoginError(null);
+                  }}
                   placeholder="you@school.edu"
                   required
                 />
@@ -618,29 +639,32 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 <input
                   type="password"
                   value={password}
-                  onChange={e => setPassword(e.target.value)}
+                  onChange={e => {
+                    setPassword(e.target.value);
+                    if (loginError) setLoginError(null);
+                  }}
                   placeholder="••••••••"
                   required
                 />
               </div>
 
               <button className="go" id="gobtn" type="submit" disabled={isLoggingIn}>
-                {isLoggingIn ? 'Opening...' : role === 'faculty' ? 'Open roll book →' : 'Open notebook →'}
+                {isLoggingIn ? 'Verifying credentials...' : role === 'faculty' ? 'Open roll book →' : 'Open notebook →'}
               </button>
             </form>
 
             {/* Quick Demo Logins */}
             <div className="demo-bar">
-              <div className="demo-label">Instant Access:</div>
+              <div className="demo-label">Demo Credentials:</div>
               <div className="demo-pills">
-                <button type="button" className="demo-pill" onClick={() => handleQuickLogin('student')}>
+                <button type="button" className="demo-pill" onClick={() => handleQuickLogin('student')} title="maya.lin@student.waypoint.edu / demo123">
                   Maya (Student)
                 </button>
-                <button type="button" className="demo-pill" onClick={() => handleQuickLogin('teacher')}>
-                  Dr. Sarah (Faculty)
+                <button type="button" className="demo-pill" onClick={() => handleQuickLogin('teacher')} title="dr.vance@faculty.waypoint.edu / demo123">
+                  Dr. Eleanor (Faculty)
                 </button>
-                <button type="button" className="demo-pill" onClick={() => handleQuickLogin('parent')}>
-                  Eleanor (Parent)
+                <button type="button" className="demo-pill" onClick={() => handleQuickLogin('parent')} title="elena.lin@parent.waypoint.edu / demo123">
+                  Elena (Parent)
                 </button>
               </div>
             </div>
@@ -648,7 +672,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             <div className="foot">
               New here?{' '}
               <button type="button" onClick={() => setIsRegisterOpen(true)}>
-                Request access
+                Register new account
               </button>
             </div>
           </div>

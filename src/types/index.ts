@@ -219,6 +219,7 @@ export interface AuthUser {
   role: UserRole;
   avatar: string;
   title: string;
+  password?: string;
   linkedStudentId?: string; // Active linked student
   linkedStudentIds?: string[]; // All linked students for multi-child parents
 }

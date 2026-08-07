@@ -147,7 +147,17 @@ class BackendServiceManager {
     const raw = localStorage.getItem(STORAGE_KEYS.USERS);
     if (raw) {
       try {
-        return JSON.parse(raw);
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Ensure default accounts have passwords populated
+          return parsed.map(u => {
+            if (!u.password) {
+              const defaultUser = mockAuthUsers.find(mu => mu.email.toLowerCase() === u.email.toLowerCase());
+              return { ...u, password: defaultUser?.password || 'demo123' };
+            }
+            return u;
+          });
+        }
       } catch (e) {}
     }
     this.saveUsers(mockAuthUsers);
@@ -165,19 +175,23 @@ class BackendServiceManager {
     studentInviteCode?: string,
     password?: string
   ): Promise<AuthUser> {
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanName = (name || '').trim();
+    const cleanPassword = (password || '').trim() || 'demo123';
+
     const users = this.getUsers();
-    const existing = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    const existing = users.find(u => u.email.toLowerCase() === cleanEmail);
     if (existing) {
-      throw new Error('An account with this email address already exists.');
+      throw new Error(`An account with email "${cleanEmail}" already exists. Please log in instead.`);
     }
 
     let cloudUserId: string | undefined;
 
     // 1. Real Supabase Auth Signup when cloud configured
-    if (SupabaseService.isCloudConfigured() && password) {
+    if (SupabaseService.isCloudConfigured()) {
       try {
-        const signUpRes = await SupabaseService.signUp(email, password, {
-          name,
+        const signUpRes = await SupabaseService.signUp(cleanEmail, cleanPassword, {
+          name: cleanName,
           role,
           linkedStudentId: studentInviteCode ? 'stu_maya_01' : undefined
         });
@@ -186,7 +200,6 @@ class BackendServiceManager {
         }
       } catch (authErr: any) {
         console.warn('Supabase Auth signup notice:', authErr.message);
-        // If Supabase throws a hard error and user explicitly provided cloud credentials, propagate unless offline
         if (!authErr.message?.includes('fetch') && !authErr.message?.includes('Network')) {
           throw new Error(`Supabase Auth: ${authErr.message}`);
         }
@@ -195,9 +208,10 @@ class BackendServiceManager {
 
     const newUser: AuthUser = {
       id: cloudUserId || `usr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-      email,
-      name,
+      email: cleanEmail,
+      name: cleanName,
       role,
+      password: cleanPassword,
       avatar:
         role === 'student'
           ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
@@ -220,24 +234,30 @@ class BackendServiceManager {
     return newUser;
   }
 
-  // Synchronous signature for tests and quick offline login
+  // Synchronous signature for tests and quick registration
   public registerUser(
     email: string,
     name: string,
     role: UserRole,
-    studentInviteCode?: string
+    studentInviteCode?: string,
+    password?: string
   ): AuthUser {
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanName = (name || '').trim();
+    const cleanPassword = (password || '').trim() || 'demo123';
+
     const users = this.getUsers();
-    const existing = users.find(u => u.email.toLowerCase() === (email || '').toLowerCase());
+    const existing = users.find(u => u.email.toLowerCase() === cleanEmail);
     if (existing) {
-      throw new Error('An account with this email address already exists.');
+      throw new Error(`An account with email "${cleanEmail}" already exists.`);
     }
 
     const newUser: AuthUser = {
       id: `usr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-      email,
-      name,
+      email: cleanEmail,
+      name: cleanName,
       role,
+      password: cleanPassword,
       avatar:
         role === 'student'
           ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
@@ -260,29 +280,46 @@ class BackendServiceManager {
     return newUser;
   }
 
-  public async authenticateWithPassword(email: string, password?: string): Promise<AuthUser | null> {
+  public async authenticateWithPassword(
+    email: string,
+    password?: string,
+    expectedRole?: UserRole
+  ): Promise<AuthUser> {
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanPassword = (password || '').trim();
+
+    if (!cleanEmail) {
+      throw new Error('Please enter your email address.');
+    }
+    if (!cleanPassword) {
+      throw new Error('Please enter your password.');
+    }
+
     // 1. Real Supabase Auth when cloud backend configured
-    if (SupabaseService.isCloudConfigured() && password) {
+    if (SupabaseService.isCloudConfigured()) {
       try {
-        const { user } = await SupabaseService.signInWithPassword(email, password);
+        const { user } = await SupabaseService.signInWithPassword(cleanEmail, cleanPassword);
         if (user) {
-          // Attempt to pull user's profile from Postgres
           const remoteProfile = await SupabaseService.fetchUserProfile(user.id);
           if (remoteProfile) {
-            // Update local user list
-            const currentUsers = this.getUsers().filter(u => u.email.toLowerCase() !== email.toLowerCase());
+            if (expectedRole && remoteProfile.role !== expectedRole) {
+              const roleName = remoteProfile.role === 'teacher' ? 'Faculty Member' : remoteProfile.role === 'student' ? 'Student' : 'Parent';
+              throw new Error(`This account is registered as a ${roleName}. Please switch tabs to log in.`);
+            }
+            const currentUsers = this.getUsers().filter(u => u.email.toLowerCase() !== cleanEmail);
             this.saveUsers([remoteProfile, ...currentUsers]);
             return remoteProfile;
           }
 
-          const matched = this.getUsers().find(u => u.email.toLowerCase() === email.toLowerCase());
+          const matched = this.getUsers().find(u => u.email.toLowerCase() === cleanEmail);
           if (matched) return matched;
 
           const createdUser: AuthUser = {
             id: user.id,
-            email: user.email || email,
-            name: user.user_metadata?.name || email.split('@')[0],
+            email: user.email || cleanEmail,
+            name: user.user_metadata?.name || cleanEmail.split('@')[0],
             role: (user.user_metadata?.role as UserRole) || 'student',
+            password: cleanPassword,
             avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
             title: 'Verified User'
           };
@@ -290,21 +327,39 @@ class BackendServiceManager {
           return createdUser;
         }
       } catch (authErr: any) {
-        console.warn('Supabase Auth sign-in warning:', authErr.message);
-        // If it's a known demo email, fall back to local store
-        const isDemoEmail = mockAuthUsers.some(u => u.email.toLowerCase() === email.toLowerCase());
-        if (!isDemoEmail) {
-          throw new Error(authErr.message || 'Invalid credentials');
+        console.warn('Supabase Auth sign-in error:', authErr.message);
+        if (!authErr.message?.includes('fetch') && !authErr.message?.includes('Network')) {
+          throw new Error(`Invalid credentials: ${authErr.message || 'Check email and password.'}`);
         }
       }
     }
 
-    return this.authenticate(email);
+    // 2. Strict verification against registered database accounts
+    const users = this.getUsers();
+    const matched = users.find(u => u.email.toLowerCase() === cleanEmail);
+
+    if (!matched) {
+      throw new Error(`Invalid credentials. No account found with email "${cleanEmail}". Please check your email or click "Register New Account".`);
+    }
+
+    const expectedPassword = matched.password || 'demo123';
+    if (cleanPassword !== expectedPassword) {
+      throw new Error('Invalid credentials. Incorrect password entered for this account.');
+    }
+
+    if (expectedRole && matched.role !== expectedRole) {
+      const roleName = matched.role === 'teacher' ? 'Faculty' : matched.role === 'student' ? 'Student' : 'Parent';
+      const targetName = expectedRole === 'teacher' ? 'Faculty' : 'Student';
+      throw new Error(`Access denied: "${cleanEmail}" is registered as a ${roleName} account. Please switch to the ${roleName} tab.`);
+    }
+
+    return matched;
   }
 
   public authenticate(email: string): AuthUser | null {
+    const cleanEmail = (email || '').trim().toLowerCase();
     const users = this.getUsers();
-    return users.find(u => u.email.toLowerCase() === (email || '').toLowerCase()) || null;
+    return users.find(u => u.email.toLowerCase() === cleanEmail) || null;
   }
 
   // -------------------------------------------------------------

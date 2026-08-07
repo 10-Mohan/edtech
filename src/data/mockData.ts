@@ -560,6 +560,7 @@ export const mockAuthUsers: AuthUser[] = [
     email: 'maya.lin@student.waypoint.edu',
     name: 'Maya Lin',
     role: 'student',
+    password: 'demo123',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     title: 'Grade 11 AP Scholar'
   },
@@ -568,6 +569,7 @@ export const mockAuthUsers: AuthUser[] = [
     email: 'elena.lin@parent.waypoint.edu',
     name: 'Elena Lin',
     role: 'parent',
+    password: 'demo123',
     avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
     title: 'Parent of Maya Lin',
     linkedStudentId: 'stu_maya'
@@ -577,6 +579,7 @@ export const mockAuthUsers: AuthUser[] = [
     email: 'dr.vance@faculty.waypoint.edu',
     name: 'Dr. Eleanor Vance',
     role: 'teacher',
+    password: 'demo123',
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
     title: 'AP STEM & Mathematics Department Head'
   }
