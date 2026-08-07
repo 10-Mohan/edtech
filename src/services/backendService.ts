@@ -169,21 +169,30 @@ class BackendServiceManager {
       throw new Error('An account with this email address already exists.');
     }
 
-    // If Supabase is connected and password provided, perform real Supabase Auth signup
+    let cloudUserId: string | undefined;
+
+    // 1. Real Supabase Auth Signup when cloud configured
     if (SupabaseService.isCloudConfigured() && password) {
       try {
-        await SupabaseService.signUp(email, password, {
+        const signUpRes = await SupabaseService.signUp(email, password, {
           name,
           role,
           linkedStudentId: studentInviteCode ? 'stu_maya_01' : undefined
         });
+        if (signUpRes?.user) {
+          cloudUserId = signUpRes.user.id;
+        }
       } catch (authErr: any) {
-        console.warn('Supabase Auth warning:', authErr.message);
+        console.warn('Supabase Auth signup notice:', authErr.message);
+        // If Supabase throws a hard error and user explicitly provided cloud credentials, propagate unless offline
+        if (!authErr.message?.includes('fetch') && !authErr.message?.includes('Network')) {
+          throw new Error(`Supabase Auth: ${authErr.message}`);
+        }
       }
     }
 
     const newUser: AuthUser = {
-      id: `usr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      id: cloudUserId || `usr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       email,
       name,
       role,
@@ -209,7 +218,7 @@ class BackendServiceManager {
     return newUser;
   }
 
-  // Synchronous signature for tests and quick login
+  // Synchronous signature for tests and quick offline login
   public registerUser(
     email: string,
     name: string,
@@ -250,23 +259,41 @@ class BackendServiceManager {
   }
 
   public async authenticateWithPassword(email: string, password?: string): Promise<AuthUser | null> {
+    // 1. Real Supabase Auth when cloud backend configured
     if (SupabaseService.isCloudConfigured() && password) {
       try {
         const { user } = await SupabaseService.signInWithPassword(email, password);
         if (user) {
+          // Attempt to pull user's profile from Postgres
+          const remoteProfile = await SupabaseService.fetchUserProfile(user.id);
+          if (remoteProfile) {
+            // Update local user list
+            const currentUsers = this.getUsers().filter(u => u.email.toLowerCase() !== email.toLowerCase());
+            this.saveUsers([remoteProfile, ...currentUsers]);
+            return remoteProfile;
+          }
+
           const matched = this.getUsers().find(u => u.email.toLowerCase() === email.toLowerCase());
           if (matched) return matched;
-          return {
+
+          const createdUser: AuthUser = {
             id: user.id,
             email: user.email || email,
-            name: user.user_metadata?.name || 'Authorized User',
-            role: user.user_metadata?.role || 'student',
+            name: user.user_metadata?.name || email.split('@')[0],
+            role: (user.user_metadata?.role as UserRole) || 'student',
             avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
             title: 'Verified User'
           };
+          this.saveUsers([createdUser, ...this.getUsers()]);
+          return createdUser;
         }
       } catch (authErr: any) {
-        console.warn('Supabase auth sign-in warning:', authErr.message);
+        console.warn('Supabase Auth sign-in warning:', authErr.message);
+        // If it's a known demo email, fall back to local store
+        const isDemoEmail = mockAuthUsers.some(u => u.email.toLowerCase() === email.toLowerCase());
+        if (!isDemoEmail) {
+          throw new Error(authErr.message || 'Invalid credentials');
+        }
       }
     }
 

@@ -1,7 +1,14 @@
-// Vercel Serverless Function: Secure Qdrant & Embedding Vector Proxy
+import { checkRateLimit } from './rateLimiter';
+
+// Vercel Serverless Function: Secure Qdrant & Embedding Vector Proxy with Rate Limiting
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  // Rate Limiting: Max 60 requests per minute per IP / User
+  if (!checkRateLimit(req, res, { maxRequests: 60, windowMs: 60000, endpointName: 'Vector Embedding & Search API' })) {
+    return;
   }
 
   try {

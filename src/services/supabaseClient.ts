@@ -134,16 +134,83 @@ ALTER TABLE public.worksheets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.student_reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.classroom_metrics ENABLE ROW LEVEL SECURITY;
 
--- Public access policies (demo / open prototype mode)
-CREATE POLICY "Public Read Access" ON public.profiles FOR SELECT USING (true);
-CREATE POLICY "Public Insert Access" ON public.profiles FOR INSERT WITH CHECK (true);
-CREATE POLICY "Public Update Access" ON public.profiles FOR UPDATE USING (true);
+-- Helper function to inspect current authenticated user role
+CREATE OR REPLACE FUNCTION public.get_current_user_role()
+RETURNS TEXT LANGUAGE sql STABLE AS $$
+  SELECT role FROM public.profiles WHERE id = auth.uid()::text LIMIT 1;
+$$;
 
-CREATE POLICY "Public Concept Nodes" ON public.concept_nodes FOR ALL USING (true);
-CREATE POLICY "Public Recall Cards" ON public.recall_cards FOR ALL USING (true);
-CREATE POLICY "Public Worksheets" ON public.worksheets FOR ALL USING (true);
-CREATE POLICY "Public Student Reports" ON public.student_reports FOR ALL USING (true);
-CREATE POLICY "Public Classroom Metrics" ON public.classroom_metrics FOR ALL USING (true);
+-- 1. Profiles Table Policies
+-- Users can view their own profile; teachers can view student profiles; parents can view their linked students
+CREATE POLICY "Users can read own profile"
+  ON public.profiles FOR SELECT
+  USING (
+    auth.uid()::text = id 
+    OR public.get_current_user_role() = 'teacher'
+    OR (public.get_current_user_role() = 'parent' AND (id = ANY(ARRAY(SELECT unnest(linked_student_ids) FROM public.profiles WHERE id = auth.uid()::text)) OR id = (SELECT linked_student_id FROM public.profiles WHERE id = auth.uid()::text)))
+  );
+
+CREATE POLICY "Users can insert their own profile"
+  ON public.profiles FOR INSERT
+  WITH CHECK (auth.uid()::text = id);
+
+CREATE POLICY "Users can update their own profile"
+  ON public.profiles FOR UPDATE
+  USING (auth.uid()::text = id);
+
+-- 2. Concept Nodes (Knowledge Graph)
+-- Authenticated users can read the curriculum
+CREATE POLICY "Authenticated users can read concept nodes"
+  ON public.concept_nodes FOR SELECT
+  USING (auth.role() = 'authenticated' OR auth.role() = 'anon');
+
+-- Only teachers or service roles can modify concept nodes
+CREATE POLICY "Teachers can modify concept nodes"
+  ON public.concept_nodes FOR ALL
+  USING (public.get_current_user_role() = 'teacher' OR auth.role() = 'service_role');
+
+-- 3. Recall Cards (SRS Deck)
+-- Students manage their own cards; teachers and parents of linked students can view
+CREATE POLICY "Students can access own recall cards"
+  ON public.recall_cards FOR ALL
+  USING (
+    student_id = auth.uid()::text 
+    OR public.get_current_user_role() = 'teacher'
+    OR (public.get_current_user_role() = 'parent' AND student_id = ANY(ARRAY(SELECT unnest(linked_student_ids) FROM public.profiles WHERE id = auth.uid()::text)))
+  );
+
+-- 4. Worksheets
+-- Authenticated users can read worksheets
+CREATE POLICY "Users can read worksheets"
+  ON public.worksheets FOR SELECT
+  USING (auth.role() = 'authenticated' OR auth.role() = 'anon');
+
+-- Teachers can create and manage worksheets
+CREATE POLICY "Teachers can manage worksheets"
+  ON public.worksheets FOR ALL
+  USING (public.get_current_user_role() = 'teacher' OR teacher_id = auth.uid()::text);
+
+-- 5. Student Comprehensive Reports
+-- Students can read their own report; parents can read their children's report; teachers have full access
+CREATE POLICY "Student and Parent report access"
+  ON public.student_reports FOR SELECT
+  USING (
+    student_id = auth.uid()::text
+    OR student_email = (auth.jwt()->>'email')
+    OR parent_email = (auth.jwt()->>'email')
+    OR public.get_current_user_role() = 'teacher'
+    OR (public.get_current_user_role() = 'parent' AND student_id = ANY(ARRAY(SELECT unnest(linked_student_ids) FROM public.profiles WHERE id = auth.uid()::text)))
+  );
+
+CREATE POLICY "Teachers can manage student reports"
+  ON public.student_reports FOR ALL
+  USING (public.get_current_user_role() = 'teacher' OR auth.role() = 'service_role');
+
+-- 6. Classroom Metrics
+-- Teachers can view and update classroom metrics
+CREATE POLICY "Teachers manage classroom metrics"
+  ON public.classroom_metrics FOR ALL
+  USING (public.get_current_user_role() = 'teacher' OR auth.role() = 'service_role');
 
 -- Enable Realtime
 ALTER PUBLICATION supabase_realtime ADD TABLE public.concept_nodes;
@@ -283,6 +350,56 @@ export const SupabaseService = {
     if (!client) return null;
     const { data } = await client.auth.getSession();
     return data.session;
+  },
+
+  async fetchUserProfile(userId: string): Promise<AuthUser | null> {
+    const client = this.getClient();
+    if (!client) return null;
+
+    const { data, error } = await client
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (error || !data) return null;
+
+    return {
+      id: data.id,
+      email: data.email,
+      name: data.name,
+      role: data.role as UserRole,
+      avatar: data.avatar || (data.role === 'student'
+        ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
+        : data.role === 'teacher'
+        ? 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80'
+        : 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80'),
+      title: data.role === 'student' ? 'AP Scholar' : data.role === 'teacher' ? 'Faculty Lead' : 'Guardian / Parent',
+      linkedStudentId: data.linked_student_id,
+      linkedStudentIds: data.linked_student_ids
+    };
+  },
+
+  async upsertProfile(profile: Partial<AuthUser> & { id: string; email: string; role: UserRole; name: string }): Promise<boolean> {
+    const client = this.getClient();
+    if (!client) return false;
+
+    const { error } = await client.from('profiles').upsert({
+      id: profile.id,
+      email: profile.email,
+      name: profile.name,
+      role: profile.role,
+      avatar: profile.avatar,
+      linked_student_id: profile.linkedStudentId || null,
+      linked_student_ids: profile.linkedStudentIds || [],
+      updated_at: new Date().toISOString()
+    });
+
+    if (error) {
+      console.warn('Failed to upsert profile in Supabase:', error.message);
+      return false;
+    }
+    return true;
   },
 
   // -------------------------------------------------------------

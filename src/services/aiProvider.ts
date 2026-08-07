@@ -13,6 +13,21 @@ export const DEFAULT_AI_CONFIG: AIConfig = {
   visionModel: 'gpt-4o-mini'
 };
 
+let _cachedServerlessStatus: {
+  checked: boolean;
+  isReachable: boolean;
+  providers?: {
+    openai: boolean;
+    anthropic: boolean;
+    gemini: boolean;
+    qdrant: boolean;
+    enkrypt: boolean;
+  };
+} = {
+  checked: false,
+  isReachable: false
+};
+
 export const AIProviderService = {
   getConfig(): AIConfig {
     const data = localStorage.getItem(AI_CONFIG_KEY);
@@ -32,15 +47,33 @@ export const AIProviderService = {
 
   isLiveProviderActive(): boolean {
     const config = this.getConfig();
-    return config.provider !== 'simulated' && !!config.apiKey.trim();
+    if (config.provider === 'simulated') return false;
+
+    // 1. Direct BYOK client key provided
+    if (config.apiKey && config.apiKey.trim()) return true;
+
+    // 2. Serverless proxy has active key for selected provider or general serverless availability
+    if (_cachedServerlessStatus.isReachable && _cachedServerlessStatus.providers) {
+      const p = config.provider;
+      if (p === 'openai' && _cachedServerlessStatus.providers.openai) return true;
+      if (p === 'anthropic' && _cachedServerlessStatus.providers.anthropic) return true;
+      if (p === 'gemini' && _cachedServerlessStatus.providers.gemini) return true;
+      if (_cachedServerlessStatus.providers.openai || _cachedServerlessStatus.providers.anthropic || _cachedServerlessStatus.providers.gemini) {
+        return true;
+      }
+    }
+
+    return false;
   },
 
   getActiveProviderName(): string {
     const config = this.getConfig();
     if (!this.isLiveProviderActive()) return 'Deterministic Offline Engine';
-    if (config.provider === 'openai') return `OpenAI (${config.model || 'GPT-4o'})`;
-    if (config.provider === 'anthropic') return `Anthropic (${config.model || 'Claude 3.5'})`;
-    if (config.provider === 'gemini') return `Google Gemini (${config.model || 'Gemini 2.0'})`;
+    const isServerless = !config.apiKey.trim() && _cachedServerlessStatus.isReachable;
+    const suffix = isServerless ? ' (Cloud Proxy)' : '';
+    if (config.provider === 'openai') return `OpenAI (${config.model || 'GPT-4o'})${suffix}`;
+    if (config.provider === 'anthropic') return `Anthropic (${config.model || 'Claude 3.5'})${suffix}`;
+    if (config.provider === 'gemini') return `Google Gemini (${config.model || 'Gemini 2.0'})${suffix}`;
     return 'Active AI Engine';
   },
 
@@ -59,6 +92,11 @@ export const AIProviderService = {
       const res = await fetch('/api/health');
       if (res.ok) {
         const data = await res.json();
+        _cachedServerlessStatus = {
+          checked: true,
+          isReachable: true,
+          providers: data.providers
+        };
         return {
           isServerlessReachable: true,
           providers: data.providers,
@@ -68,6 +106,10 @@ export const AIProviderService = {
     } catch {
       // Serverless endpoint not reachable (e.g., standard Vite dev server without proxy)
     }
+    _cachedServerlessStatus = {
+      checked: true,
+      isReachable: false
+    };
     return {
       isServerlessReachable: false
     };
@@ -438,3 +480,8 @@ CRITICAL: Return ONLY valid JSON in this exact structure:
     };
   }
 };
+
+// Eagerly check serverless health on client initialization
+if (typeof window !== 'undefined') {
+  AIProviderService.checkServerlessHealth().catch(() => {});
+}

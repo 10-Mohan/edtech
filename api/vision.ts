@@ -1,7 +1,14 @@
-// Vercel Serverless Function: Secure Multimodal Vision OCR Proxy
+import { checkRateLimit } from './rateLimiter';
+
+// Vercel Serverless Function: Secure Multimodal Vision OCR Proxy with Rate Limiting
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  // Rate Limiting: Max 15 requests per minute per IP / User (Vision tokens are computationally heavy)
+  if (!checkRateLimit(req, res, { maxRequests: 15, windowMs: 60000, endpointName: 'Vision OCR API' })) {
+    return;
   }
 
   try {

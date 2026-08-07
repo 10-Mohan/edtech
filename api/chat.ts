@@ -1,7 +1,14 @@
-// Vercel Serverless Function: Secure LLM Proxy with Server-Side Guardrails
+import { checkRateLimit } from './rateLimiter';
+
+// Vercel Serverless Function: Secure LLM Proxy with Server-Side Guardrails & Rate Limiting
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  // Rate Limiting: Max 30 requests per minute per IP / User
+  if (!checkRateLimit(req, res, { maxRequests: 30, windowMs: 60000, endpointName: 'Chat/Tutor API' })) {
+    return;
   }
 
   try {
