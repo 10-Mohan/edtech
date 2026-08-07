@@ -37,6 +37,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const [selectedWorksheet, setSelectedWorksheet] = useState<DifferentiatedWorksheet>(worksheets[0] || BackendService.getWorksheets()[0]);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [isCurriculumModalOpen, setIsCurriculumModalOpen] = useState<boolean>(false);
+  const [curriculumModalTab, setCurriculumModalTab] = useState<'topics' | 'worksheets' | 'ai_synthesizer'>('topics');
 
   const handleGenerateNewWorksheet = async () => {
     setIsGenerating(true);
@@ -78,12 +79,15 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
             <button
-              onClick={() => setIsCurriculumModalOpen(true)}
+              onClick={() => {
+                setCurriculumModalTab('topics');
+                setIsCurriculumModalOpen(true);
+              }}
               className="btn btn-secondary"
-              title="Add or edit Knowledge Graph syllabus nodes"
+              title="Add or edit Knowledge Graph syllabus nodes & worksheets"
             >
               <GitFork size={16} color="#22d3ee" />
-              <span>Curriculum & Graph Studio</span>
+              <span>Curriculum & Content Studio</span>
             </button>
 
             <button
@@ -188,7 +192,20 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 320px) minmax(0, 1fr)', gap: '24px' }}>
           {/* Left Column: List of Worksheets */}
           <div className="glass-panel" style={{ padding: '20px' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '14px' }}>Generated Worksheets</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Worksheet Packs</h3>
+              <button
+                onClick={() => {
+                  setCurriculumModalTab('worksheets');
+                  setIsCurriculumModalOpen(true);
+                }}
+                className="btn btn-secondary btn-sm"
+                title="Author new 3-tier differentiated worksheet"
+              >
+                <Plus size={13} />
+                <span>Author</span>
+              </button>
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {worksheets.map(ws => (
                 <div
@@ -339,6 +356,14 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         onNodesUpdated={updated => {
           if (onNodesUpdated) onNodesUpdated(updated);
         }}
+        worksheets={worksheets}
+        onWorksheetsUpdated={updated => {
+          setWorksheets(updated);
+          if (updated.length > 0 && (!selectedWorksheet || !updated.find(w => w.id === selectedWorksheet.id))) {
+            setSelectedWorksheet(updated[0]);
+          }
+        }}
+        initialTab={curriculumModalTab}
       />
     </div>
   );

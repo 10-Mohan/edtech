@@ -417,8 +417,19 @@ class BackendServiceManager {
   }
 
   public addWorksheet(ws: DifferentiatedWorksheet, senderRole: UserRole = 'teacher'): DifferentiatedWorksheet[] {
-    const current = this.getWorksheets();
-    const updated = [ws, ...current];
+    return this.addOrUpdateWorksheet(ws, senderRole);
+  }
+
+  public addOrUpdateWorksheet(ws: DifferentiatedWorksheet, senderRole: UserRole = 'teacher'): DifferentiatedWorksheet[] {
+    const worksheets = this.getWorksheets();
+    const existingIdx = worksheets.findIndex(w => w.id === ws.id);
+    let updated: DifferentiatedWorksheet[];
+    if (existingIdx >= 0) {
+      updated = [...worksheets];
+      updated[existingIdx] = ws;
+    } else {
+      updated = [ws, ...worksheets];
+    }
     this.saveWorksheets(updated);
 
     // Write through to Supabase
@@ -430,6 +441,13 @@ class BackendServiceManager {
 
     this.broadcast('WORKSHEET_CREATED', ws, senderRole);
     return updated;
+  }
+
+  public deleteWorksheet(id: string, senderRole: UserRole = 'teacher'): DifferentiatedWorksheet[] {
+    const worksheets = this.getWorksheets().filter(w => w.id !== id);
+    this.saveWorksheets(worksheets);
+    this.broadcast('WORKSHEET_CREATED', { deletedId: id }, senderRole);
+    return worksheets;
   }
 
   // -------------------------------------------------------------
