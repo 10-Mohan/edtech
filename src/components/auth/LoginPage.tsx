@@ -1,28 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AuthUser, ColorThemeId, UserRole } from '../../types';
 import { mockAuthUsers } from '../../data/mockData';
 import { BackendService } from '../../services/backendService';
-import { AIProviderService } from '../../services/aiProvider';
-import { SupabaseService } from '../../services/supabaseClient';
 import { RegisterModal } from './RegisterModal';
-import {
-  GraduationCap,
-  Users,
-  Briefcase,
-  Sparkles,
-  ArrowRight,
-  ShieldCheck,
-  Zap,
-  Lock,
-  Mail,
-  Palette,
-  Sun,
-  Moon,
-  Bot,
-  Database,
-  CheckCircle2,
-  Check
-} from 'lucide-react';
+import { Palette, Sun, Moon, Bot, Database, ShieldCheck } from 'lucide-react';
 
 interface LoginPageProps {
   onLogin: (user: AuthUser) => void;
@@ -45,69 +26,63 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   onOpenBackendSettings,
   onOpenGovernanceMonitor
 }) => {
-  const [selectedRole, setSelectedRole] = useState<UserRole>('student');
+  const [role, setRole] = useState<'student' | 'faculty'>('student');
   const [email, setEmail] = useState<string>('maya.lin@student.waypoint.edu');
   const [password, setPassword] = useState<string>('demo123');
   const [isRegisterOpen, setIsRegisterOpen] = useState<boolean>(false);
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
-  const [isFlipping, setIsFlipping] = useState<boolean>(false);
+  const [linesRevealed, setLinesRevealed] = useState<number>(0);
+  const bookRef = useRef<HTMLDivElement>(null);
 
-  // Animated handwriting state
-  const [revealedLines, setRevealedLines] = useState<number>(0);
-
-  const handwritingContent: Record<UserRole, string[]> = {
-    student: [
-      'So optimization is really just...',
-      '...finding where the derivative',
-      'goes flat. The peak of the hill.'
-    ],
-    teacher: [
-      '3 students hit a roadblock on...',
-      '...the chain rule inner derivative.',
-      'Auto-generating Tier 1 scaffolding now.'
-    ],
-    parent: [
-      'Maya completed 14 recall reviews today...',
-      '...mastery in Limits reached 92%.',
-      'Sunday weekly email digest scheduled.'
-    ]
-  };
+  const handwritingLines = [
+    'So optimization is really just...',
+    '...finding where the derivative',
+    'goes flat. The peak of the hill.'
+  ];
 
   useEffect(() => {
-    setRevealedLines(0);
+    setLinesRevealed(0);
     const timers = [
-      setTimeout(() => setRevealedLines(1), 300),
-      setTimeout(() => setRevealedLines(2), 850),
-      setTimeout(() => setRevealedLines(3), 1400)
+      setTimeout(() => setLinesRevealed(1), 600),
+      setTimeout(() => setLinesRevealed(2), 1150),
+      setTimeout(() => setLinesRevealed(3), 1700)
     ];
     return () => timers.forEach(clearTimeout);
-  }, [selectedRole]);
+  }, []);
 
-  const handleRoleSelect = (role: UserRole) => {
-    if (role === selectedRole) return;
-    setIsFlipping(true);
+  const handleRoleToggle = (targetRole: 'student' | 'faculty') => {
+    if (targetRole === role) return;
+
+    if (bookRef.current) {
+      bookRef.current.style.transition = 'transform .55s cubic-bezier(.65,0,.35,1)';
+      bookRef.current.style.transformOrigin = 'center center';
+      bookRef.current.style.transform = 'rotateY(6deg) scale(0.985)';
+    }
+
     setTimeout(() => {
-      setSelectedRole(role);
-      if (role === 'student') {
-        setEmail('maya.lin@student.waypoint.edu');
-      } else if (role === 'parent') {
-        setEmail('elena.lin@parent.waypoint.edu');
-      } else {
+      setRole(targetRole);
+      if (targetRole === 'faculty') {
         setEmail('dr.vance@faculty.waypoint.edu');
+      } else {
+        setEmail('maya.lin@student.waypoint.edu');
       }
       setPassword('demo123');
-      setIsFlipping(false);
-    }, 240);
+
+      if (bookRef.current) {
+        bookRef.current.style.transform = 'rotateY(0deg) scale(1)';
+      }
+    }, 260);
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoggingIn(true);
     try {
+      const targetUserRole: UserRole = role === 'faculty' ? 'teacher' : 'student';
       let user = await BackendService.authenticateWithPassword(email.trim(), password);
       if (!user) {
         const users = BackendService.getUsers();
-        user = users.find(u => u.role === selectedRole) || mockAuthUsers.find(u => u.role === selectedRole) || null;
+        user = users.find(u => u.role === targetUserRole) || mockAuthUsers.find(u => u.role === targetUserRole) || null;
       }
       if (user) {
         onLogin(user);
@@ -119,656 +94,567 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     }
   };
 
-  const handleDirectDemoLogin = async (role: UserRole) => {
+  const handleQuickLogin = (targetRole: 'student' | 'teacher' | 'parent') => {
     setIsLoggingIn(true);
     const users = BackendService.getUsers();
-    const user = users.find(u => u.role === role) || mockAuthUsers.find(u => u.role === role);
+    const user = users.find(u => u.role === targetRole) || mockAuthUsers.find(u => u.role === targetRole);
     if (user) {
-      setTimeout(() => onLogin(user), 200);
+      setTimeout(() => onLogin(user), 150);
     } else {
       setIsLoggingIn(false);
     }
   };
 
-  const roleMeta = {
-    student: {
-      title: 'Pick up your notebook',
-      hint: 'Where you left off, exactly.',
-      btn: 'Open notebook →',
-      stamp: 'Waypoint · Est. session',
-      tag: 'TEACH IT BACK TO ME',
-      color: '#C4562F',
-      feynmanNote: (
-        <>
-          The <b>Feynman check</b>: if you can't explain optimization without the jargon, the graph shows exactly where the gap is — not just that one exists.
-        </>
-      )
-    },
-    teacher: {
-      title: 'Pick up the roll book',
-      hint: "Your cohort's mastery, at a glance.",
-      btn: 'Open roll book →',
-      stamp: 'Faculty · Verified',
-      tag: 'LIVE COHORT REASONING',
-      color: '#2F6F63',
-      feynmanNote: (
-        <>
-          The <b>Classroom diagnostic</b>: real-time topological heatmaps reveal prerequisite gaps across your students before Friday's quiz.
-        </>
-      )
-    },
-    parent: {
-      title: 'Open the family ledger',
-      hint: "Your child's academic milestones & digest.",
-      btn: 'Open family ledger →',
-      stamp: 'Parent · Guardian',
-      tag: 'WEEKLY PROGRESS DIGEST',
-      color: '#B08A2E',
-      feynmanNote: (
-        <>
-          The <b>Guardian digest</b>: celebrate genuine conceptual breakthroughs and get dinner-table conversation prompts tailored to weekly lessons.
-        </>
-      )
-    }
-  };
-
-  const currentMeta = roleMeta[selectedRole];
-  const isDark = theme === 'dark';
-
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        width: '100vw',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: isDark
-          ? 'radial-gradient(ellipse at 50% 30%, #171d2d 0%, #0a0d14 100%)'
-          : '#ECE5D4',
-        fontFamily: "'Inter', sans-serif",
-        color: isDark ? '#f8fafc' : '#23281F',
-        perspective: '2400px',
-        padding: '24px 16px',
-        position: 'relative',
-        overflow: 'hidden'
-      }}
-    >
-      {/* Background Dot Texture */}
-      <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundImage: isDark
-            ? 'radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px)'
-            : 'radial-gradient(rgba(35,40,31,0.035) 1px, transparent 1px)',
-          backgroundSize: '4px 4px',
-          pointerEvents: 'none'
-        }}
-      />
+    <div className={`waypoint-notebook-wrapper ${theme === 'dark' ? 'dark-mode' : ''}`}>
+      <style>{`
+        .waypoint-notebook-wrapper {
+          --paper: #F3EEE2;
+          --paper2: #ECE5D4;
+          --ink: #23281F;
+          --ink-soft: #5B5F52;
+          --rule: #D8CFB8;
+          --teal: #2F6F63;
+          --coral: #C4562F;
+          --gold: #B08A2E;
 
-      {/* Floating Top-Right Utility Toolbar */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '20px',
-          right: '24px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          zIndex: 50
-        }}
-      >
+          box-sizing: border-box;
+          margin: 0;
+          padding: 24px 16px;
+          min-height: 100vh;
+          width: 100vw;
+          background: var(--paper2);
+          font-family: 'Inter', sans-serif;
+          color: var(--ink);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          perspective: 2400px;
+          overflow: hidden;
+          position: relative;
+        }
+
+        .waypoint-notebook-wrapper.dark-mode {
+          --paper: #121824;
+          --paper2: #0b0f17;
+          --ink: #f1f5f9;
+          --ink-soft: #94a3b8;
+          --rule: #222d42;
+          --teal: #38bdf8;
+          --coral: #fb7185;
+          --gold: #fbbf24;
+        }
+
+        .waypoint-notebook-wrapper::before {
+          content: '';
+          position: fixed;
+          inset: 0;
+          background-image: radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px);
+          background-size: 3px 3px;
+          pointer-events: none;
+        }
+
+        .waypoint-notebook-wrapper.dark-mode::before {
+          background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
+        }
+
+        /* Utility buttons floating top-right */
+        .nb-controls {
+          position: absolute;
+          top: 18px;
+          right: 22px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          z-index: 50;
+        }
+        .nb-icon-btn {
+          width: 32px;
+          height: 32px;
+          border-radius: 6px;
+          border: 1px solid var(--rule);
+          background: var(--paper);
+          color: var(--ink-soft);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .nb-icon-btn:hover {
+          color: var(--ink);
+          border-color: var(--ink-soft);
+          transform: translateY(-1px);
+        }
+
+        .book {
+          width: min(1080px, 92vw);
+          min-height: min(640px, 88vh);
+          display: flex;
+          background: var(--paper);
+          border-radius: 6px;
+          box-shadow: 0 40px 90px -30px rgba(35,40,31,0.45), 0 0 0 1px rgba(35,40,31,0.06);
+          overflow: hidden;
+          animation: settle 1s cubic-bezier(.16,1,.3,1) both;
+          position: relative;
+        }
+        .dark-mode .book {
+          box-shadow: 0 40px 100px -20px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.07);
+        }
+
+        @keyframes settle {
+          from { opacity: 0; transform: translateY(24px) scale(.985); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .page-left {
+          flex: 1.15;
+          background: var(--paper);
+          border-right: 1px solid var(--rule);
+          padding: 48px 46px;
+          position: relative;
+          display: flex;
+          flex-direction: column;
+        }
+        .page-left::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          right: -1px;
+          width: 24px;
+          background: linear-gradient(90deg, transparent, rgba(35,40,31,0.05));
+          pointer-events: none;
+        }
+        .dark-mode .page-left::after {
+          background: linear-gradient(90deg, transparent, rgba(0,0,0,0.3));
+        }
+
+        .brand {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          margin-bottom: 40px;
+        }
+        .brand-mark {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: var(--coral);
+        }
+        .faculty .brand-mark {
+          background: var(--teal);
+        }
+        .brand-word {
+          font-family: 'Source Serif 4', serif;
+          font-size: 18px;
+          font-weight: 600;
+          letter-spacing: 0.01em;
+          color: var(--ink);
+        }
+        .brand-word span {
+          color: var(--ink-soft);
+          font-weight: 400;
+          font-style: italic;
+        }
+
+        .prompt-label {
+          font-size: 11px;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: var(--teal);
+          font-weight: 600;
+          margin-bottom: 16px;
+        }
+
+        .handwrite {
+          font-family: 'Caveat', cursive;
+          font-size: 32px;
+          line-height: 1.5;
+          color: var(--ink);
+          max-width: 420px;
+        }
+        .hw-line {
+          display: block;
+          opacity: 0;
+          transform: translateY(6px);
+          transition: opacity .6s ease, transform .6s cubic-bezier(.2,.8,.3,1);
+        }
+        .hw-line.revealed {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        .margin-note {
+          margin-top: auto;
+          padding-top: 26px;
+          border-top: 1px dashed var(--rule);
+          font-size: 13px;
+          color: var(--ink-soft);
+          line-height: 1.6;
+          max-width: 380px;
+        }
+        .margin-note b {
+          color: var(--ink);
+          font-weight: 600;
+        }
+
+        .tape {
+          position: absolute;
+          top: 34px;
+          right: 60px;
+          width: 70px;
+          height: 24px;
+          background: rgba(176,138,46,0.28);
+          transform: rotate(-4deg);
+          box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+        }
+
+        /* right page = auth card */
+        .page-right {
+          flex: 1;
+          padding: 48px 46px;
+          display: flex;
+          flex-direction: column;
+          background: repeating-linear-gradient(var(--paper) 0px, var(--paper) 37px, var(--rule) 38px);
+          position: relative;
+        }
+        .page-right-inner {
+          background: var(--paper);
+          padding: 8px 12px;
+          border-radius: 4px;
+        }
+
+        .toggle {
+          display: flex;
+          gap: 0;
+          margin-bottom: 30px;
+          border-bottom: 2px solid var(--ink);
+          position: relative;
+        }
+        .toggle button {
+          flex: 1;
+          background: none;
+          border: none;
+          cursor: pointer;
+          font-family: 'Source Serif 4', serif;
+          font-size: 15px;
+          font-weight: 500;
+          padding: 10px 4px 12px;
+          color: var(--ink-soft);
+          transition: color .3s ease;
+          position: relative;
+        }
+        .toggle button.active {
+          color: var(--ink);
+          font-weight: 600;
+        }
+        .underline {
+          position: absolute;
+          bottom: -2px;
+          left: 0;
+          width: 50%;
+          height: 2px;
+          background: var(--coral);
+          transition: transform .5s cubic-bezier(.65,0,.35,1);
+        }
+        .toggle.faculty .underline {
+          transform: translateX(100%);
+          background: var(--teal);
+        }
+
+        .card-title {
+          font-family: 'Source Serif 4', serif;
+          font-size: 24px;
+          font-weight: 600;
+          margin-bottom: 4px;
+          color: var(--ink);
+        }
+        .card-hint {
+          font-size: 13px;
+          color: var(--ink-soft);
+          margin-bottom: 26px;
+          font-style: italic;
+        }
+
+        .field {
+          margin-bottom: 20px;
+        }
+        .field label {
+          display: block;
+          font-size: 11px;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--ink-soft);
+          margin-bottom: 8px;
+          font-weight: 600;
+        }
+        .field input {
+          width: 100%;
+          background: transparent;
+          border: none;
+          border-bottom: 1.5px solid var(--rule);
+          padding: 8px 2px 10px;
+          color: var(--ink);
+          font-size: 15px;
+          font-family: 'Inter', sans-serif;
+          outline: none;
+          transition: border-color .3s ease;
+        }
+        .field input:focus {
+          border-color: var(--coral);
+        }
+        .faculty .field input:focus {
+          border-color: var(--teal);
+        }
+
+        .go {
+          width: 100%;
+          margin-top: 12px;
+          padding: 13px 0;
+          border: none;
+          border-radius: 3px;
+          font-family: 'Inter', sans-serif;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          color: var(--paper);
+          background: var(--ink);
+          transition: background .4s ease, transform .15s ease;
+        }
+        .go:hover {
+          background: var(--coral);
+        }
+        .faculty .go:hover {
+          background: var(--teal);
+        }
+        .go:active {
+          transform: scale(0.98);
+        }
+
+        .demo-bar {
+          margin-top: 16px;
+          padding-top: 12px;
+          border-top: 1px dashed var(--rule);
+        }
+        .demo-label {
+          font-size: 10px;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--ink-soft);
+          font-weight: 600;
+          margin-bottom: 6px;
+        }
+        .demo-pills {
+          display: flex;
+          gap: 6px;
+        }
+        .demo-pill {
+          flex: 1;
+          padding: 5px 6px;
+          font-size: 11px;
+          font-weight: 500;
+          border-radius: 3px;
+          border: 1px solid var(--rule);
+          background: transparent;
+          color: var(--ink);
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .demo-pill:hover {
+          border-color: var(--ink);
+          background: rgba(35,40,31,0.05);
+        }
+
+        .foot {
+          text-align: center;
+          margin-top: 18px;
+          font-size: 12px;
+          color: var(--ink-soft);
+        }
+        .foot a, .foot button {
+          background: none;
+          border: none;
+          padding: 0;
+          font-size: 12px;
+          font-family: inherit;
+          color: var(--ink);
+          font-weight: 600;
+          cursor: pointer;
+          text-decoration: underline;
+        }
+
+        .stamp {
+          position: absolute;
+          bottom: 24px;
+          right: 28px;
+          font-family: 'Source Serif 4', serif;
+          font-size: 11px;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--rule);
+          border: 1px solid var(--rule);
+          border-radius: 50%;
+          width: 76px;
+          height: 76px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          transform: rotate(-8deg);
+          opacity: 0.7;
+          pointer-events: none;
+          line-height: 1.2;
+          padding: 4px;
+        }
+
+        @media (max-width: 760px) {
+          .book {
+            flex-direction: column;
+            min-height: auto;
+            overflow: auto;
+          }
+          .page-left {
+            border-right: none;
+            border-bottom: 1px solid var(--rule);
+            padding: 32px 24px;
+          }
+          .page-right {
+            padding: 32px 24px;
+          }
+        }
+      `}</style>
+
+      {/* Top Floating Controls */}
+      <div className="nb-controls">
         {onOpenAISettings && (
-          <button
-            type="button"
-            onClick={onOpenAISettings}
-            className="btn btn-ghost btn-icon"
-            style={{
-              background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(35,40,31,0.06)',
-              color: isDark ? '#94a3b8' : '#5B5F52',
-              borderRadius: '8px'
-            }}
-            title="AI LLM Gateway"
-          >
-            <Bot size={16} />
+          <button type="button" onClick={onOpenAISettings} className="nb-icon-btn" title="AI Gateway Configuration">
+            <Bot size={15} />
           </button>
         )}
-
         {onOpenBackendSettings && (
-          <button
-            type="button"
-            onClick={onOpenBackendSettings}
-            className="btn btn-ghost btn-icon"
-            style={{
-              background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(35,40,31,0.06)',
-              color: isDark ? '#94a3b8' : '#5B5F52',
-              borderRadius: '8px'
-            }}
-            title="Database & Cloud Sync"
-          >
-            <Database size={16} />
+          <button type="button" onClick={onOpenBackendSettings} className="nb-icon-btn" title="Cloud Database Settings">
+            <Database size={15} />
           </button>
         )}
-
         {onOpenGovernanceMonitor && (
-          <button
-            type="button"
-            onClick={onOpenGovernanceMonitor}
-            className="btn btn-ghost btn-icon"
-            style={{
-              background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(35,40,31,0.06)',
-              color: isDark ? '#94a3b8' : '#5B5F52',
-              borderRadius: '8px'
-            }}
-            title="AI Governance & Safety Monitor"
-          >
-            <ShieldCheck size={16} />
+          <button type="button" onClick={onOpenGovernanceMonitor} className="nb-icon-btn" title="AI Governance Monitor">
+            <ShieldCheck size={15} />
           </button>
         )}
-
-        <button
-          type="button"
-          onClick={onOpenThemeModal}
-          className="btn btn-ghost btn-icon"
-          style={{
-            background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(35,40,31,0.06)',
-            color: isDark ? '#94a3b8' : '#5B5F52',
-            borderRadius: '8px'
-          }}
-          title="Monochrome Theme Palette"
-        >
-          <Palette size={16} />
+        <button type="button" onClick={onOpenThemeModal} className="nb-icon-btn" title="Color Theme Palette">
+          <Palette size={15} />
         </button>
-
-        <button
-          type="button"
-          onClick={onToggleTheme}
-          className="btn btn-ghost btn-icon"
-          style={{
-            background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(35,40,31,0.06)',
-            color: isDark ? '#94a3b8' : '#5B5F52',
-            borderRadius: '8px'
-          }}
-          title="Toggle Light / Dark Mode"
-        >
-          {isDark ? <Sun size={16} /> : <Moon size={16} />}
+        <button type="button" onClick={onToggleTheme} className="nb-icon-btn" title="Toggle Dark/Light Mode">
+          {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
         </button>
       </div>
 
-      {/* The Open Editorial Notebook */}
-      <div
-        style={{
-          width: 'min(1080px, 94vw)',
-          minHeight: 'min(640px, 88vh)',
-          display: 'flex',
-          flexWrap: 'wrap',
-          background: isDark ? '#101522' : '#F3EEE2',
-          borderRadius: '8px',
-          boxShadow: isDark
-            ? '0 40px 100px -20px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.08)'
-            : '0 40px 90px -30px rgba(35,40,31,0.45), 0 0 0 1px rgba(35,40,31,0.06)',
-          overflow: 'hidden',
-          position: 'relative',
-          transition: 'transform 0.45s cubic-bezier(0.65, 0, 0.35, 1)',
-          transform: isFlipping ? 'rotateY(6deg) scale(0.985)' : 'rotateY(0deg) scale(1)',
-          transformOrigin: 'center center'
-        }}
-      >
-        {/* Left Page (Pedagogical Notebook / Feynman Check) */}
-        <div
-          style={{
-            flex: '1.15',
-            minWidth: '320px',
-            background: isDark ? '#101522' : '#F3EEE2',
-            borderRight: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #D8CFB8',
-            padding: '48px 46px',
-            position: 'relative',
-            display: 'flex',
-            flexDirection: 'column'
-          }}
-        >
-          {/* Masking Tape Accent */}
-          <div
-            style={{
-              position: 'absolute',
-              top: '32px',
-              right: '50px',
-              width: '74px',
-              height: '24px',
-              background: 'rgba(176,138,46,0.28)',
-              transform: 'rotate(-4deg)',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-            }}
-          />
-
-          {/* Brand Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '9px', marginBottom: '36px' }}>
-            <div
-              style={{
-                width: '10px',
-                height: '10px',
-                borderRadius: '50%',
-                background: currentMeta.color
-              }}
-            />
-            <div
-              style={{
-                fontFamily: "'Source Serif 4', serif",
-                fontSize: '1.25rem',
-                fontWeight: 600,
-                letterSpacing: '0.01em',
-                color: isDark ? '#f8fafc' : '#23281F'
-              }}
-            >
-              Waypoint <span style={{ color: isDark ? '#94a3b8' : '#5B5F52', fontWeight: 400, fontStyle: 'italic' }}>AI 2.0</span>
-            </div>
+      {/* Main Open Notebook */}
+      <div className={`book ${role === 'faculty' ? 'faculty' : ''}`} ref={bookRef} id="book">
+        {/* Left Page */}
+        <div className="page-left">
+          <div className="tape"></div>
+          <div className="brand">
+            <div className="brand-mark"></div>
+            <div className="brand-word">Waypoint <span>AI</span></div>
           </div>
-
-          {/* Pedagogical Prompt Label */}
-          <div
-            style={{
-              fontSize: '11px',
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              color: currentMeta.color,
-              fontWeight: 700,
-              marginBottom: '16px'
-            }}
-          >
-            {currentMeta.tag}
-          </div>
-
-          {/* Dynamic Handwritten Reasoning Text */}
-          <div
-            style={{
-              fontFamily: "'Caveat', cursive",
-              fontSize: '32px',
-              lineHeight: 1.45,
-              color: isDark ? '#f1f5f9' : '#23281F',
-              maxWidth: '430px',
-              minHeight: '140px'
-            }}
-          >
-            {handwritingContent[selectedRole].map((line, idx) => (
-              <div
-                key={idx}
-                style={{
-                  opacity: revealedLines > idx ? 1 : 0,
-                  transform: revealedLines > idx ? 'translateY(0)' : 'translateY(8px)',
-                  transition: 'opacity 0.6s ease, transform 0.6s cubic-bezier(0.2, 0.8, 0.3, 1)'
-                }}
-              >
-                {line}
-              </div>
+          <div className="prompt-label">Teach it back to me</div>
+          <div className="handwrite" id="hw">
+            {handwritingLines.map((l, i) => (
+              <span key={i} className={`hw-line ${linesRevealed > i ? 'revealed' : ''}`}>
+                {l}
+              </span>
             ))}
           </div>
-
-          {/* Bottom Margin Note (Feynman Philosophy) */}
-          <div
-            style={{
-              marginTop: 'auto',
-              paddingTop: '24px',
-              borderTop: isDark ? '1px dashed rgba(255,255,255,0.1)' : '1px dashed #D8CFB8',
-              fontSize: '13px',
-              color: isDark ? '#94a3b8' : '#5B5F52',
-              lineHeight: 1.6,
-              maxWidth: '400px'
-            }}
-          >
-            {currentMeta.feynmanNote}
+          <div className="margin-note">
+            The <b>Feynman check</b>: if you can't explain optimization without the jargon, the graph shows exactly where the gap is — not just that one exists.
           </div>
         </div>
 
-        {/* Right Page (Auth Form & Roll Book) */}
-        <div
-          style={{
-            flex: '1',
-            minWidth: '320px',
-            padding: '48px 46px',
-            display: 'flex',
-            flexDirection: 'column',
-            position: 'relative',
-            background: isDark
-              ? 'repeating-linear-gradient(#0e1320 0px, #0e1320 37px, rgba(255,255,255,0.04) 38px)'
-              : 'repeating-linear-gradient(#F3EEE2 0px, #F3EEE2 37px, #D8CFB8 38px)'
-          }}
-        >
-          {/* Inner Card Container */}
-          <div
-            style={{
-              background: isDark ? '#101522' : '#F3EEE2',
-              padding: '12px 16px',
-              borderRadius: '6px'
-            }}
-          >
-            {/* 3-Role Notebook Tabs Switcher */}
-            <div
-              style={{
-                display: 'flex',
-                borderBottom: isDark ? '2px solid #334155' : '2px solid #23281F',
-                position: 'relative',
-                marginBottom: '26px'
-              }}
-            >
+        {/* Right Page */}
+        <div className={`page-right ${role === 'faculty' ? 'faculty' : ''}`}>
+          <div className="page-right-inner">
+            <div className={`toggle ${role === 'faculty' ? 'faculty' : ''}`} id="toggle">
               <button
+                className={role === 'student' ? 'active' : ''}
+                onClick={() => handleRoleToggle('student')}
+                data-role="student"
                 type="button"
-                onClick={() => handleRoleSelect('student')}
-                style={{
-                  flex: 1,
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontFamily: "'Source Serif 4', serif",
-                  fontSize: '15px',
-                  fontWeight: selectedRole === 'student' ? 700 : 500,
-                  padding: '10px 4px 12px',
-                  color: selectedRole === 'student' ? (isDark ? '#fff' : '#23281F') : (isDark ? '#64748b' : '#5B5F52'),
-                  transition: 'color 0.3s ease'
-                }}
               >
                 Student
               </button>
-
               <button
+                className={role === 'faculty' ? 'active' : ''}
+                onClick={() => handleRoleToggle('faculty')}
+                data-role="faculty"
                 type="button"
-                onClick={() => handleRoleSelect('teacher')}
-                style={{
-                  flex: 1,
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontFamily: "'Source Serif 4', serif",
-                  fontSize: '15px',
-                  fontWeight: selectedRole === 'teacher' ? 700 : 500,
-                  padding: '10px 4px 12px',
-                  color: selectedRole === 'teacher' ? (isDark ? '#fff' : '#23281F') : (isDark ? '#64748b' : '#5B5F52'),
-                  transition: 'color 0.3s ease'
-                }}
               >
                 Faculty
               </button>
-
-              <button
-                type="button"
-                onClick={() => handleRoleSelect('parent')}
-                style={{
-                  flex: 1,
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontFamily: "'Source Serif 4', serif",
-                  fontSize: '15px',
-                  fontWeight: selectedRole === 'parent' ? 700 : 500,
-                  padding: '10px 4px 12px',
-                  color: selectedRole === 'parent' ? (isDark ? '#fff' : '#23281F') : (isDark ? '#64748b' : '#5B5F52'),
-                  transition: 'color 0.3s ease'
-                }}
-              >
-                Guardian
-              </button>
-
-              {/* Animated Sliding Underline */}
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: '-2px',
-                  left: 0,
-                  width: '33.33%',
-                  height: '2px',
-                  background: currentMeta.color,
-                  transform:
-                    selectedRole === 'student'
-                      ? 'translateX(0%)'
-                      : selectedRole === 'teacher'
-                      ? 'translateX(100%)'
-                      : 'translateX(200%)',
-                  transition: 'transform 0.45s cubic-bezier(0.65, 0, 0.35, 1), background 0.3s ease'
-                }}
-              />
+              <div className="underline"></div>
             </div>
 
-            {/* Title & Hint */}
-            <div
-              style={{
-                fontFamily: "'Source Serif 4', serif",
-                fontSize: '24px',
-                fontWeight: 600,
-                marginBottom: '4px',
-                color: isDark ? '#f8fafc' : '#23281F'
-              }}
-            >
-              {currentMeta.title}
+            <div className="card-title" id="ctitle">
+              {role === 'faculty' ? 'Pick up the roll book' : 'Pick up your notebook'}
             </div>
-            <div
-              style={{
-                fontSize: '13px',
-                color: isDark ? '#94a3b8' : '#5B5F52',
-                marginBottom: '24px',
-                fontStyle: 'italic'
-              }}
-            >
-              {currentMeta.hint}
+            <div className="card-hint" id="chint">
+              {role === 'faculty' ? "Your cohort's mastery, at a glance." : 'Where you left off, exactly.'}
             </div>
 
-            {/* Login Form */}
             <form onSubmit={handleFormSubmit}>
-              <div style={{ marginBottom: '18px' }}>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '11px',
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase',
-                    color: isDark ? '#94a3b8' : '#5B5F52',
-                    marginBottom: '6px',
-                    fontWeight: 600
-                  }}
-                >
-                  Email
-                </label>
+              <div className="field">
+                <label>Email</label>
                 <input
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="you@school.edu"
                   required
-                  style={{
-                    width: '100%',
-                    background: 'transparent',
-                    border: 'none',
-                    borderBottom: isDark ? '1.5px solid rgba(255,255,255,0.15)' : '1.5px solid #D8CFB8',
-                    padding: '8px 2px 10px',
-                    color: isDark ? '#f8fafc' : '#23281F',
-                    fontSize: '15px',
-                    fontFamily: "'Inter', sans-serif",
-                    outline: 'none',
-                    transition: 'border-color 0.3s ease'
-                  }}
-                  onFocus={e => (e.currentTarget.style.borderColor = currentMeta.color)}
-                  onBlur={e => (e.currentTarget.style.borderColor = isDark ? 'rgba(255,255,255,0.15)' : '#D8CFB8')}
                 />
               </div>
-
-              <div style={{ marginBottom: '22px' }}>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '11px',
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase',
-                    color: isDark ? '#94a3b8' : '#5B5F52',
-                    marginBottom: '6px',
-                    fontWeight: 600
-                  }}
-                >
-                  Password
-                </label>
+              <div className="field">
+                <label>Password</label>
                 <input
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  style={{
-                    width: '100%',
-                    background: 'transparent',
-                    border: 'none',
-                    borderBottom: isDark ? '1.5px solid rgba(255,255,255,0.15)' : '1.5px solid #D8CFB8',
-                    padding: '8px 2px 10px',
-                    color: isDark ? '#f8fafc' : '#23281F',
-                    fontSize: '15px',
-                    fontFamily: "'Inter', sans-serif",
-                    outline: 'none',
-                    transition: 'border-color 0.3s ease'
-                  }}
-                  onFocus={e => (e.currentTarget.style.borderColor = currentMeta.color)}
-                  onBlur={e => (e.currentTarget.style.borderColor = isDark ? 'rgba(255,255,255,0.15)' : '#D8CFB8')}
                 />
               </div>
 
-              {/* Submit CTA Button */}
-              <button
-                type="submit"
-                disabled={isLoggingIn}
-                style={{
-                  width: '100%',
-                  marginTop: '8px',
-                  padding: '13px 0',
-                  border: 'none',
-                  borderRadius: '4px',
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  color: isDark ? '#0a0d14' : '#F3EEE2',
-                  background: isDark ? '#f8fafc' : '#23281F',
-                  transition: 'background 0.4s ease, transform 0.15s ease'
-                }}
-                onMouseEnter={e => (e.currentTarget.style.background = currentMeta.color)}
-                onMouseLeave={e => (e.currentTarget.style.background = isDark ? '#f8fafc' : '#23281F')}
-              >
-                {isLoggingIn ? 'Verifying credentials...' : currentMeta.btn}
+              <button className="go" id="gobtn" type="submit" disabled={isLoggingIn}>
+                {isLoggingIn ? 'Opening...' : role === 'faculty' ? 'Open roll book →' : 'Open notebook →'}
               </button>
             </form>
 
-            {/* Quick Demo Logins Bar */}
-            <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: isDark ? '1px dashed rgba(255,255,255,0.1)' : '1px dashed #D8CFB8' }}>
-              <div style={{ fontSize: '11px', letterSpacing: '0.06em', textTransform: 'uppercase', color: isDark ? '#94a3b8' : '#5B5F52', fontWeight: 600, marginBottom: '8px' }}>
-                Quick Demo Accounts:
-              </div>
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                <button
-                  type="button"
-                  onClick={() => handleDirectDemoLogin('student')}
-                  style={{
-                    flex: 1,
-                    minWidth: '80px',
-                    padding: '6px 8px',
-                    fontSize: '0.72rem',
-                    borderRadius: '4px',
-                    border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #D8CFB8',
-                    background: selectedRole === 'student' ? 'rgba(196,86,47,0.15)' : 'transparent',
-                    color: isDark ? '#f8fafc' : '#23281F',
-                    cursor: 'pointer',
-                    fontWeight: 600
-                  }}
-                >
+            {/* Quick Demo Logins */}
+            <div className="demo-bar">
+              <div className="demo-label">Instant Access:</div>
+              <div className="demo-pills">
+                <button type="button" className="demo-pill" onClick={() => handleQuickLogin('student')}>
                   Maya (Student)
                 </button>
-                <button
-                  type="button"
-                  onClick={() => handleDirectDemoLogin('teacher')}
-                  style={{
-                    flex: 1,
-                    minWidth: '80px',
-                    padding: '6px 8px',
-                    fontSize: '0.72rem',
-                    borderRadius: '4px',
-                    border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #D8CFB8',
-                    background: selectedRole === 'teacher' ? 'rgba(47,111,99,0.15)' : 'transparent',
-                    color: isDark ? '#f8fafc' : '#23281F',
-                    cursor: 'pointer',
-                    fontWeight: 600
-                  }}
-                >
+                <button type="button" className="demo-pill" onClick={() => handleQuickLogin('teacher')}>
                   Dr. Sarah (Faculty)
                 </button>
-                <button
-                  type="button"
-                  onClick={() => handleDirectDemoLogin('parent')}
-                  style={{
-                    flex: 1,
-                    minWidth: '80px',
-                    padding: '6px 8px',
-                    fontSize: '0.72rem',
-                    borderRadius: '4px',
-                    border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #D8CFB8',
-                    background: selectedRole === 'parent' ? 'rgba(176,138,46,0.15)' : 'transparent',
-                    color: isDark ? '#f8fafc' : '#23281F',
-                    cursor: 'pointer',
-                    fontWeight: 600
-                  }}
-                >
-                  Eleanor (Guardian)
+                <button type="button" className="demo-pill" onClick={() => handleQuickLogin('parent')}>
+                  Eleanor (Parent)
                 </button>
               </div>
             </div>
 
-            {/* Footer Registration Link */}
-            <div
-              style={{
-                textAlign: 'center',
-                marginTop: '16px',
-                fontSize: '12px',
-                color: isDark ? '#94a3b8' : '#5B5F52'
-              }}
-            >
+            <div className="foot">
               New here?{' '}
-              <button
-                type="button"
-                onClick={() => setIsRegisterOpen(true)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  padding: 0,
-                  color: isDark ? '#f8fafc' : '#23281F',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  textDecoration: 'underline'
-                }}
-              >
-                Request access / Create account
+              <button type="button" onClick={() => setIsRegisterOpen(true)}>
+                Request access
               </button>
             </div>
           </div>
 
-          {/* Rotated Vintage Session Stamp */}
-          <div
-            style={{
-              position: 'absolute',
-              bottom: '16px',
-              right: '24px',
-              fontFamily: "'Source Serif 4', serif",
-              fontSize: '10px',
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              color: isDark ? 'rgba(255,255,255,0.2)' : '#B8AD94',
-              border: isDark ? '1px solid rgba(255,255,255,0.15)' : '1px solid #D8CFB8',
-              borderRadius: '50%',
-              width: '74px',
-              height: '74px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              textAlign: 'center',
-              transform: 'rotate(-8deg)',
-              pointerEvents: 'none',
-              opacity: 0.75,
-              padding: '6px'
-            }}
-          >
-            {currentMeta.stamp}
+          <div className="stamp" id="stamp">
+            {role === 'faculty' ? 'Faculty · Verified' : 'Waypoint · Est. session'}
           </div>
         </div>
       </div>
