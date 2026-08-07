@@ -1,7 +1,5 @@
 import React from 'react';
 import { AuthUser, ColorThemeId, UserProfile, UserRole } from '../../types';
-import { AIProviderService } from '../../services/aiProvider';
-import { SupabaseService } from '../../services/supabaseClient';
 import {
   Compass,
   Flame,
@@ -13,11 +11,7 @@ import {
   Users,
   Briefcase,
   LogOut,
-  Palette,
-  Bot,
-  Database,
-  Cloud,
-  ShieldCheck
+  Palette
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -30,9 +24,6 @@ interface HeaderProps {
   colorTheme: ColorThemeId;
   onOpenThemeModal: () => void;
   onOpenDiagnostic: () => void;
-  onOpenAISettings?: () => void;
-  onOpenBackendSettings?: () => void;
-  onOpenGovernanceMonitor?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -44,13 +35,8 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleTheme,
   colorTheme,
   onOpenThemeModal,
-  onOpenDiagnostic,
-  onOpenAISettings,
-  onOpenBackendSettings,
-  onOpenGovernanceMonitor
+  onOpenDiagnostic
 }) => {
-  const isLiveAI = AIProviderService.isLiveProviderActive();
-  const isCloudDB = SupabaseService.isCloudConfigured();
 
 
   return (
@@ -176,69 +162,6 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         )}
 
-        {/* AI Model Settings Button */}
-        {onOpenAISettings && (
-          <button
-            onClick={onOpenAISettings}
-            className="btn btn-secondary btn-icon"
-            title={`AI Engine Config • ${isLiveAI ? 'Live LLM Active' : 'Offline Heuristic'}`}
-            style={{
-              width: '38px',
-              height: '38px',
-              position: 'relative',
-              borderColor: isLiveAI ? '#10b981' : 'var(--border-subtle)'
-            }}
-          >
-            <Bot size={17} color={isLiveAI ? '#10b981' : 'var(--text-dim)'} />
-            {isLiveAI && (
-              <span
-                style={{
-                  position: 'absolute',
-                  top: '6px',
-                  right: '6px',
-                  width: '6px',
-                  height: '6px',
-                  borderRadius: '50%',
-                  background: '#10b981'
-                }}
-              />
-            )}
-          </button>
-        )}
-
-        {/* Database & Cloud Sync Settings Button */}
-        {onOpenBackendSettings && (
-          <button
-            onClick={onOpenBackendSettings}
-            className="btn btn-secondary btn-icon"
-            title={`Database & Cloud Sync • ${isCloudDB ? 'Supabase Connected' : 'Persistent Local Sync'}`}
-            style={{
-              width: '38px',
-              height: '38px',
-              position: 'relative',
-              borderColor: isCloudDB ? '#06b6d4' : 'var(--border-subtle)'
-            }}
-          >
-            <Database size={17} color={isCloudDB ? '#06b6d4' : 'var(--text-dim)'} />
-          </button>
-        )}
-
-        {/* Enterprise AI Governance & Safety Monitor Button */}
-        {onOpenGovernanceMonitor && (
-          <button
-            onClick={onOpenGovernanceMonitor}
-            className="btn btn-secondary btn-icon"
-            title="AI Governance, Guardrails & Vector Index Monitor"
-            style={{
-              width: '38px',
-              height: '38px',
-              position: 'relative',
-              borderColor: 'rgba(14, 165, 233, 0.4)'
-            }}
-          >
-            <ShieldCheck size={17} color="#0ea5e9" />
-          </button>
-        )}
 
 
         {/* Streak Counter (Student only) */}

@@ -227,9 +227,6 @@ export const App: React.FC = () => {
           colorTheme={colorTheme}
           onOpenThemeModal={() => setIsThemeModalOpen(true)}
           onOpenDiagnostic={() => setIsDiagnosticOpen(true)}
-          onOpenAISettings={() => setIsAISettingsOpen(true)}
-          onOpenBackendSettings={() => setIsBackendSettingsOpen(true)}
-          onOpenGovernanceMonitor={() => setIsGovernanceOpen(true)}
         />
 
         {/* Page Body */}
