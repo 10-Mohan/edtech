@@ -110,25 +110,7 @@ Structured around a paper-and-ink tactile notebook aesthetic, Waypoint brings to
 ---
 
 <!-- ========================================================= -->
-<!-- 7. DEMO CREDENTIALS -->
-<!-- ========================================================= -->
-
-## 🔑 Demo Access & Registration
-
-You can log in immediately using the pre-registered demo accounts or create your own custom account:
-
-| Role | Registered Email | Password | Account Details |
-|:---|:---|:---|:---|
-| 👨‍🎓 **Student** | `maya.lin@student.waypoint.edu` | `demo123` | Maya Lin — Grade 11 AP Calculus AB |
-| 👩‍🏫 **Faculty** | `dr.vance@faculty.waypoint.edu` | `demo123` | Dr. Eleanor Vance — Faculty Instructor |
-| 👨‍👩‍👧 **Parent** | `elena.lin@parent.waypoint.edu` | `demo123` | Elena Lin — Parent of Maya Lin |
-
-> 📝 **Custom Registration**: Click **"Register new account"** directly on the login page to register your own custom email, password, and role.
-
----
-
-<!-- ========================================================= -->
-<!-- 8. TECH STACK -->
+<!-- 7. TECH STACK -->
 <!-- ========================================================= -->
 
 ## 🚀 Tech Stack
@@ -153,7 +135,7 @@ You can log in immediately using the pre-registered demo accounts or create your
 ---
 
 <!-- ========================================================= -->
-<!-- 9. ARCHITECTURE -->
+<!-- 8. ARCHITECTURE -->
 <!-- ========================================================= -->
 
 ## 🏛️ System Architecture
@@ -201,7 +183,7 @@ flowchart TD
 ---
 
 <!-- ========================================================= -->
-<!-- 10. FOLDER STRUCTURE -->
+<!-- 9. FOLDER STRUCTURE -->
 <!-- ========================================================= -->
 
 ## 📁 Repository Structure
@@ -254,85 +236,7 @@ edtech/
 ---
 
 <!-- ========================================================= -->
-<!-- 11. INSTALLATION & SETUP -->
-<!-- ========================================================= -->
-
-## 🛠️ Installation & Setup
-
-### Prerequisites
-- **Node.js**: `v18.0.0` or higher
-- **npm**: `v9.0.0` or higher
-- **Git**
-
-### 1. Clone the Repository
-```bash
-git clone https://github.com/10-Mohan/edtech.git
-cd edtech
-```
-
-### 2. Install Dependencies
-```bash
-npm install
-```
-
-### 3. Configure Environment Variables (Optional)
-The platform runs immediately out-of-the-box with full offline local storage and built-in heuristics. To connect live Google Gemini AI, copy `.env.example`:
-```bash
-cp .env.example .env
-```
-
-### 4. Run Development Server
-```bash
-npm run dev
-```
-Open `http://localhost:5173` in your browser.
-
-### 5. Build for Production
-```bash
-npm run build
-npm run preview
-```
-
----
-
-<!-- ========================================================= -->
-<!-- 12. ENVIRONMENT VARIABLES -->
-<!-- ========================================================= -->
-
-## 🔐 Environment Variables
-
-Create a `.env` file in the root directory if you wish to configure live cloud AI or external database features:
-
-```ini
-# =======================================================
-# AI Gateway & LLM Orchestration (Optional)
-# =======================================================
-VITE_GEMINI_API_KEY=your_gemini_api_key_here
-GEMINI_API_KEY=your_gemini_api_key_here
-
-# =======================================================
-# Cloud Database (Optional - Supabase PostgreSQL)
-# =======================================================
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
-
-# =======================================================
-# Vector Search Engine (Optional - Qdrant)
-# =======================================================
-VITE_QDRANT_URL=https://your-qdrant-cluster.qdrant.io
-VITE_QDRANT_API_KEY=your-qdrant-api-key
-
-# =======================================================
-# Server Configuration
-# =======================================================
-PORT=5173
-```
-
----
-
-<!-- ========================================================= -->
-<!-- 13. API REFERENCE -->
+<!-- 10. API REFERENCE -->
 <!-- ========================================================= -->
 
 ## 📡 API & Service Reference
@@ -359,7 +263,7 @@ PORT=5173
 ---
 
 <!-- ========================================================= -->
-<!-- 14. DATABASE SCHEMA -->
+<!-- 11. DATABASE SCHEMA -->
 <!-- ========================================================= -->
 
 ## 🗄️ Data Model & Relationships
@@ -419,7 +323,7 @@ erDiagram
 ---
 
 <!-- ========================================================= -->
-<!-- 15. FUTURE SCOPE -->
+<!-- 12. FUTURE SCOPE -->
 <!-- ========================================================= -->
 
 ## 🚀 Future Scope & Roadmap
@@ -433,7 +337,7 @@ erDiagram
 ---
 
 <!-- ========================================================= -->
-<!-- 16. CONTRIBUTORS -->
+<!-- 13. CONTRIBUTORS -->
 <!-- ========================================================= -->
 
 ## 👨‍💻 Contributors
@@ -443,7 +347,7 @@ erDiagram
 ---
 
 <!-- ========================================================= -->
-<!-- 17. LICENSE -->
+<!-- 14. LICENSE -->
 <!-- ========================================================= -->
 
 ## 📄 License
