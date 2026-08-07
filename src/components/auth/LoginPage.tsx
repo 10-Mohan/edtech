@@ -247,7 +247,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 <Sparkles size={24} />
               </div>
               <div>
-                <div style={{ fontSize: '1.45rem', fontWeight: 900, letterSpacing: '-0.02em', background: 'linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                <div style={{ fontSize: '1.45rem', fontWeight: 900, letterSpacing: '-0.02em', color: 'var(--text-main)' }}>
                   Waypoint AI
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
@@ -256,7 +256,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               </div>
             </div>
 
-            <h1 style={{ fontSize: '1.95rem', fontWeight: 800, lineHeight: 1.25, marginBottom: '12px' }}>
+            <h1 style={{ fontSize: '1.95rem', fontWeight: 800, lineHeight: 1.25, marginBottom: '12px', color: 'var(--text-main)' }}>
               Choose your portal gateway to get started
             </h1>
             <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '28px' }}>
@@ -271,8 +271,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 className={`glass-card interactive ${selectedRole === 'student' ? 'selected-card' : ''}`}
                 style={{
                   padding: '18px 20px',
-                  border: selectedRole === 'student' ? '2px solid var(--primary-light)' : '1px solid var(--border-subtle)',
-                  background: selectedRole === 'student' ? 'rgba(99, 102, 241, 0.14)' : 'var(--bg-surface-elevated)'
+                  border: selectedRole === 'student' ? '2px solid var(--primary)' : '1px solid var(--border-subtle)',
+                  background: selectedRole === 'student' ? 'var(--primary-subtle)' : 'var(--bg-surface-elevated)'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -292,7 +292,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#f8fafc' }}>Student Portal</span>
+                      <span style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-main)' }}>Student Portal</span>
                       <span className="badge badge-indigo">Maya Lin</span>
                     </div>
                     <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '2px' }}>
@@ -322,14 +322,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#34d399'
+                      color: '#10b981'
                     }}
                   >
                     <Users size={22} />
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#f8fafc' }}>Parent Portal</span>
+                      <span style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-main)' }}>Parent Portal</span>
                       <span className="badge badge-emerald">Linked to Maya & Leo</span>
                     </div>
                     <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '2px' }}>
@@ -359,14 +359,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#22d3ee'
+                      color: '#06b6d4'
                     }}
                   >
                     <Briefcase size={22} />
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#f8fafc' }}>Teacher Portal</span>
+                      <span style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-main)' }}>Teacher Portal</span>
                       <span className="badge badge-cyan">Dr. Eleanor Vance</span>
                     </div>
                     <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '2px' }}>
@@ -376,6 +376,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 </div>
               </div>
             </div>
+
           </div>
 
           {/* Bottom Security / Trust Notice */}

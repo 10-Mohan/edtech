@@ -153,7 +153,7 @@ export const HomeworkScanner: React.FC<HomeworkScannerProps> = ({
               }}
             >
               <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginBottom: '4px' }}>Target Problem:</div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#f8fafc' }}>
+              <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)' }}>
                 <MathRenderer text={selectedProblem.title} />
               </div>
             </div>
@@ -175,7 +175,7 @@ export const HomeworkScanner: React.FC<HomeworkScannerProps> = ({
                   style={{
                     padding: '16px',
                     borderRadius: 'var(--radius-md)',
-                    background: step.isError ? 'rgba(244, 63, 94, 0.12)' : 'rgba(16, 21, 34, 0.6)',
+                    background: step.isError ? 'rgba(244, 63, 94, 0.12)' : 'var(--bg-surface-elevated)',
                     border: step.isError ? '1px solid #f43f5e' : '1px solid var(--border-subtle)',
                     transition: 'all 0.2s ease'
                   }}
@@ -195,7 +195,7 @@ export const HomeworkScanner: React.FC<HomeworkScannerProps> = ({
                     )}
                   </div>
 
-                  <div style={{ fontSize: '1.05rem', fontWeight: 600, color: '#f8fafc', marginBottom: '6px' }}>
+                  <div style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '6px' }}>
                     <MathRenderer text={step.expression} />
                   </div>
 
@@ -235,7 +235,7 @@ export const HomeworkScanner: React.FC<HomeworkScannerProps> = ({
                 <AlertOctagon size={20} />
               </div>
               <div>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>AI Root-Cause Diagnosis</h3>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)' }}>AI Root-Cause Diagnosis</h3>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
                   Pinpointed from Step {((customAnalysis?.steps || selectedProblem.steps).find((s: any) => s.isError)?.stepNumber) || 2}
                 </span>
@@ -257,13 +257,13 @@ export const HomeworkScanner: React.FC<HomeworkScannerProps> = ({
                       padding: '16px'
                     }}
                   >
-                    <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#fda4af', marginBottom: '6px' }}>
+                    <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#f43f5e', marginBottom: '6px' }}>
                       Identified Error Type:
                     </div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#ffffff', marginBottom: '10px' }}>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '10px' }}>
                       {errorStep.errorType || 'Algebraic / Derivative Inconsistency'}
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: '#e2e8f0', lineHeight: 1.5 }}>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
                       <MathRenderer text={errorStep.correctionHint || 'Check chain rule expansion and constant factors.'} />
                     </div>
                   </div>

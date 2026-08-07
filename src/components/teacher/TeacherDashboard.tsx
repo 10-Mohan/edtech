@@ -131,7 +131,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <img src={student.avatar} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
                       <div>
-                        <div style={{ fontWeight: 600, color: '#f8fafc' }}>{student.studentName}</div>
+                        <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{student.studentName}</div>
                         <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>{student.grade}</div>
                       </div>
                     </div>
@@ -200,7 +200,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     border: selectedWorksheet?.id === ws.id ? '2px solid var(--primary-light)' : '1px solid var(--border-subtle)'
                   }}
                 >
-                  <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#f8fafc', marginBottom: '4px' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-main)', marginBottom: '4px' }}>
                     {ws.title}
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-dim)' }}>

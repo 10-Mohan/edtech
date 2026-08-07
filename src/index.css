@@ -54,26 +54,27 @@
 }
 
 [data-theme="light"] {
-  --bg-base: #f1f5f9;
+  --bg-base: #f8fafc;
   --bg-surface: #ffffff;
-  --bg-surface-elevated: #f8fafc;
-  --bg-surface-glass: rgba(255, 255, 255, 0.85);
-  --bg-glass-card: rgba(255, 255, 255, 0.7);
-  --bg-glass-hover: rgba(241, 245, 249, 0.9);
+  --bg-surface-elevated: #f1f5f9;
+  --bg-surface-glass: rgba(255, 255, 255, 0.92);
+  --bg-glass-card: rgba(255, 255, 255, 0.88);
+  --bg-glass-hover: #e2e8f0;
   
-  --border-subtle: rgba(0, 0, 0, 0.07);
-  --border-medium: rgba(0, 0, 0, 0.12);
-  --border-highlight: rgba(99, 102, 241, 0.5);
+  --border-subtle: rgba(15, 23, 42, 0.08);
+  --border-medium: rgba(15, 23, 42, 0.16);
+  --border-highlight: rgba(99, 102, 241, 0.6);
 
   --text-main: #0f172a;
-  --text-muted: #475569;
-  --text-dim: #94a3b8;
+  --text-muted: #334155;
+  --text-dim: #64748b;
   
-  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 8px 20px -4px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 16px 36px -8px rgba(0, 0, 0, 0.12);
-  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.2);
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 8px 24px -4px rgba(15, 23, 42, 0.1);
+  --shadow-lg: 0 16px 40px -8px rgba(15, 23, 42, 0.14);
+  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.25);
 }
+
 
 /* ==========================================================================
    9 MONOCHROME SINGLE-TONE PALETTES
@@ -521,6 +522,32 @@ code, pre {
 [data-theme="light"] .theme-stat-val {
   color: var(--primary-dark);
 }
+
+/* Light Theme High Contrast Form & Card Overrides */
+[data-theme="light"] input,
+[data-theme="light"] textarea,
+[data-theme="light"] select {
+  color: var(--text-main) !important;
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.18) !important;
+}
+
+[data-theme="light"] input:focus,
+[data-theme="light"] textarea:focus,
+[data-theme="light"] select:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px var(--primary-surface) !important;
+}
+
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+[data-theme="light"] .selected-card {
+  box-shadow: 0 8px 24px -4px var(--primary-glow);
+}
+
 
 /* Pulse Beacon */
 .pulse-beacon {

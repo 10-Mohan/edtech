@@ -177,24 +177,25 @@ export const CareerRoadmap: React.FC<CareerRoadmapProps> = ({ onAddXP }) => {
           {/* Interactive Simulation Sandbox */}
           <div
             style={{
+              marginTop: '20px',
               padding: '20px',
               borderRadius: 'var(--radius-lg)',
-              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(16, 21, 34, 0.7) 100%)',
-              border: '1px solid rgba(99, 102, 241, 0.3)'
+              background: 'var(--bg-surface-glass)',
+              border: '1px solid var(--border-medium)'
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-              <Play size={18} color="#818cf8" />
-              <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#f8fafc' }}>
+              <Play size={18} color="var(--primary-light)" />
+              <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-main)' }}>
                 Interactive Work Simulation: On-the-Job Challenge
               </h4>
             </div>
 
-            <p style={{ fontSize: '0.875rem', color: '#cbd5e1', marginBottom: '14px', fontStyle: 'italic' }}>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '14px', fontStyle: 'italic' }}>
               "{selectedCareer.miniSimulation.scenario}"
             </p>
 
-            <div style={{ fontSize: '0.92rem', fontWeight: 600, color: '#ffffff', marginBottom: '14px' }}>
+            <div style={{ fontSize: '0.92rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '14px' }}>
               <MathRenderer text={selectedCareer.miniSimulation.challengeQuestion} />
             </div>
 
@@ -211,7 +212,7 @@ export const CareerRoadmap: React.FC<CareerRoadmapProps> = ({ onAddXP }) => {
                     style={{
                       padding: '12px 16px',
                       borderRadius: 'var(--radius-md)',
-                      background: isSelected ? 'rgba(99, 102, 241, 0.2)' : 'rgba(22, 29, 48, 0.6)',
+                      background: isSelected ? 'var(--primary-subtle)' : 'var(--bg-surface-elevated)',
                       border: isSelected ? '1px solid var(--primary-light)' : '1px solid var(--border-subtle)',
                       cursor: isChallengeSubmitted ? 'default' : 'pointer',
                       display: 'flex',
@@ -229,7 +230,7 @@ export const CareerRoadmap: React.FC<CareerRoadmapProps> = ({ onAddXP }) => {
                         background: 'transparent'
                       }}
                     />
-                    <div style={{ fontSize: '0.875rem', color: isSelected ? '#ffffff' : 'var(--text-main)' }}>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-main)' }}>
                       <MathRenderer text={opt.text} />
                     </div>
                   </div>
@@ -250,11 +251,11 @@ export const CareerRoadmap: React.FC<CareerRoadmapProps> = ({ onAddXP }) => {
               </button>
             ) : (
               <div className="animate-fade-in" style={{ padding: '12px 16px', borderRadius: 'var(--radius-md)', background: selectedCareer.miniSimulation.options.find(o => o.id === selectedOptionId)?.isCorrect ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)', border: selectedCareer.miniSimulation.options.find(o => o.id === selectedOptionId)?.isCorrect ? '1px solid #10b981' : '1px solid #f43f5e' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '0.875rem', color: selectedCareer.miniSimulation.options.find(o => o.id === selectedOptionId)?.isCorrect ? '#34d399' : '#fda4af', marginBottom: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '0.875rem', color: selectedCareer.miniSimulation.options.find(o => o.id === selectedOptionId)?.isCorrect ? '#10b981' : '#f43f5e', marginBottom: '4px' }}>
                   {selectedCareer.miniSimulation.options.find(o => o.id === selectedOptionId)?.isCorrect ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
                   <span>{selectedCareer.miniSimulation.options.find(o => o.id === selectedOptionId)?.isCorrect ? 'Correct Engineering Intuition!' : 'Incorrect Approach'}</span>
                 </div>
-                <p style={{ fontSize: '0.8125rem', color: '#f8fafc', margin: 0 }}>
+                <p style={{ fontSize: '0.8125rem', color: 'var(--text-main)', margin: 0 }}>
                   {selectedCareer.miniSimulation.options.find(o => o.id === selectedOptionId)?.feedback}
                 </p>
               </div>

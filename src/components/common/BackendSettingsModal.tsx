@@ -183,7 +183,7 @@ export const BackendSettingsModal: React.FC<BackendSettingsModalProps> = ({ isOp
             >
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <Cloud size={20} color="#34d399" />
-                <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#f8fafc' }}>Supabase / Postgres</div>
+                <div style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--text-main)' }}>Supabase / Postgres</div>
                 <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>Managed cloud DB + RLS</div>
               </div>
             </div>
@@ -201,7 +201,7 @@ export const BackendSettingsModal: React.FC<BackendSettingsModalProps> = ({ isOp
             >
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <Server size={20} color="#fbbf24" />
-                <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#f8fafc' }}>Firebase Firestore</div>
+                <div style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--text-main)' }}>Firebase Firestore</div>
                 <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>Realtime document store</div>
               </div>
             </div>
@@ -219,7 +219,7 @@ export const BackendSettingsModal: React.FC<BackendSettingsModalProps> = ({ isOp
             >
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <HardDrive size={20} color="var(--primary-light)" />
-                <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#f8fafc' }}>BroadcastChannel Sync</div>
+                <div style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--text-main)' }}>BroadcastChannel Sync</div>
                 <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>Zero-config multi-role</div>
               </div>
             </div>

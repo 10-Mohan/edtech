@@ -225,7 +225,7 @@ export const SocraticTutor: React.FC<SocraticTutorProps> = ({
                     borderRadius: 'var(--radius-lg)',
                     padding: '14px 18px',
                     boxShadow: 'var(--shadow-sm)',
-                    color: '#f8fafc'
+                    color: isAi ? 'var(--text-main)' : '#ffffff'
                   }}
                 >
                   <div style={{ fontSize: '0.9rem', lineHeight: 1.6 }}>
@@ -245,7 +245,7 @@ export const SocraticTutor: React.FC<SocraticTutorProps> = ({
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                        <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#6ee7b7', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#10b981', display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <Award size={15} /> Feynman Rubric Score
                         </span>
                         <div style={{ display: 'flex', gap: '8px' }}>
@@ -259,8 +259,8 @@ export const SocraticTutor: React.FC<SocraticTutorProps> = ({
                       </div>
 
                       <div style={{ fontSize: '0.8125rem', marginBottom: '8px' }}>
-                        <strong style={{ color: '#94a3b8' }}>Missing Key Nuances:</strong>
-                        <ul style={{ paddingLeft: '18px', marginTop: '4px', color: '#cbd5e1' }}>
+                        <strong style={{ color: 'var(--text-muted)' }}>Missing Key Nuances:</strong>
+                        <ul style={{ paddingLeft: '18px', marginTop: '4px', color: 'var(--text-main)' }}>
                           {msg.feynmanFeedback.missingKeyPoints.map((pt, i) => (
                             <li key={i}>{pt}</li>
                           ))}
@@ -269,7 +269,7 @@ export const SocraticTutor: React.FC<SocraticTutorProps> = ({
                     </div>
                   )}
 
-                  <div style={{ fontSize: '0.68rem', color: isAi ? 'var(--text-dim)' : 'rgba(255, 255, 255, 0.7)', marginTop: '6px', textAlign: isAi ? 'left' : 'right' }}>
+                  <div style={{ fontSize: '0.68rem', color: isAi ? 'var(--text-dim)' : 'rgba(255, 255, 255, 0.8)', marginTop: '6px', textAlign: isAi ? 'left' : 'right' }}>
                     {msg.timestamp}
                   </div>
                 </div>

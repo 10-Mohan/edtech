@@ -347,7 +347,7 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Zap size={20} color="var(--primary-light)" />
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#f8fafc' }}>OpenAI</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main)' }}>OpenAI</div>
                       <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>GPT-4o, GPT-4o-mini, o3</div>
                     </div>
                   </div>
@@ -366,7 +366,7 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Bot size={20} color="#38bdf8" />
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#f8fafc' }}>Anthropic Claude</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main)' }}>Anthropic Claude</div>
                       <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>Claude 3.5 Sonnet & Haiku</div>
                     </div>
                   </div>
@@ -385,7 +385,7 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Sparkles size={20} color="#34d399" />
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#f8fafc' }}>Google Gemini</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main)' }}>Google Gemini</div>
                       <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>Gemini 2.0 Flash & Pro</div>
                     </div>
                   </div>
@@ -404,7 +404,7 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Cpu size={20} color="#c084fc" />
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#f8fafc' }}>Simulated Engine</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main)' }}>Simulated Engine</div>
                       <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>Offline deterministic mode</div>
                     </div>
                   </div>

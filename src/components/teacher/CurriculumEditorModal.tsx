@@ -210,7 +210,7 @@ export const CurriculumEditorModal: React.FC<CurriculumEditorModalProps> = ({
                 >
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#f8fafc' }}>{node.title}</span>
+                      <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-main)' }}>{node.title}</span>
                       <span className="badge badge-cyan" style={{ fontSize: '0.68rem' }}>{node.category}</span>
                       <span className="badge badge-indigo" style={{ fontSize: '0.68rem' }}>{node.subject.toUpperCase()}</span>
                     </div>

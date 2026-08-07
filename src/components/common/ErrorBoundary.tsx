@@ -80,10 +80,10 @@ export class ErrorBoundary extends Component<Props, State> {
                 <AlertOctagon size={24} />
               </div>
               <div>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
                   Something went wrong
                 </h2>
-                <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
                   Waypoint encountered an unexpected runtime exception.
                 </span>
               </div>

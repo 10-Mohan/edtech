@@ -296,7 +296,7 @@ export const ActiveRecallDeck: React.FC<ActiveRecallDeckProps> = ({
                   </span>
                 </div>
 
-                <div style={{ padding: '20px 0', fontSize: '1.15rem', color: '#f8fafc', lineHeight: 1.6 }}>
+                <div style={{ padding: '20px 0', fontSize: '1.15rem', color: 'var(--text-main)', lineHeight: 1.6 }}>
                   <MathRenderer text={activeCard.back} />
                   {activeCard.equation && (
                     <div style={{ marginTop: '12px' }}>
