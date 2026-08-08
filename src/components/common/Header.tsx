@@ -11,7 +11,9 @@ import {
   Users,
   Briefcase,
   LogOut,
-  Palette
+  Palette,
+  Sparkles,
+  Settings
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -24,6 +26,7 @@ interface HeaderProps {
   colorTheme: ColorThemeId;
   onOpenThemeModal: () => void;
   onOpenDiagnostic: () => void;
+  onOpenAISettings?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -35,7 +38,8 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleTheme,
   colorTheme,
   onOpenThemeModal,
-  onOpenDiagnostic
+  onOpenDiagnostic,
+  onOpenAISettings
 }) => {
 
 
@@ -202,6 +206,29 @@ export const Header: React.FC<HeaderProps> = ({
               <span>{profile.xp} XP</span>
             </div>
           </div>
+        )}
+
+        {/* AI Engine & API Key Settings */}
+        {onOpenAISettings && (
+          <button
+            onClick={onOpenAISettings}
+            className="btn btn-secondary btn-sm"
+            title="Configure AI Engine & API Keys (Gemini, GPT-4o, Claude, Qdrant, Enkrypt)"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              borderColor: 'var(--border-highlight)',
+              background: 'var(--primary-subtle)',
+              color: 'var(--primary-light)'
+            }}
+          >
+            <Sparkles size={14} />
+            <span>AI Settings</span>
+          </button>
         )}
 
         {/* 9-Color Theme Palette Picker */}

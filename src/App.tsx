@@ -227,6 +227,7 @@ export const App: React.FC = () => {
           colorTheme={colorTheme}
           onOpenThemeModal={() => setIsThemeModalOpen(true)}
           onOpenDiagnostic={() => setIsDiagnosticOpen(true)}
+          onOpenAISettings={() => setIsAISettingsOpen(true)}
         />
 
         {/* Page Body */}
@@ -255,6 +256,7 @@ export const App: React.FC = () => {
                   <SocraticTutor
                     initialTopic={practiceTopic}
                     onAddXP={handleAddXP}
+                    onOpenAISettings={() => setIsAISettingsOpen(true)}
                   />
                 )}
 

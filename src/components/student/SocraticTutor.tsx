@@ -22,19 +22,22 @@ import {
   Activity,
   Trash2,
   History,
-  Radio
+  Radio,
+  Settings
 } from 'lucide-react';
 
 interface SocraticTutorProps {
   initialTopic?: ConceptNode | null;
   onAddXP: (amount: number) => void;
   studentId?: string;
+  onOpenAISettings?: () => void;
 }
 
 export const SocraticTutor: React.FC<SocraticTutorProps> = ({
   initialTopic,
   onAddXP,
-  studentId = 'stu_maya_01'
+  studentId = 'stu_maya_01',
+  onOpenAISettings
 }) => {
   const [tutorMode, setTutorMode] = useState<'socratic' | 'feynman'>('socratic');
   const [inputMessage, setInputMessage] = useState<string>('');
@@ -192,10 +195,22 @@ export const SocraticTutor: React.FC<SocraticTutorProps> = ({
               <span className={`badge ${tutorMode === 'socratic' ? 'badge-indigo' : 'badge-emerald'}`}>
                 {tutorMode === 'socratic' ? 'Socratic Inquiry' : 'Feynman Teach-Back'}
               </span>
-              <span className={`badge ${isLiveAI ? 'badge-emerald' : 'badge-cyan'}`} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <button
+                onClick={onOpenAISettings}
+                className={`badge ${isLiveAI ? 'badge-emerald' : 'badge-cyan'}`}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  cursor: onOpenAISettings ? 'pointer' : 'default',
+                  border: '1px solid var(--border-highlight)'
+                }}
+                title="Click to configure AI Provider & API Keys (Gemini, GPT-4o, Claude)"
+              >
                 <Activity size={12} />
-                {isLiveAI ? `Live LLM: ${providerName}` : 'Deterministic Heuristic'}
-              </span>
+                <span>{isLiveAI ? `Live LLM: ${providerName}` : '✨ Deterministic Heuristic (Click to connect API Key)'}</span>
+                {onOpenAISettings && <Settings size={11} style={{ marginLeft: '2px', opacity: 0.8 }} />}
+              </button>
               <span
                 style={{
                   padding: '2px 8px',
@@ -246,6 +261,18 @@ export const SocraticTutor: React.FC<SocraticTutorProps> = ({
                 <span>Feynman Mode ("Teach Me")</span>
               </button>
             </div>
+
+            {onOpenAISettings && (
+              <button
+                onClick={onOpenAISettings}
+                className="btn btn-secondary btn-sm"
+                title="Configure AI Model & API Keys"
+                style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                <Settings size={15} color="var(--primary-light)" />
+                <span>AI Settings</span>
+              </button>
+            )}
 
             <button
               onClick={handleClearHistory}
