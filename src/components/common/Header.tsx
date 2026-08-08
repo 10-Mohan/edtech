@@ -227,8 +227,8 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         )}
 
-        {/* AI Engine & API Key Settings */}
-        {onOpenAISettings && (
+        {/* AI Engine & API Key Settings (Student Portal Only) */}
+        {currentRole === 'student' && onOpenAISettings && (
           <button
             onClick={onOpenAISettings}
             className="btn btn-secondary btn-sm"
