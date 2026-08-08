@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AuthUser, ColorThemeId, UserRole } from '../../types';
-import { mockAuthUsers } from '../../data/mockData';
 import { BackendService } from '../../services/backendService';
 import { RegisterModal } from './RegisterModal';
-import { Palette, Sun, Moon, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Palette, Sun, Moon, AlertCircle } from 'lucide-react';
 
 interface LoginPageProps {
   onLogin: (user: AuthUser) => void;
@@ -23,7 +22,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   colorTheme,
   onOpenThemeModal
 }) => {
-  const [role, setRole] = useState<'student' | 'faculty'>('student');
+  const [role, setRole] = useState<'student' | 'faculty' | 'parent'>('student');
   const [email, setEmail] = useState<string>('maya.lin@student.waypoint.edu');
   const [password, setPassword] = useState<string>('demo123');
   const [loginError, setLoginError] = useState<string | null>(null);
@@ -32,36 +31,56 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [linesRevealed, setLinesRevealed] = useState<number>(0);
   const bookRef = useRef<HTMLDivElement>(null);
 
-  const handwritingLines = [
-    'So optimization is really just...',
-    '...finding where the derivative',
-    'goes flat. The peak of the hill.'
-  ];
+  const getHandwritingLines = () => {
+    if (role === 'faculty') {
+      return [
+        'Chain Rule internal derivatives...',
+        '...flagged for 3 students today.',
+        'Tier 1 scaffolded worksheets ready.'
+      ];
+    }
+    if (role === 'parent') {
+      return [
+        'Maya mastered Limits & Derivatives...',
+        '...and is bridging to Optimization.',
+        'Attendance: 96.8% · 3h 45m active recall.'
+      ];
+    }
+    return [
+      'So optimization is really just...',
+      '...finding where the derivative',
+      'goes flat. The peak of the hill.'
+    ];
+  };
+
+  const handwritingLines = getHandwritingLines();
 
   useEffect(() => {
     setLinesRevealed(0);
     const timers = [
-      setTimeout(() => setLinesRevealed(1), 600),
-      setTimeout(() => setLinesRevealed(2), 1150),
-      setTimeout(() => setLinesRevealed(3), 1700)
+      setTimeout(() => setLinesRevealed(1), 300),
+      setTimeout(() => setLinesRevealed(2), 700),
+      setTimeout(() => setLinesRevealed(3), 1100)
     ];
     return () => timers.forEach(clearTimeout);
-  }, []);
+  }, [role]);
 
-  const handleRoleToggle = (targetRole: 'student' | 'faculty') => {
+  const handleRoleToggle = (targetRole: 'student' | 'faculty' | 'parent') => {
     if (targetRole === role) return;
     setLoginError(null);
 
     if (bookRef.current) {
-      bookRef.current.style.transition = 'transform .55s cubic-bezier(.65,0,.35,1)';
+      bookRef.current.style.transition = 'transform .45s cubic-bezier(.65,0,.35,1)';
       bookRef.current.style.transformOrigin = 'center center';
-      bookRef.current.style.transform = 'rotateY(6deg) scale(0.985)';
+      bookRef.current.style.transform = 'rotateY(4deg) scale(0.99)';
     }
 
     setTimeout(() => {
       setRole(targetRole);
       if (targetRole === 'faculty') {
         setEmail('dr.vance@faculty.waypoint.edu');
+      } else if (targetRole === 'parent') {
+        setEmail('elena.lin@parent.waypoint.edu');
       } else {
         setEmail('maya.lin@student.waypoint.edu');
       }
@@ -70,7 +89,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       if (bookRef.current) {
         bookRef.current.style.transform = 'rotateY(0deg) scale(1)';
       }
-    }, 260);
+    }, 200);
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -78,7 +97,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     setLoginError(null);
     setIsLoggingIn(true);
     try {
-      const targetUserRole: UserRole = role === 'faculty' ? 'teacher' : 'student';
+      const targetUserRole: UserRole =
+        role === 'faculty' ? 'teacher' : role === 'parent' ? 'parent' : 'student';
       const user = await BackendService.authenticateWithPassword(email.trim(), password, targetUserRole);
       onLogin(user);
     } catch (err: any) {
@@ -104,6 +124,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       setPassword('demo123');
       if (targetRole === 'teacher') {
         setRole('faculty');
+      } else if (targetRole === 'parent') {
+        setRole('parent');
       } else {
         setRole('student');
       }
@@ -140,62 +162,58 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           display: flex;
           align-items: center;
           justify-content: center;
-          perspective: 2400px;
-          overflow: hidden;
           position: relative;
+          transition: background-color 0.4s ease, color 0.4s ease;
         }
 
         .waypoint-notebook-wrapper.dark-mode {
-          --paper: #121824;
-          --paper2: #0b0f17;
-          --ink: #f1f5f9;
-          --ink-soft: #94a3b8;
-          --rule: #222d42;
-          --teal: #38bdf8;
-          --coral: #fb7185;
-          --gold: #fbbf24;
+          --paper: #1c1f1a;
+          --paper2: #141712;
+          --ink: #ECE5D4;
+          --ink-soft: #9da394;
+          --rule: #2f362a;
+          --teal: #459a8b;
+          --coral: #e06f48;
+          --gold: #d4aa43;
         }
 
         .waypoint-notebook-wrapper::before {
           content: '';
-          position: fixed;
+          position: absolute;
           inset: 0;
-          background-image: radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px);
-          background-size: 3px 3px;
+          background-image: radial-gradient(rgba(35,40,31,0.06) 1px, transparent 1px);
+          background-size: 16px 16px;
           pointer-events: none;
         }
-
         .waypoint-notebook-wrapper.dark-mode::before {
-          background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
+          background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
         }
 
-        /* Utility buttons floating top-right */
         .nb-controls {
-          position: absolute;
-          top: 18px;
-          right: 22px;
+          position: fixed;
+          top: 20px;
+          right: 24px;
           display: flex;
-          align-items: center;
-          gap: 8px;
+          gap: 10px;
           z-index: 50;
         }
         .nb-icon-btn {
-          width: 32px;
-          height: 32px;
-          border-radius: 6px;
-          border: 1px solid var(--rule);
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
           background: var(--paper);
-          color: var(--ink-soft);
+          border: 1px solid var(--rule);
+          color: var(--ink);
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
           transition: all 0.2s ease;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.06);
         }
         .nb-icon-btn:hover {
-          color: var(--ink);
+          transform: translateY(-2px);
           border-color: var(--ink-soft);
-          transform: translateY(-1px);
         }
 
         .book {
@@ -252,10 +270,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           height: 8px;
           border-radius: 50%;
           background: var(--coral);
+          transition: background 0.3s ease;
         }
         .faculty .brand-mark {
           background: var(--teal);
         }
+        .parent .brand-mark {
+          background: var(--gold);
+        }
+
         .brand-word {
           font-family: 'Source Serif 4', serif;
           font-size: 18px;
@@ -273,23 +296,31 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           font-size: 11px;
           letter-spacing: 0.12em;
           text-transform: uppercase;
-          color: var(--teal);
+          color: var(--coral);
           font-weight: 600;
           margin-bottom: 16px;
+          transition: color 0.3s ease;
+        }
+        .faculty .prompt-label {
+          color: var(--teal);
+        }
+        .parent .prompt-label {
+          color: var(--gold);
         }
 
         .handwrite {
           font-family: 'Caveat', cursive;
-          font-size: 32px;
-          line-height: 1.5;
+          font-size: 30px;
+          line-height: 1.45;
           color: var(--ink);
           max-width: 420px;
+          min-height: 140px;
         }
         .hw-line {
           display: block;
           opacity: 0;
           transform: translateY(6px);
-          transition: opacity .6s ease, transform .6s cubic-bezier(.2,.8,.3,1);
+          transition: opacity .5s ease, transform .5s cubic-bezier(.2,.8,.3,1);
         }
         .hw-line.revealed {
           opacity: 1;
@@ -316,9 +347,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           right: 60px;
           width: 70px;
           height: 24px;
-          background: rgba(176,138,46,0.28);
+          background: rgba(196,86,47,0.22);
           transform: rotate(-4deg);
           box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+          transition: background 0.3s ease;
+        }
+        .faculty .tape {
+          background: rgba(47,111,99,0.25);
+        }
+        .parent .tape {
+          background: rgba(176,138,46,0.25);
         }
 
         /* right page = auth card */
@@ -339,7 +377,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         .toggle {
           display: flex;
           gap: 0;
-          margin-bottom: 30px;
+          margin-bottom: 28px;
           border-bottom: 2px solid var(--ink);
           position: relative;
         }
@@ -349,7 +387,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           border: none;
           cursor: pointer;
           font-family: 'Source Serif 4', serif;
-          font-size: 15px;
+          font-size: 14.5px;
           font-weight: 500;
           padding: 10px 4px 12px;
           color: var(--ink-soft);
@@ -358,20 +396,28 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         }
         .toggle button.active {
           color: var(--ink);
-          font-weight: 600;
+          font-weight: 700;
         }
         .underline {
           position: absolute;
           bottom: -2px;
           left: 0;
-          width: 50%;
-          height: 2px;
+          width: 33.333%;
+          height: 2.5px;
           background: var(--coral);
-          transition: transform .5s cubic-bezier(.65,0,.35,1);
+          transition: transform .45s cubic-bezier(.65,0,.35,1), background .4s ease;
+        }
+        .toggle.student .underline {
+          transform: translateX(0%);
+          background: var(--coral);
         }
         .toggle.faculty .underline {
           transform: translateX(100%);
           background: var(--teal);
+        }
+        .toggle.parent .underline {
+          transform: translateX(200%);
+          background: var(--gold);
         }
 
         .card-title {
@@ -384,12 +430,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         .card-hint {
           font-size: 13px;
           color: var(--ink-soft);
-          margin-bottom: 26px;
+          margin-bottom: 24px;
           font-style: italic;
         }
 
         .field {
-          margin-bottom: 20px;
+          margin-bottom: 18px;
         }
         .field label {
           display: block;
@@ -397,123 +443,133 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           letter-spacing: 0.08em;
           text-transform: uppercase;
           color: var(--ink-soft);
-          margin-bottom: 8px;
+          margin-bottom: 6px;
           font-weight: 600;
         }
         .field input {
           width: 100%;
           background: transparent;
           border: none;
-          border-bottom: 1.5px solid var(--rule);
-          padding: 8px 2px 10px;
+          border-bottom: 1px solid var(--ink);
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 14px;
           color: var(--ink);
-          font-size: 15px;
-          font-family: 'Inter', sans-serif;
+          padding: 7px 0 9px;
           outline: none;
-          transition: border-color .3s ease;
+          transition: border-color .2s ease;
         }
         .field input:focus {
-          border-color: var(--coral);
+          border-bottom-color: var(--coral);
         }
         .faculty .field input:focus {
-          border-color: var(--teal);
+          border-bottom-color: var(--teal);
+        }
+        .parent .field input:focus {
+          border-bottom-color: var(--gold);
         }
 
         .go {
+          margin-top: 14px;
           width: 100%;
-          margin-top: 12px;
-          padding: 13px 0;
-          border: none;
-          border-radius: 3px;
-          font-family: 'Inter', sans-serif;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          color: var(--paper);
           background: var(--ink);
-          transition: background .4s ease, transform .15s ease;
+          color: var(--paper);
+          border: none;
+          padding: 14px 20px;
+          font-family: 'Source Serif 4', serif;
+          font-size: 15px;
+          font-weight: 600;
+          letter-spacing: 0.02em;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          transition: background .2s ease, transform .15s ease, opacity .2s ease;
+          border-radius: 4px;
         }
-        .go:hover {
-          background: var(--coral);
+        .go:hover:not(:disabled) {
+          opacity: 0.92;
+          transform: translateY(-1px);
         }
-        .faculty .go:hover {
-          background: var(--teal);
+        .go:active:not(:disabled) {
+          transform: translateY(0);
         }
-        .go:active {
-          transform: scale(0.98);
+        .go:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
         }
 
         .demo-bar {
-          margin-top: 16px;
-          padding-top: 12px;
+          margin-top: 20px;
+          padding-top: 14px;
           border-top: 1px dashed var(--rule);
         }
         .demo-label {
           font-size: 10px;
-          letter-spacing: 0.08em;
+          letter-spacing: 0.1em;
           text-transform: uppercase;
           color: var(--ink-soft);
-          font-weight: 600;
-          margin-bottom: 6px;
+          margin-bottom: 8px;
+          font-weight: 700;
         }
         .demo-pills {
           display: flex;
           gap: 6px;
+          flex-wrap: wrap;
         }
         .demo-pill {
-          flex: 1;
-          padding: 5px 6px;
           font-size: 11px;
-          font-weight: 500;
-          border-radius: 3px;
+          padding: 5px 10px;
+          background: var(--paper2);
           border: 1px solid var(--rule);
-          background: transparent;
+          border-radius: 4px;
           color: var(--ink);
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all .15s ease;
+          font-family: 'Inter', sans-serif;
+          font-weight: 500;
         }
         .demo-pill:hover {
-          border-color: var(--ink);
-          background: rgba(35,40,31,0.05);
+          border-color: var(--ink-soft);
+          background: var(--paper);
         }
 
         .foot {
-          text-align: center;
-          margin-top: 18px;
+          margin-top: 16px;
           font-size: 12px;
           color: var(--ink-soft);
+          text-align: center;
         }
-        .foot a, .foot button {
+        .foot button {
           background: none;
           border: none;
-          padding: 0;
-          font-size: 12px;
-          font-family: inherit;
           color: var(--ink);
           font-weight: 600;
           cursor: pointer;
           text-decoration: underline;
+          padding: 0;
+          font-family: inherit;
         }
 
         .stamp {
           position: absolute;
-          bottom: 24px;
-          right: 28px;
+          bottom: 20px;
+          right: 24px;
           font-family: 'Source Serif 4', serif;
-          font-size: 11px;
+          font-size: 10px;
           letter-spacing: 0.14em;
           text-transform: uppercase;
           color: var(--rule);
           border: 1px solid var(--rule);
           border-radius: 50%;
-          width: 76px;
-          height: 76px;
+          width: 72px;
+          height: 72px;
           display: flex;
           align-items: center;
           justify-content: center;
           text-align: center;
           transform: rotate(-8deg);
-          opacity: 0.7;
+          opacity: 0.75;
           pointer-events: none;
           line-height: 1.2;
           padding: 4px;
@@ -547,7 +603,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       </div>
 
       {/* Main Open Notebook */}
-      <div className={`book ${role === 'faculty' ? 'faculty' : ''}`} ref={bookRef} id="book">
+      <div className={`book ${role}`} ref={bookRef} id="book">
         {/* Left Page */}
         <div className="page-left">
           <div className="tape"></div>
@@ -555,23 +611,36 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             <div className="brand-mark"></div>
             <div className="brand-word">Waypoint <span>AI</span></div>
           </div>
-          <div className="prompt-label">Teach it back to me</div>
+          <div className="prompt-label">
+            {role === 'faculty'
+              ? 'Cohort Mastery & Intervention'
+              : role === 'parent'
+              ? 'Family & Learning Bridge'
+              : 'Teach it back to me'}
+          </div>
           <div className="handwrite" id="hw">
             {handwritingLines.map((l, i) => (
-              <span key={i} className={`hw-line ${linesRevealed > i ? 'revealed' : ''}`}>
+              <span key={`${role}-${i}`} className={`hw-line ${linesRevealed > i ? 'revealed' : ''}`}>
                 {l}
               </span>
             ))}
           </div>
           <div className="margin-note">
-            The <b>Feynman check</b>: if you can't explain optimization without the jargon, the graph shows exactly where the gap is — not just that one exists.
+            {role === 'faculty' ? (
+              <>The <b>Teacher Radar</b>: live cohort diagnostics and instant 3-tier worksheet differentiation to eliminate 10+ hours of manual lesson planning.</>
+            ) : role === 'parent' ? (
+              <>The <b>Family Bridge</b>: plain-language weekly digests and dinner table conversation starters to connect classroom STEM to real-world curiosity.</>
+            ) : (
+              <>The <b>Feynman check</b>: if you can't explain optimization without the jargon, the graph shows exactly where the gap is — not just that one exists.</>
+            )}
           </div>
         </div>
 
         {/* Right Page */}
-        <div className={`page-right ${role === 'faculty' ? 'faculty' : ''}`}>
+        <div className={`page-right ${role}`}>
           <div className="page-right-inner">
-            <div className={`toggle ${role === 'faculty' ? 'faculty' : ''}`} id="toggle">
+            {/* 3-Role Tab Bar */}
+            <div className={`toggle ${role}`} id="toggle">
               <button
                 className={role === 'student' ? 'active' : ''}
                 onClick={() => handleRoleToggle('student')}
@@ -588,14 +657,30 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               >
                 Faculty
               </button>
+              <button
+                className={role === 'parent' ? 'active' : ''}
+                onClick={() => handleRoleToggle('parent')}
+                data-role="parent"
+                type="button"
+              >
+                Parent
+              </button>
               <div className="underline"></div>
             </div>
 
             <div className="card-title" id="ctitle">
-              {role === 'faculty' ? 'Pick up the roll book' : 'Pick up your notebook'}
+              {role === 'faculty'
+                ? 'Pick up the roll book'
+                : role === 'parent'
+                ? "Maya's Family Bridge"
+                : 'Pick up your notebook'}
             </div>
             <div className="card-hint" id="chint">
-              {role === 'faculty' ? "Your cohort's mastery, at a glance." : 'Where you left off, exactly.'}
+              {role === 'faculty'
+                ? "Your cohort's mastery, at a glance."
+                : role === 'parent'
+                ? 'Weekly progress, attendance & conversation starters.'
+                : 'Where you left off, exactly.'}
             </div>
 
             {loginError && (
@@ -649,7 +734,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               </div>
 
               <button className="go" id="gobtn" type="submit" disabled={isLoggingIn}>
-                {isLoggingIn ? 'Verifying credentials...' : role === 'faculty' ? 'Open roll book →' : 'Open notebook →'}
+                {isLoggingIn
+                  ? 'Verifying credentials...'
+                  : role === 'faculty'
+                  ? 'Open roll book →'
+                  : role === 'parent'
+                  ? 'Open family portal →'
+                  : 'Open notebook →'}
               </button>
             </form>
 
@@ -657,13 +748,28 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             <div className="demo-bar">
               <div className="demo-label">Demo Credentials:</div>
               <div className="demo-pills">
-                <button type="button" className="demo-pill" onClick={() => handleQuickLogin('student')} title="maya.lin@student.waypoint.edu / demo123">
+                <button
+                  type="button"
+                  className="demo-pill"
+                  onClick={() => handleQuickLogin('student')}
+                  title="maya.lin@student.waypoint.edu / demo123"
+                >
                   Maya (Student)
                 </button>
-                <button type="button" className="demo-pill" onClick={() => handleQuickLogin('teacher')} title="dr.vance@faculty.waypoint.edu / demo123">
+                <button
+                  type="button"
+                  className="demo-pill"
+                  onClick={() => handleQuickLogin('teacher')}
+                  title="dr.vance@faculty.waypoint.edu / demo123"
+                >
                   Dr. Eleanor (Faculty)
                 </button>
-                <button type="button" className="demo-pill" onClick={() => handleQuickLogin('parent')} title="elena.lin@parent.waypoint.edu / demo123">
+                <button
+                  type="button"
+                  className="demo-pill"
+                  onClick={() => handleQuickLogin('parent')}
+                  title="elena.lin@parent.waypoint.edu / demo123"
+                >
                   Elena (Parent)
                 </button>
               </div>
@@ -678,7 +784,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           </div>
 
           <div className="stamp" id="stamp">
-            {role === 'faculty' ? 'Faculty · Verified' : 'Waypoint · Est. session'}
+            {role === 'faculty'
+              ? 'Faculty · Verified'
+              : role === 'parent'
+              ? 'Guardian · Linked'
+              : 'Waypoint · Est. session'}
           </div>
         </div>
       </div>
