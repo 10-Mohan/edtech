@@ -110,7 +110,50 @@ Structured around a paper-and-ink tactile notebook aesthetic, Waypoint brings to
 ---
 
 <!-- ========================================================= -->
-<!-- 7. TECH STACK -->
+<!-- 7. QUICK START & INSTALLATION -->
+<!-- ========================================================= -->
+
+## ⚡ Quick Start & Installation
+
+Get the full platform running locally in under 60 seconds:
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/10-Mohan/edtech.git
+cd edtech
+```
+
+### 2. Install Dependencies
+```bash
+npm install
+```
+
+### 3. Configure Environment Variables (Optional)
+```bash
+cp .env.example .env
+```
+> **Note**: Waypoint is fully functional out of the box with zero configuration using built-in local heuristics. For cloud features (Gemini AI, Supabase, Qdrant), add your API keys to `.env`.
+
+### 4. Start Development Server
+```bash
+npm run dev
+```
+Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+---
+
+### 🔑 Demo Logins for Evaluation
+
+| Role | Email | Password | Access Highlights |
+|:---|:---|:---|:---|
+| 👨‍🎓 **Student** | `maya.lin@oakwood.edu` | `student123` | Interactive DAG Graph, SM-2 Flashcards, Socratic AI & Feynman Tutor |
+| 👩‍🏫 **Faculty (Teacher)** | `elena.vance@oakwood.edu` | `teacher123` | Classroom Mastery Heatmap, 3-Tier Worksheet Studio, Roster Import |
+| 👨‍👩‍👧 **Parent / Guardian** | `elena.lin@family.org` | `parent123` | Weekly Growth Digest, Live Attendance, Dinner Table Starters |
+
+---
+
+<!-- ========================================================= -->
+<!-- 8. TECH STACK -->
 <!-- ========================================================= -->
 
 ## 🚀 Tech Stack
@@ -135,7 +178,7 @@ Structured around a paper-and-ink tactile notebook aesthetic, Waypoint brings to
 ---
 
 <!-- ========================================================= -->
-<!-- 8. ARCHITECTURE -->
+<!-- 9. ARCHITECTURE -->
 <!-- ========================================================= -->
 
 ## 🏛️ System Architecture
@@ -183,7 +226,7 @@ flowchart TD
 ---
 
 <!-- ========================================================= -->
-<!-- 9. FOLDER STRUCTURE -->
+<!-- 10. FOLDER STRUCTURE -->
 <!-- ========================================================= -->
 
 ## 📁 Repository Structure
@@ -236,7 +279,7 @@ edtech/
 ---
 
 <!-- ========================================================= -->
-<!-- 10. API REFERENCE -->
+<!-- 11. API REFERENCE -->
 <!-- ========================================================= -->
 
 ## 📡 API & Service Reference
@@ -263,7 +306,7 @@ edtech/
 ---
 
 <!-- ========================================================= -->
-<!-- 11. DATABASE SCHEMA -->
+<!-- 12. DATABASE SCHEMA -->
 <!-- ========================================================= -->
 
 ## 🗄️ Data Model & Relationships
@@ -323,7 +366,7 @@ erDiagram
 ---
 
 <!-- ========================================================= -->
-<!-- 12. FUTURE SCOPE -->
+<!-- 13. FUTURE SCOPE -->
 <!-- ========================================================= -->
 
 ## 🚀 Future Scope & Roadmap
@@ -337,7 +380,7 @@ erDiagram
 ---
 
 <!-- ========================================================= -->
-<!-- 13. CONTRIBUTORS -->
+<!-- 14. CONTRIBUTORS -->
 <!-- ========================================================= -->
 
 ## 👨‍💻 Contributors
@@ -347,7 +390,7 @@ erDiagram
 ---
 
 <!-- ========================================================= -->
-<!-- 14. LICENSE -->
+<!-- 15. LICENSE -->
 <!-- ========================================================= -->
 
 ## 📄 License
