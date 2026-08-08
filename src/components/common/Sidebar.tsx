@@ -6,7 +6,6 @@ import {
   Layers,
   MessageSquareCode,
   ScanLine,
-  Compass,
   LayoutDashboard,
   FileSpreadsheet,
   AlertTriangle,
@@ -17,7 +16,7 @@ import {
   Award
 } from 'lucide-react';
 
-export type StudentTab = 'knowledge_graph' | 'active_recall' | 'socratic_tutor' | 'homework_scanner' | 'career_roadmap';
+export type StudentTab = 'knowledge_graph' | 'active_recall' | 'socratic_tutor' | 'homework_scanner';
 export type TeacherTab = 'class_overview' | 'tiered_worksheets' | 'misconception_alerts';
 export type ParentTab = 'academic_report' | 'attendance' | 'weak_sections' | 'weekly_digest' | 'dinner_prompts';
 
@@ -105,14 +104,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               label="AI Homework Scanner"
               active={activeTab === 'homework_scanner'}
               onClick={() => onSelectTab('homework_scanner')}
-            />
-            <NavItem
-              icon={<Compass size={18} />}
-              label="Career Roadmaps"
-              active={activeTab === 'career_roadmap'}
-              onClick={() => onSelectTab('career_roadmap')}
-              badge="Simulations"
-              badgeColor="badge-emerald"
             />
           </div>
         )}

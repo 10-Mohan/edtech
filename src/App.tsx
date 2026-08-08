@@ -18,9 +18,6 @@ import { ErrorBoundary } from './components/common/ErrorBoundary';
 const HomeworkScanner = lazy(() =>
   import('./components/student/HomeworkScanner').then(m => ({ default: m.HomeworkScanner }))
 );
-const CareerRoadmap = lazy(() =>
-  import('./components/student/CareerRoadmap').then(m => ({ default: m.CareerRoadmap }))
-);
 const TeacherDashboard = lazy(() =>
   import('./components/teacher/TeacherDashboard').then(m => ({ default: m.TeacherDashboard }))
 );
@@ -352,12 +349,6 @@ export const App: React.FC = () => {
                       onRemediateTopic={handleRemediateFromScanner}
                       onAddXP={handleAddXP}
                     />
-                  </Suspense>
-                )}
-
-                {studentTab === 'career_roadmap' && (
-                  <Suspense fallback={<LoadingFallback message="Loading Career STEM Roadmaps..." />}>
-                    <CareerRoadmap onAddXP={handleAddXP} />
                   </Suspense>
                 )}
               </>
