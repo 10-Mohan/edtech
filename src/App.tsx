@@ -300,6 +300,7 @@ export const App: React.FC = () => {
                     nodes={conceptNodes}
                     onSelectNodeForPractice={handlePracticeNodeInSocratic}
                     onUpdateNodeMastery={handleUpdateNodeMastery}
+                    studentId={activeStudentId}
                   />
                 )}
 
@@ -355,6 +356,7 @@ export const App: React.FC = () => {
               <Suspense fallback={<LoadingFallback message="Loading Guardian Portal & Progress Reports..." />}>
                 <ParentDashboard
                   activeParentTab={parentTab}
+                  currentUser={currentUser}
                 />
               </Suspense>
             )}

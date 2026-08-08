@@ -109,26 +109,30 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     }
   };
 
-  const handleQuickLogin = async (targetRole: 'student' | 'teacher' | 'parent') => {
+  const handleQuickLogin = async (target: 'student_maya' | 'parent_elena' | 'student_leo' | 'parent_david' | 'teacher_vance') => {
     setLoginError(null);
     setIsLoggingIn(true);
     try {
-      const demoEmail =
-        targetRole === 'teacher'
-          ? 'dr.vance@faculty.waypoint.edu'
-          : targetRole === 'parent'
-          ? 'elena.lin@parent.waypoint.edu'
-          : 'maya.lin@student.waypoint.edu';
+      let demoEmail = 'maya.lin@student.waypoint.edu';
+      if (target === 'teacher_vance') {
+        demoEmail = 'dr.vance@faculty.waypoint.edu';
+        setRole('faculty');
+      } else if (target === 'parent_elena') {
+        demoEmail = 'elena.lin@parent.waypoint.edu';
+        setRole('parent');
+      } else if (target === 'parent_david') {
+        demoEmail = 'david.chen@parent.waypoint.edu';
+        setRole('parent');
+      } else if (target === 'student_leo') {
+        demoEmail = 'leo.chen@student.waypoint.edu';
+        setRole('student');
+      } else {
+        demoEmail = 'maya.lin@student.waypoint.edu';
+        setRole('student');
+      }
       
       setEmail(demoEmail);
       setPassword('demo123');
-      if (targetRole === 'teacher') {
-        setRole('faculty');
-      } else if (targetRole === 'parent') {
-        setRole('parent');
-      } else {
-        setRole('student');
-      }
 
       const user = await BackendService.authenticateWithPassword(demoEmail, 'demo123');
       onLogin(user);
@@ -746,12 +750,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
             {/* Quick Demo Logins */}
             <div className="demo-bar">
-              <div className="demo-label">Demo Credentials:</div>
-              <div className="demo-pills">
+              <div className="demo-label">Demo Single-Click Logins:</div>
+              <div className="demo-pills" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                 <button
                   type="button"
                   className="demo-pill"
-                  onClick={() => handleQuickLogin('student')}
+                  onClick={() => handleQuickLogin('student_maya')}
                   title="maya.lin@student.waypoint.edu / demo123"
                 >
                   Maya (Student)
@@ -759,18 +763,36 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 <button
                   type="button"
                   className="demo-pill"
-                  onClick={() => handleQuickLogin('teacher')}
-                  title="dr.vance@faculty.waypoint.edu / demo123"
+                  onClick={() => handleQuickLogin('parent_elena')}
+                  title="elena.lin@parent.waypoint.edu / demo123 (Maya's Parent)"
+                  style={{ background: 'rgba(16, 185, 129, 0.15)', borderColor: '#10b981' }}
                 >
-                  Dr. Eleanor (Faculty)
+                  Elena (Maya's Parent)
                 </button>
                 <button
                   type="button"
                   className="demo-pill"
-                  onClick={() => handleQuickLogin('parent')}
-                  title="elena.lin@parent.waypoint.edu / demo123"
+                  onClick={() => handleQuickLogin('student_leo')}
+                  title="leo.chen@student.waypoint.edu / demo123"
                 >
-                  Elena (Parent)
+                  Leo (Student)
+                </button>
+                <button
+                  type="button"
+                  className="demo-pill"
+                  onClick={() => handleQuickLogin('parent_david')}
+                  title="david.chen@parent.waypoint.edu / demo123 (Leo's Parent)"
+                  style={{ background: 'rgba(16, 185, 129, 0.15)', borderColor: '#10b981' }}
+                >
+                  David (Leo's Parent)
+                </button>
+                <button
+                  type="button"
+                  className="demo-pill"
+                  onClick={() => handleQuickLogin('teacher_vance')}
+                  title="dr.vance@faculty.waypoint.edu / demo123 (40 Students)"
+                >
+                  Dr. Vance (Faculty • 40 Cohort)
                 </button>
               </div>
             </div>

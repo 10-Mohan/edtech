@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ParentWeeklySummary, StudentComprehensiveReport, StudentClassroomMetric } from '../../types';
+import { AuthUser, ParentWeeklySummary, StudentComprehensiveReport } from '../../types';
 import { MathRenderer } from '../common/MathRenderer';
 import { BackendService } from '../../services/backendService';
 import {
@@ -12,27 +12,36 @@ import {
   MessageCircle,
   CheckCircle2,
   AlertTriangle,
-  UserCheck,
   ShieldCheck,
   Users,
-  GraduationCap,
   Mail,
   Send,
-  ExternalLink,
   X,
-  Search,
-  ChevronDown
+  Heart,
+  Lightbulb
 } from 'lucide-react';
 
 interface ParentDashboardProps {
   activeParentTab: string;
+  currentUser?: AuthUser | null;
 }
 
 export const ParentDashboard: React.FC<ParentDashboardProps> = ({
-  activeParentTab
+  activeParentTab,
+  currentUser
 }) => {
-  const [allStudents, setAllStudents] = useState<StudentClassroomMetric[]>(() => BackendService.getClassroomMetrics());
-  const [selectedChildId, setSelectedChildId] = useState<string>('st_01');
+  // Determine child ID strictly linked to this parent account
+  const linkedChildIds = useMemo(() => {
+    if (currentUser?.linkedStudentIds && currentUser.linkedStudentIds.length > 0) {
+      return currentUser.linkedStudentIds;
+    }
+    if (currentUser?.linkedStudentId) {
+      return [currentUser.linkedStudentId];
+    }
+    return ['st_01'];
+  }, [currentUser]);
+
+  const [selectedChildId, setSelectedChildId] = useState<string>(linkedChildIds[0]);
   const [parentEmailInput, setParentEmailInput] = useState<string>('');
   const [isSendingEmail, setIsSendingEmail] = useState<boolean>(false);
   const [emailStatus, setEmailStatus] = useState<{
@@ -43,35 +52,45 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   } | null>(null);
   const [showPreviewModal, setShowPreviewModal] = useState<boolean>(false);
 
-  // Subscribe to live multi-device / cross-tab updates
+  // Parent Encouragement Nudge modal state
+  const [isNudgeModalOpen, setIsNudgeModalOpen] = useState<boolean>(false);
+  const [nudgeMessage, setNudgeMessage] = useState<string>('');
+  const [nudgeSuccess, setNudgeSuccess] = useState<string | null>(null);
+
+  // Refresh trigger on real-time event updates
+  const [refreshKey, setRefreshKey] = useState<number>(0);
+
   useEffect(() => {
     const unsubscribe = BackendService.subscribe(msg => {
       if (
         msg.type === 'STUDENT_METRIC_UPDATED' ||
-        msg.type === 'COHORT_DATA_IMPORTED' ||
-        msg.type === 'REMOTE_DB_SYNC'
+        msg.type === 'REMOTE_DB_SYNC' ||
+        msg.type === 'PARENT_NUDGE_SENT' ||
+        msg.type === 'NODE_MASTERY_UPDATED'
       ) {
-        setAllStudents(BackendService.getClassroomMetrics());
+        setRefreshKey(k => k + 1);
       }
     });
     return () => unsubscribe();
   }, []);
 
-  // Dynamically resolve comprehensive report and parent summary for selected child
+  // Dynamically resolve comprehensive report and parent summary for the parent's linked child
   const studentReport: StudentComprehensiveReport = useMemo(() => {
     return BackendService.getStudentReport(selectedChildId);
-  }, [selectedChildId, allStudents]);
+  }, [selectedChildId, refreshKey]);
 
   const summary: ParentWeeklySummary = useMemo(() => {
     return BackendService.getParentWeeklySummary(selectedChildId);
-  }, [selectedChildId, allStudents]);
+  }, [selectedChildId, refreshKey]);
 
   // Sync parent email when child changes
   useEffect(() => {
-    if (studentReport.parentEmail) {
+    if (currentUser?.email) {
+      setParentEmailInput(currentUser.email);
+    } else if (studentReport.parentEmail) {
       setParentEmailInput(studentReport.parentEmail);
     }
-  }, [studentReport]);
+  }, [studentReport, currentUser]);
 
   const handleSendDigestEmail = async () => {
     setIsSendingEmail(true);
@@ -107,9 +126,34 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     }
   };
 
+  const handleSendNudge = (presetText?: string) => {
+    const textToSend = presetText || nudgeMessage;
+    if (!textToSend.trim()) return;
+
+    BackendService.sendParentEncouragementNudge(
+      selectedChildId,
+      textToSend.trim(),
+      currentUser?.name || studentReport.parentName || 'Parent'
+    );
+
+    setNudgeSuccess(`Encouragement sent to ${studentReport.studentName}! It is now visible on their student dashboard.`);
+    setNudgeMessage('');
+    setTimeout(() => {
+      setNudgeSuccess(null);
+      setIsNudgeModalOpen(false);
+    }, 2200);
+  };
+
+  const presetNudges = [
+    `Proud of your hard work! Take 10 minutes to review the Chain Rule practice before tomorrow's class.`,
+    `You're doing great in Calculus! Don't hesitate to ask the AI Socratic Tutor if you get stuck on any step.`,
+    `Cheering for you! Let's celebrate after you finish your physics active recall cards tonight!`,
+    `Remember to take your time on multi-step problems. You've got this!`
+  ];
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Top Linked Child Selector & Banner */}
+      {/* Top Guardian Security & Linked Student Banner */}
       <div className="glass-panel" style={{ padding: '24px 28px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -119,460 +163,541 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               style={{
                 width: '60px',
                 height: '60px',
-                borderRadius: '16px',
-                border: '2px solid var(--primary-light)',
-                objectFit: 'cover'
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: '2px solid var(--primary)'
               }}
             />
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>
                   {studentReport.studentName}
                 </h1>
-                <span className="badge badge-emerald">Live Synchronized</span>
-                <span className="badge badge-indigo">{studentReport.grade}</span>
-                <span className="badge badge-cyan">{studentReport.studentId}</span>
+                <span className="badge badge-emerald" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <ShieldCheck size={13} />
+                  Private Family Access
+                </span>
+                <span className="badge badge-indigo">
+                  {studentReport.grade}
+                </span>
               </div>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                {studentReport.school} • {studentReport.academicYear} • Parent: <strong>{studentReport.parentName}</strong>
+              <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-dim)' }}>
+                {studentReport.school} • Parent Guardian: <strong style={{ color: 'var(--text-main)' }}>{currentUser?.name || studentReport.parentName}</strong> ({parentEmailInput})
               </p>
             </div>
           </div>
 
-          {/* Child Switcher: Quick Selector + 40-Student Dropdown */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <label style={{ fontSize: '0.8rem', color: 'var(--text-dim)', fontWeight: 600 }}>Select Student:</label>
-              <select
-                value={selectedChildId}
-                onChange={e => setSelectedChildId(e.target.value)}
+          {/* Sibling Switcher (Only shown if this parent has multiple registered children) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {linkedChildIds.length > 1 && (
+              <div
                 style={{
-                  padding: '8px 14px',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--border-medium)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
                   background: 'var(--bg-surface-elevated)',
-                  color: 'var(--text-main)',
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  minWidth: '220px'
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-medium)'
                 }}
               >
-                {allStudents.map(st => (
-                  <option key={st.studentId} value={st.studentId}>
-                    {st.studentName} ({st.grade || '11th Grade'} • {st.overallMastery}%)
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div style={{ width: '1px', height: '36px', background: 'var(--border-subtle)' }} />
-
-            <div style={{ textAlign: 'right' }}>
-              <div className="theme-stat-val" style={{ fontSize: '1.35rem', color: '#10b981' }}>
-                {studentReport.attendance.overallRate}%
+                <Users size={16} color="var(--primary-light)" />
+                <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>My Children:</span>
+                <select
+                  value={selectedChildId}
+                  onChange={e => setSelectedChildId(e.target.value)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-main)',
+                    fontWeight: 700,
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                    outline: 'none'
+                  }}
+                >
+                  {linkedChildIds.map(id => {
+                    const rep = BackendService.getStudentReport(id);
+                    return (
+                      <option key={id} value={id} style={{ background: 'var(--bg-surface)', color: 'var(--text-main)' }}>
+                        {rep.studentName} ({rep.grade})
+                      </option>
+                    );
+                  })}
+                </select>
               </div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>Term Attendance</div>
-            </div>
+            )}
+
+            {/* Send Encouragement Nudge Button */}
+            <button
+              onClick={() => setIsNudgeModalOpen(true)}
+              className="btn btn-primary btn-sm"
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <Heart size={14} />
+              <span>Send Encouragement Note</span>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* VIEW 1: Multi-Subject Academic Report & Strengths */}
-      {(activeParentTab === 'academic_report' || activeParentTab === 'student_overview') && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)' }}>Subject-by-Subject Mastery & Strengths</h2>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-dim)' }}>
-                Comprehensive evaluation across all current enrolled courses and teacher assessments for {studentReport.studentName}.
-              </p>
+      {/* VIEW: ACADEMIC REPORT */}
+      {activeParentTab === 'academic_report' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* Key Metrics Strip */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+            <div className="card" style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--primary-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
+                <TrendingUp size={24} />
+              </div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Weekly Focus</span>
+                <div style={{ fontSize: '1.75rem', fontWeight: 800 }}>{studentReport.studyHabits?.weeklyFocusHours || 8.5}h</div>
+                <span style={{ fontSize: '0.75rem', color: '#10b981' }}>+1.5h vs target</span>
+              </div>
+            </div>
+
+            <div className="card" style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--primary-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
+                <CalendarCheck size={24} />
+              </div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Attendance Rate</span>
+                <div style={{ fontSize: '1.75rem', fontWeight: 800, color: studentReport.attendance.overallRate >= 95 ? '#10b981' : '#f59e0b' }}>
+                  {studentReport.attendance.overallRate}%
+                </div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{studentReport.attendance.presentDays}/{studentReport.attendance.totalDays} Days Present</span>
+              </div>
+            </div>
+
+            <div className="card" style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--primary-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
+                <Clock size={24} />
+              </div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Socratic Sessions</span>
+                <div style={{ fontSize: '1.75rem', fontWeight: 800 }}>{studentReport.studyHabits?.socraticSessionsCompleted || 14}</div>
+                <span style={{ fontSize: '0.75rem', color: '#10b981' }}>{studentReport.studyHabits?.completionRate || 94}% Completion</span>
+              </div>
+            </div>
+
+            <div className="card" style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--primary-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
+                <Flame size={24} />
+              </div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Daily Active Streak</span>
+                <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f59e0b' }}>{studentReport.studyHabits?.activeRecallStreakDays || 12} Days</div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{studentReport.studyHabits?.masteredCardsCount || 38} Cards Mastered</span>
+              </div>
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '18px' }}>
-            {studentReport.subjectBreakdown.map((item, idx) => (
-              <div
-                key={idx}
-                className="glass-card"
-                style={{
-                  padding: '22px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between'
-                }}
-              >
+          {/* CRITICAL SECTION: Where Child Needs Improvement & What to Do */}
+          <div className="card" style={{ padding: '24px 28px', borderLeft: '4px solid #f43f5e' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(244, 63, 94, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f43f5e' }}>
+                  <AlertTriangle size={20} />
+                </div>
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>
+                    Identified Areas for Improvement & Action Plan
+                  </h2>
+                  <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--text-dim)' }}>
+                    Synchronized with {studentReport.studentName}'s student portal and Dr. Vance's curriculum tracker.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsNudgeModalOpen(true)}
+                className="btn btn-secondary btn-sm"
+                style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                <MessageCircle size={14} />
+                <span>Send Support Note to {studentReport.studentName.split(' ')[0]}</span>
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {studentReport.weakAreasRadar && studentReport.weakAreasRadar.length > 0 ? (
+                studentReport.weakAreasRadar.map((weak, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      background: 'var(--bg-surface-elevated)',
+                      border: '1px solid var(--border-medium)',
+                      borderRadius: 'var(--radius-md)',
+                      padding: '16px 20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '10px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{weak.topic}</span>
+                        <span className="badge badge-indigo" style={{ fontSize: '0.7rem' }}>{weak.subject}</span>
+                      </div>
+                      <span className="badge" style={{ background: 'rgba(244, 63, 94, 0.12)', color: '#f43f5e', fontSize: '0.75rem', fontWeight: 600 }}>
+                        {weak.severity.toUpperCase()} PRIORITY GAP
+                      </span>
+                    </div>
+
+                    {/* What's Going Wrong */}
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', background: 'var(--bg-surface)', padding: '10px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', color: '#f43f5e', fontWeight: 700, fontSize: '0.8rem' }}>
+                        <AlertTriangle size={14} />
+                        <span>Where {studentReport.studentName.split(' ')[0]} is going wrong:</span>
+                      </div>
+                      <p style={{ margin: 0, lineHeight: 1.45 }}>{weak.misconceptionSummary}</p>
+                    </div>
+
+                    {/* Parent Home Support Tip */}
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)', background: 'var(--primary-subtle)', padding: '10px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-highlight)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', color: 'var(--primary-light)', fontWeight: 700, fontSize: '0.8rem' }}>
+                        <Lightbulb size={14} />
+                        <span>How you can support at home (No advanced math required):</span>
+                      </div>
+                      <p style={{ margin: 0, lineHeight: 1.45, color: 'var(--text-main)' }}>{weak.recommendedHomeAction}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-dim)' }}>
+                  <CheckCircle2 size={32} color="#10b981" style={{ margin: '0 auto 8px' }} />
+                  <p style={{ margin: 0, fontWeight: 600 }}>All concept modules are currently on track with no critical gaps detected!</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Subject Performance Breakdown Grid */}
+          <div>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '16px' }}>Enrolled Courses & Academic Standings</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+              {studentReport.subjectBreakdown?.map((sub, idx) => (
+                <div key={idx} className="card" style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                     <div>
-                      <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '2px', color: 'var(--text-main)' }}>{item.subject}</h3>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Instructor: {item.teacherName}</span>
+                      <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: '0 0 4px' }}>{sub.subject}</h3>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>Instructor: {sub.teacherName}</span>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span className="badge badge-emerald" style={{ fontSize: '0.85rem', fontWeight: 800 }}>
-                          {item.gradeLetter} ({item.score}%)
-                        </span>
-                      </div>
-                      <span className="theme-text-primary" style={{ fontSize: '0.72rem', fontWeight: 600 }}>{item.rankInClass}</span>
+                      <span className={`badge ${sub.gradeLetter.startsWith('A') ? 'badge-emerald' : sub.gradeLetter.startsWith('B') ? 'badge-indigo' : 'badge-amber'}`} style={{ fontSize: '0.9rem', fontWeight: 800 }}>
+                        {sub.gradeLetter}
+                      </span>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-dim)', marginTop: '2px' }}>{sub.score}%</div>
                     </div>
                   </div>
 
-                  {/* Strengths */}
-                  <div style={{ marginBottom: '12px' }}>
-                    <div className="theme-text-heading" style={{ marginBottom: '6px' }}>
-                      Key Strengths & Mastery Highlights
+                  <p style={{ fontSize: '0.8125rem', color: 'var(--text-dim)', margin: '0 0 16px', lineHeight: 1.45, fontStyle: 'italic' }}>
+                    "{sub.teacherRemarks}"
+                  </p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
+                      <span style={{ color: 'var(--text-dim)' }}>Course Score</span>
+                      <span style={{ fontWeight: 700 }}>{sub.score}%</span>
                     </div>
-                    <ul style={{ paddingLeft: '16px', margin: 0, fontSize: '0.8125rem', color: 'var(--text-main)', lineHeight: 1.5 }}>
-                      {item.strengths.map((str, sIdx) => (
-                        <li key={sIdx}>{str}</li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Weak Sections */}
-                  {item.weakSections.length > 0 && (
-                    <div style={{ marginBottom: '14px' }}>
-                      <div className="theme-text-subtle" style={{ marginBottom: '6px' }}>
-                        Sections Requiring Reinforcement
-                      </div>
-                      <ul style={{ paddingLeft: '16px', margin: 0, fontSize: '0.8125rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                        {item.weakSections.map((wk, wIdx) => (
-                          <li key={wIdx}>
-                            <MathRenderer text={wk} />
-                          </li>
-                        ))}
-                      </ul>
+                    <div style={{ width: '100%', height: '6px', background: 'var(--bg-surface-elevated)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ width: `${sub.score}%`, height: '100%', background: 'var(--primary-gradient)', borderRadius: '3px' }} />
                     </div>
-                  )}
-                </div>
-
-                {/* Teacher Remark Quote */}
-                <div
-                  style={{
-                    padding: '12px 14px',
-                    borderRadius: 'var(--radius-md)',
-                    background: 'var(--bg-surface-elevated)',
-                    border: '1px solid var(--border-subtle)',
-                    fontSize: '0.78rem',
-                    color: 'var(--text-muted)',
-                    fontStyle: 'italic',
-                    marginTop: '10px'
-                  }}
-                >
-                  "{item.teacherRemarks}"
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* VIEW 2: Live Attendance Tracking & Log */}
-      {activeParentTab === 'attendance' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* Attendance Stats Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-            <div className="glass-card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-light)', marginBottom: '6px' }}>
-                <CalendarCheck size={18} />
-                <span className="theme-text-heading">Attendance Rate</span>
-              </div>
-              <div className="theme-stat-val" style={{ fontSize: '1.8rem', color: '#10b981' }}>
-                {studentReport.attendance.overallRate}%
-              </div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Target: 95%+ required</span>
-            </div>
-
-            <div className="glass-card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-light)', marginBottom: '6px' }}>
-                <UserCheck size={18} />
-                <span className="theme-text-heading">Days Present</span>
-              </div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                {studentReport.attendance.presentDays} / {studentReport.attendance.totalDays}
-              </div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Academic school days</span>
-            </div>
-
-            <div className="glass-card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-light)', marginBottom: '6px' }}>
-                <Clock size={18} />
-                <span className="theme-text-heading">Tardies Logged</span>
-              </div>
-              <div className="theme-stat-val" style={{ fontSize: '1.8rem' }}>
-                {studentReport.attendance.tardies} Day{studentReport.attendance.tardies !== 1 ? 's' : ''}
-              </div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Excused on file</span>
-            </div>
-
-            <div className="glass-card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-light)', marginBottom: '6px' }}>
-                <ShieldCheck size={18} />
-                <span className="theme-text-heading">Excused Absences</span>
-              </div>
-              <div className="theme-stat-val" style={{ fontSize: '1.8rem' }}>
-                {studentReport.attendance.excusedAbsences} Days
-              </div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Medical documentation verified</span>
-            </div>
-          </div>
-
-          {/* Recent Attendance Timeline Log */}
-          <div className="glass-panel" style={{ padding: '24px' }}>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '16px', color: 'var(--text-main)' }}>Recent Attendance & Class Period Log</h3>
-
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border-medium)', textAlign: 'left' }}>
-                  <th style={{ padding: '10px 14px', color: 'var(--text-dim)' }}>Date</th>
-                  <th style={{ padding: '10px 14px', color: 'var(--text-dim)' }}>Subject / Period</th>
-                  <th style={{ padding: '10px 14px', color: 'var(--text-dim)' }}>Status</th>
-                  <th style={{ padding: '10px 14px', color: 'var(--text-dim)' }}>Classroom Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {studentReport.attendance.recentLog.map((log, lIdx) => (
-                  <tr key={lIdx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-main)' }}>{log.date}</td>
-                    <td style={{ padding: '12px 14px', color: 'var(--text-main)' }}>{log.subject}</td>
-                    <td style={{ padding: '12px 14px' }}>
-                      {log.status === 'present' && <span className="badge badge-emerald">Present</span>}
-                      {log.status === 'tardy' && <span className="badge badge-amber">Tardy (5m)</span>}
-                      {log.status === 'excused' && <span className="badge badge-cyan">Excused Absence</span>}
-                      {log.status === 'absent' && <span className="badge badge-rose">Unexcused</span>}
-                    </td>
-                    <td style={{ padding: '12px 14px', color: 'var(--text-muted)', fontSize: '0.8125rem' }}>
-                      {log.note || '-'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* VIEW 3: Weak Sections & Intervention Radar */}
-      {activeParentTab === 'weak_sections' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div>
-            <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)' }}>Weak Areas & Remediation Radar</h2>
-            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-dim)' }}>
-              Identifies exact conceptual gaps across subjects with actionable home guidance (no advanced STEM degree needed!).
-            </p>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {studentReport.weakAreasRadar.map((radar, rIdx) => (
-              <div
-                key={rIdx}
-                className="glass-panel"
-                style={{
-                  padding: '22px',
-                  borderRadius: 'var(--radius-lg)',
-                  background: 'var(--primary-surface)',
-                  border: '1px solid var(--primary-border)'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <AlertTriangle size={18} color="var(--primary-light)" />
-                    <span style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-main)' }}>{radar.topic}</span>
-                    <span className="badge badge-indigo">{radar.subject}</span>
                   </div>
-                  <span className={`badge ${radar.severity === 'critical' ? 'badge-rose' : 'badge-amber'}`}>
-                    {radar.severity === 'critical' ? 'High Priority Gap' : 'Moderate Blocker'}
-                  </span>
-                </div>
-
-                <div style={{ fontSize: '0.875rem', color: 'var(--text-main)', marginBottom: '12px' }}>
-                  <strong>Root Cause Misconception:</strong> <MathRenderer text={radar.misconceptionSummary} />
-                </div>
-
-                <div
-                  style={{
-                    padding: '12px 16px',
-                    borderRadius: 'var(--radius-md)',
-                    background: 'var(--bg-surface)',
-                    border: '1px solid var(--border-subtle)',
-                    fontSize: '0.85rem',
-                    color: 'var(--text-main)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}
-                >
-                  <Sparkles size={16} color="var(--primary-light)" />
-                  <span><strong>Recommended Home Action:</strong> {radar.recommendedHomeAction}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* VIEW 4: Weekly Cognitive Digest & Habits */}
-      {activeParentTab === 'weekly_digest' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* Key Metric Tiles */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-            <div className="glass-card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary-light)', marginBottom: '8px' }}>
-                <Clock size={18} />
-                <span className="theme-text-heading">Focus Study Time</span>
-              </div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                {studentReport.studyHabits.weeklyFocusHours} Hours
-              </div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Across active learning sessions</span>
-            </div>
-
-            <div className="glass-card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary-light)', marginBottom: '8px' }}>
-                <TrendingUp size={18} />
-                <span className="theme-text-heading">Mastery Growth</span>
-              </div>
-              <div className="theme-stat-val" style={{ fontSize: '1.8rem' }}>+{summary.masteryGainPercent}%</div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Net conceptual score gain</span>
-            </div>
-
-            <div className="glass-card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary-light)', marginBottom: '8px' }}>
-                <Flame size={18} />
-                <span className="theme-text-heading">Recall Streak</span>
-              </div>
-              <div className="theme-stat-val" style={{ fontSize: '1.8rem' }}>
-                {studentReport.studyHabits.activeRecallStreakDays} Consecutive Days
-              </div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Daily flashcard habit active</span>
-            </div>
-
-            <div className="glass-card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary-light)', marginBottom: '8px' }}>
-                <Award size={18} />
-                <span className="theme-text-heading">Cards Mastered</span>
-              </div>
-              <div className="theme-stat-val" style={{ fontSize: '1.8rem' }}>
-                {studentReport.studyHabits.masteredCardsCount} Cards
-              </div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Moved to long-term memory</span>
-            </div>
-          </div>
-
-          {/* Headline Summary & Celebrations */}
-          <div className="glass-panel" style={{ padding: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-              <Sparkles size={20} color="var(--primary-light)" />
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                Weekly Executive Summary for {studentReport.parentName}
-              </h3>
-            </div>
-            <p style={{ fontSize: '0.95rem', color: 'var(--text-main)', lineHeight: 1.6, marginBottom: '20px' }}>
-              {summary.headlineSummary}
-            </p>
-
-            <div style={{ fontSize: '0.8125rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-dim)', marginBottom: '10px' }}>
-              Highlights & Milestone Celebrations
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
-              {summary.celebrations.map((item, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    padding: '12px 16px',
-                    background: 'var(--primary-surface)',
-                    border: '1px solid var(--primary-border)',
-                    borderRadius: 'var(--radius-md)',
-                    fontSize: '0.875rem',
-                    color: 'var(--text-main)'
-                  }}
-                >
-                  <CheckCircle2 size={16} color="var(--primary-light)" />
-                  <span>{item}</span>
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
 
-            {/* Email Dispatch Control Card */}
-            <div
-              style={{
-                padding: '20px',
-                borderRadius: 'var(--radius-lg)',
-                background: 'var(--bg-surface-elevated)',
-                border: '1px solid var(--border-medium)'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Mail size={18} color="var(--primary-light)" />
-                  <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                    Email Weekly Progress Digest to Parent
-                  </span>
+      {/* VIEW: WEEKLY SUMMARY & EMAIL DISPATCH */}
+      {activeParentTab === 'weekly_summary' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* Automated Weekly Digest Card */}
+          <div className="card" style={{ padding: '24px 28px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 4px' }}>
+                  Weekly AI Progress Digest
+                </h2>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-dim)' }}>
+                  Auto-compiled weekly learning recap and family dinner conversation starters.
+                </p>
+              </div>
+              <span className="badge badge-indigo">{summary.weekLabel || 'Current Academic Week'}</span>
+            </div>
+
+            <p style={{ fontSize: '0.95rem', lineHeight: 1.6, margin: '0 0 20px', color: 'var(--text-main)' }}>
+              {summary.headlineSummary}
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+              {/* Celebrations */}
+              <div style={{ background: 'var(--bg-surface-elevated)', padding: '16px 20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-medium)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981', fontWeight: 700, fontSize: '0.85rem', marginBottom: '10px' }}>
+                  <Award size={16} />
+                  <span>Key Celebrations</span>
                 </div>
-                <span className="badge badge-indigo">Automated Every Sunday 18:00 UTC</span>
+                <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '0.8125rem', color: 'var(--text-dim)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {summary.celebrations.map((cel, idx) => (
+                    <li key={idx}>{cel}</li>
+                  ))}
+                </ul>
               </div>
 
-              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              {/* Dinner Prompts */}
+              <div style={{ background: 'var(--bg-surface-elevated)', padding: '16px 20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-medium)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-light)', fontWeight: 700, fontSize: '0.85rem', marginBottom: '10px' }}>
+                  <Sparkles size={16} />
+                  <span>Dinner Table STEM Questions</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {summary.dinnerTablePrompts?.map((dp, idx) => (
+                    <div key={idx} style={{ fontSize: '0.8125rem' }}>
+                      <p style={{ margin: '0 0 2px', fontWeight: 600, color: 'var(--text-main)' }}>"{dp.prompt}"</p>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>Context: {dp.context}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Email Dispatcher Bar */}
+            <div
+              style={{
+                background: 'var(--bg-surface-glass)',
+                border: '1px solid var(--border-highlight)',
+                borderRadius: 'var(--radius-md)',
+                padding: '16px 20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '14px'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Mail size={20} color="var(--primary-light)" />
+                <div>
+                  <span style={{ fontSize: '0.875rem', fontWeight: 700 }}>Dispatch Weekly Digest to Guardian Email</span>
+                  <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-dim)' }}>
+                    Sends a clean HTML report directly to your inbox.
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, maxWidth: '440px' }}>
                 <input
                   type="email"
                   value={parentEmailInput}
                   onChange={e => setParentEmailInput(e.target.value)}
                   placeholder="parent@example.com"
-                  style={{
-                    flex: '1 1 250px',
-                    padding: '8px 14px',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--border-medium)',
-                    background: 'var(--bg-surface)',
-                    color: 'var(--text-main)',
-                    fontSize: '0.85rem'
-                  }}
+                  className="input"
+                  style={{ flex: 1, padding: '8px 12px', fontSize: '0.85rem' }}
                 />
                 <button
                   onClick={handleSendDigestEmail}
-                  disabled={isSendingEmail || !parentEmailInput.trim()}
+                  disabled={isSendingEmail || !parentEmailInput}
                   className="btn btn-primary btn-sm"
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}
                 >
                   <Send size={14} />
-                  <span>{isSendingEmail ? 'Dispatching...' : 'Send Weekly Email'}</span>
+                  <span>{isSendingEmail ? 'Sending...' : 'Send Email'}</span>
                 </button>
-                {emailStatus?.previewHtml && (
+              </div>
+            </div>
+
+            {/* Email Result Status Banner */}
+            {emailStatus && (
+              <div
+                style={{
+                  marginTop: '16px',
+                  padding: '12px 16px',
+                  borderRadius: 'var(--radius-md)',
+                  background: emailStatus.type === 'success' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                  border: `1px solid ${emailStatus.type === 'success' ? '#10b981' : '#ef4444'}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {emailStatus.type === 'success' ? <CheckCircle2 size={16} color="#10b981" /> : <AlertTriangle size={16} color="#ef4444" />}
+                  <span style={{ fontSize: '0.8125rem', color: emailStatus.type === 'success' ? '#10b981' : '#ef4444' }}>
+                    {emailStatus.message}
+                  </span>
+                </div>
+                {emailStatus.previewHtml && (
                   <button
                     onClick={() => setShowPreviewModal(true)}
                     className="btn btn-secondary btn-sm"
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                    style={{ fontSize: '0.75rem', padding: '4px 10px' }}
                   >
-                    <ExternalLink size={14} />
-                    <span>Preview HTML Template</span>
+                    View HTML Email Preview
                   </button>
                 )}
               </div>
+            )}
+          </div>
+        </div>
+      )}
 
-              {emailStatus && (
-                <div
-                  style={{
-                    marginTop: '12px',
-                    padding: '10px 14px',
-                    borderRadius: 'var(--radius-md)',
-                    fontSize: '0.82rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    background: emailStatus.type === 'success' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
-                    border: emailStatus.type === 'success' ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(239, 68, 68, 0.3)',
-                    color: emailStatus.type === 'success' ? '#10b981' : '#ef4444'
-                  }}
-                >
-                  {emailStatus.type === 'success' ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
-                  <span>{emailStatus.message}</span>
-                </div>
-              )}
+      {/* VIEW: TEACHER MESSAGING & CONSULTATION */}
+      {activeParentTab === 'teacher_chat' && (
+        <div className="card" style={{ padding: '24px 28px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
+            <img
+              src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80"
+              alt="Dr. Vance"
+              style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }}
+            />
+            <div>
+              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '0 0 2px' }}>Direct Faculty Consultation: Dr. Eleanor Vance</h2>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>AP STEM Department Chair • Usually responds within 2 hours</span>
             </div>
+          </div>
+
+          <div style={{ background: 'var(--bg-surface-elevated)', borderRadius: 'var(--radius-md)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700 }}>
+                EV
+              </div>
+              <div style={{ background: 'var(--bg-surface)', padding: '12px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', maxWidth: '580px' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-dim)', display: 'block', marginBottom: '4px' }}>Dr. Vance • Yesterday 4:15 PM</span>
+                <p style={{ margin: 0, fontSize: '0.85rem', lineHeight: 1.5 }}>
+                  Hello {currentUser?.name || studentReport.parentName}, {studentReport.studentName} is doing great in Calculus overall! I have assigned a targeted remediation module for the Composite Chain Rule in their portal. If they complete the 5-question Socratic drill before Friday, they will be fully prepared for the exam.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <input
+              type="text"
+              placeholder={`Send a quick note to Dr. Vance regarding ${studentReport.studentName.split(' ')[0]}'s progress...`}
+              className="input"
+              style={{ flex: 1 }}
+            />
+            <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Send size={15} />
+              <span>Send</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Send Encouragement Nudge Modal */}
+      {isNudgeModalOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.7)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100,
+            padding: '20px'
+          }}
+        >
+          <div
+            className="glass-panel animate-scale-up"
+            style={{
+              width: '100%',
+              maxWidth: '540px',
+              padding: '28px',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--border-highlight)'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(244, 63, 94, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f43f5e' }}>
+                  <Heart size={20} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>
+                    Send Encouragement to {studentReport.studentName}
+                  </h3>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
+                    Your message will instantly appear on {studentReport.studentName.split(' ')[0]}'s learning portal.
+                  </span>
+                </div>
+              </div>
+              <button onClick={() => setIsNudgeModalOpen(false)} className="btn btn-secondary btn-icon" style={{ width: '32px', height: '32px' }}>
+                <X size={16} />
+              </button>
+            </div>
+
+            {nudgeSuccess ? (
+              <div style={{ padding: '24px', textAlign: 'center', background: 'rgba(16, 185, 129, 0.12)', borderRadius: 'var(--radius-md)', border: '1px solid #10b981' }}>
+                <CheckCircle2 size={36} color="#10b981" style={{ margin: '0 auto 8px' }} />
+                <p style={{ margin: 0, fontWeight: 700, color: '#10b981' }}>{nudgeSuccess}</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>
+                    Quick Pre-made Notes:
+                  </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {presetNudges.map((preset, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleSendNudge(preset)}
+                        className="btn btn-secondary btn-sm"
+                        style={{
+                          textAlign: 'left',
+                          padding: '10px 14px',
+                          fontSize: '0.8rem',
+                          lineHeight: 1.4,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          background: 'var(--bg-surface-elevated)'
+                        }}
+                      >
+                        <span>"{preset}"</span>
+                        <Send size={12} style={{ flexShrink: 0, marginLeft: '8px' }} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>
+                    Or Write a Custom Message:
+                  </span>
+                  <textarea
+                    rows={3}
+                    value={nudgeMessage}
+                    onChange={e => setNudgeMessage(e.target.value)}
+                    placeholder={`e.g. Great job on your physics lab today! Let me know if you want to study together later.`}
+                    className="input"
+                    style={{ width: '100%', resize: 'none', padding: '10px 14px', fontSize: '0.85rem' }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                  <button onClick={() => setIsNudgeModalOpen(false)} className="btn btn-secondary btn-sm">
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => handleSendNudge()}
+                    disabled={!nudgeMessage.trim()}
+                    className="btn btn-primary btn-sm"
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <Send size={14} />
+                    <span>Send Nudge</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -582,16 +707,13 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
         <div
           style={{
             position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
+            inset: 0,
             background: 'rgba(0, 0, 0, 0.75)',
-            backdropFilter: 'blur(6px)',
+            backdropFilter: 'blur(8px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 1000,
+            zIndex: 100,
             padding: '20px'
           }}
         >
@@ -600,87 +722,24 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             style={{
               width: '100%',
               maxWidth: '680px',
-              maxHeight: '90vh',
+              maxHeight: '85vh',
               display: 'flex',
               flexDirection: 'column',
-              overflow: 'hidden',
-              borderRadius: 'var(--radius-xl)'
+              borderRadius: 'var(--radius-lg)',
+              overflow: 'hidden'
             }}
           >
-            <div
-              style={{
-                padding: '16px 20px',
-                borderBottom: '1px solid var(--border-subtle)',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Mail size={18} color="var(--primary-light)" />
-                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                  Weekly Digest HTML Email Preview ({studentReport.studentName})
-                </h3>
-              </div>
-              <button
-                onClick={() => setShowPreviewModal(false)}
-                className="btn btn-ghost btn-sm"
-                style={{ padding: '4px' }}
-              >
-                <X size={18} />
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-medium)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>
+                Weekly Digest Email Preview • {studentReport.studentName}
+              </h3>
+              <button onClick={() => setShowPreviewModal(false)} className="btn btn-secondary btn-icon" style={{ width: '32px', height: '32px' }}>
+                <X size={16} />
               </button>
             </div>
-            <div style={{ flex: 1, overflowY: 'auto', padding: '16px', background: '#0b0f19' }}>
-              <iframe
-                title="Email Preview"
-                srcDoc={emailStatus.previewHtml}
-                style={{
-                  width: '100%',
-                  height: '560px',
-                  border: 'none',
-                  borderRadius: '12px'
-                }}
-              />
+            <div style={{ padding: '20px', overflowY: 'auto', background: '#ffffff', color: '#1e293b' }}>
+              <div dangerouslySetInnerHTML={{ __html: emailStatus.previewHtml }} />
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* VIEW 5: Dinner Table Conversation Starters */}
-      {activeParentTab === 'dinner_prompts' && (
-        <div className="glass-panel" style={{ padding: '28px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-            <MessageCircle size={24} color="var(--primary-light)" />
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)' }}>Dinner Table Conversation Starters</h2>
-          </div>
-          <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '24px' }}>
-            Instead of asking generic questions like "How was school today?", try these curated questions connected to {studentReport.studentName}'s exact STEM breakthroughs this week:
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {summary.dinnerTablePrompts.map((item, idx) => (
-              <div
-                key={idx}
-                style={{
-                  padding: '24px',
-                  borderRadius: 'var(--radius-xl)',
-                  background: 'var(--primary-surface)',
-                  border: '1px solid var(--primary-border)'
-                }}
-              >
-                <div style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '10px', lineHeight: 1.5 }}>
-                  <MathRenderer text={item.prompt} />
-                </div>
-
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                  <strong>Background Context:</strong> {item.context}
-                </div>
-
-                <div style={{ padding: '10px 14px', borderRadius: 'var(--radius-md)', background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', fontSize: '0.8125rem', color: 'var(--text-main)' }}>
-                  <strong style={{ color: 'var(--primary-light)' }}>Fun Follow-Up:</strong> <MathRenderer text={item.followUp} />
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       )}

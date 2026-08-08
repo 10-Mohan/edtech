@@ -97,43 +97,27 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Center Portal / Student Switcher */}
+      {/* Center Portal Context Pill */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        {currentRole === 'student' && onSwitchStudent && (
+        {currentRole === 'student' && (
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              padding: '4px 12px',
+              padding: '6px 14px',
               borderRadius: 'var(--radius-full)',
               background: 'var(--primary-subtle)',
               border: '1px solid var(--border-highlight)'
             }}
           >
             <GraduationCap size={16} color="var(--primary-light)" />
-            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main)' }}>
-              Active Student:
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
+              Student: {currentUser?.name || 'Maya Lin'}
             </span>
-            <select
-              value={currentStudentId || 'st_01'}
-              onChange={e => onSwitchStudent(e.target.value)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--primary-light)',
-                fontWeight: 700,
-                fontSize: '0.85rem',
-                cursor: 'pointer',
-                outline: 'none'
-              }}
-            >
-              {allStudents.map(st => (
-                <option key={st.studentId} value={st.studentId} style={{ background: 'var(--bg-surface)', color: 'var(--text-main)' }}>
-                  {st.studentName} ({st.grade || '11th Grade'})
-                </option>
-              ))}
-            </select>
+            <span className="badge badge-indigo" style={{ fontSize: '0.7rem', padding: '1px 6px' }}>
+              Grade 11 AP
+            </span>
           </div>
         )}
 
@@ -151,7 +135,10 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Users size={16} color="var(--primary-light)" />
             <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
-              Parent Guardian Portal ({allStudents.length} Students Synchronized)
+              Parent Guardian • Linked to: {currentUser?.name === 'David Chen' ? 'Leo Chen' : currentUser?.name === 'Sarah Hunt' ? 'Ethan Hunt' : 'Maya Lin'}
+            </span>
+            <span className="badge badge-emerald" style={{ fontSize: '0.7rem', padding: '1px 6px' }}>
+              Private Family View
             </span>
           </div>
         )}
@@ -170,7 +157,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Briefcase size={16} color="var(--primary-light)" />
             <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
-              Teacher Orchestration Cockpit • AP STEM ({allStudents.length} Enrolled)
+              Teacher Orchestration Cockpit • AP STEM ({allStudents.length} Students Enrolled)
             </span>
           </div>
         )}

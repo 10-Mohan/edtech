@@ -50,6 +50,7 @@ export type SyncEventType =
   | 'CHILD_SWITCHED'
   | 'STUDENT_METRIC_UPDATED'
   | 'COHORT_DATA_IMPORTED'
+  | 'PARENT_NUDGE_SENT'
   | 'REMOTE_DB_SYNC';
 
 export interface SyncMessage {
@@ -824,6 +825,51 @@ class BackendServiceManager {
         console.warn('Supabase clearChatHistory error:', err);
       });
     }
+  }
+
+  // -------------------------------------------------------------
+  // Parent Encouragement & Family Nudge Channel
+  // -------------------------------------------------------------
+  public getParentNudges(studentId: string = 'st_01'): {
+    id: string;
+    studentId: string;
+    parentName: string;
+    message: string;
+    timestamp: string;
+    date: string;
+  }[] {
+    const raw = localStorage.getItem(`waypoint_nudges_${studentId}`);
+    if (raw) {
+      try {
+        return JSON.parse(raw);
+      } catch (e) {}
+    }
+    return [
+      {
+        id: `nudge_init_${studentId}`,
+        studentId,
+        parentName: 'Elena Lin',
+        message: 'So proud of your consistency this week! Remember to review composite function rules before the quiz.',
+        timestamp: '8:45 AM',
+        date: 'Today'
+      }
+    ];
+  }
+
+  public sendParentEncouragementNudge(studentId: string, message: string, parentName: string) {
+    const existing = this.getParentNudges(studentId);
+    const newNudge = {
+      id: `nudge_${Date.now()}`,
+      studentId,
+      parentName: parentName || 'Parent Guardian',
+      message,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      date: 'Today'
+    };
+    const updated = [newNudge, ...existing];
+    localStorage.setItem(`waypoint_nudges_${studentId}`, JSON.stringify(updated));
+    this.broadcast('PARENT_NUDGE_SENT', { studentId, nudge: newNudge }, 'parent');
+    return newNudge;
   }
 }
 

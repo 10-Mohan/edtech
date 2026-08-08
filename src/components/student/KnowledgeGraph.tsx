@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ConceptNode, NodeStatus } from '../../types';
 import { MathRenderer } from '../common/MathRenderer';
+import { BackendService } from '../../services/backendService';
 import {
   CheckCircle2,
   AlertCircle,
@@ -12,22 +13,45 @@ import {
   HelpCircle,
   Zap,
   TrendingUp,
-  X
+  X,
+  Heart,
+  AlertTriangle,
+  Lightbulb,
+  ShieldCheck
 } from 'lucide-react';
 
 interface KnowledgeGraphProps {
   nodes: ConceptNode[];
   onSelectNodeForPractice: (node: ConceptNode) => void;
   onUpdateNodeMastery: (nodeId: string, delta: number) => void;
+  studentId?: string;
 }
 
 export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({
   nodes,
   onSelectNodeForPractice,
-  onUpdateNodeMastery
+  onUpdateNodeMastery,
+  studentId = 'st_01'
 }) => {
   const [selectedNode, setSelectedNode] = useState<ConceptNode | null>(nodes.find(n => n.id === 'diff_01') || nodes[0]);
   const [filterSubject, setFilterSubject] = useState<string>('all');
+  const [parentNudges, setParentNudges] = useState(() => BackendService.getParentNudges(studentId));
+  const [heartReacted, setHeartReacted] = useState<boolean>(false);
+
+  // Sync nudges when parent sends one
+  useEffect(() => {
+    const unsubscribe = BackendService.subscribe(msg => {
+      if (msg.type === 'PARENT_NUDGE_SENT') {
+        setParentNudges(BackendService.getParentNudges(studentId));
+      }
+    });
+    return () => unsubscribe();
+  }, [studentId]);
+
+  // Compute weak nodes that need student's immediate attention
+  const weakNodes = useMemo(() => {
+    return nodes.filter(n => n.status === 'weak' || n.masteryScore < 65);
+  }, [nodes]);
 
   // Compute graph edges based on prerequisites
   const edges: { fromNode: ConceptNode; toNode: ConceptNode }[] = [];
@@ -75,9 +99,13 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
               <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>Adaptive Concept Map</h1>
               <span className="badge badge-indigo">DAG Engine</span>
+              <span className="badge badge-emerald" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <ShieldCheck size={12} />
+                Family & Faculty Synchronized
+              </span>
             </div>
             <p style={{ margin: 0, maxWidth: '640px' }}>
-              Your personalized knowledge graph tracks conceptual dependencies. High-risk misconceptions are automatically isolated with red beacons.
+              Your personalized knowledge graph tracks conceptual dependencies. High-risk misconceptions are automatically isolated with red beacons and shared with your guardian report.
             </p>
           </div>
 
@@ -97,6 +125,113 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Parent Encouragement Banner (If available) */}
+      {parentNudges.length > 0 && (
+        <div
+          style={{
+            background: 'var(--primary-subtle)',
+            border: '1px solid var(--border-highlight)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '16px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '12px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(244, 63, 94, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f43f5e' }}>
+              <Heart size={18} />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                  Message from {parentNudges[0].parentName}:
+                </span>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>{parentNudges[0].timestamp}</span>
+              </div>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--primary-light)', fontStyle: 'italic' }}>
+                "{parentNudges[0].message}"
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setHeartReacted(true)}
+            className="btn btn-secondary btn-sm"
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem' }}
+          >
+            <Heart size={13} fill={heartReacted ? '#f43f5e' : 'none'} color={heartReacted ? '#f43f5e' : 'currentColor'} />
+            <span>{heartReacted ? 'Heart Sent to Parent!' : 'Send Thank You ❤️'}</span>
+          </button>
+        </div>
+      )}
+
+      {/* CRITICAL SECTION: My Learning Gaps & Action Plan (Synchronized with Parent Portal) */}
+      {weakNodes.length > 0 && (
+        <div className="card" style={{ padding: '20px 24px', borderLeft: '4px solid #f43f5e' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(244, 63, 94, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f43f5e' }}>
+                <AlertTriangle size={18} />
+              </div>
+              <div>
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>
+                  Focus Areas & Identified Misconceptions ({weakNodes.length} Topics)
+                </h2>
+                <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-dim)' }}>
+                  These are the specific concepts where you are losing points. Resolving them updates your mastery across your parent and teacher reports.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px' }}>
+            {weakNodes.map(node => (
+              <div
+                key={node.id}
+                style={{
+                  background: 'var(--bg-surface-elevated)',
+                  border: '1px solid var(--border-medium)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '14px 16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{node.title}</span>
+                  <span className="badge badge-rose" style={{ fontSize: '0.7rem' }}>{node.masteryScore}% Mastery</span>
+                </div>
+
+                {node.commonMisconception && (
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', background: 'var(--bg-surface)', padding: '8px 10px', borderRadius: 'var(--radius-sm)' }}>
+                    <strong style={{ color: '#f43f5e' }}>Where you're going wrong: </strong>
+                    <MathRenderer text={node.commonMisconception} />
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginTop: '4px' }}>
+                  <div style={{ flex: 1, height: '6px', background: 'var(--bg-surface)', borderRadius: '3px', overflow: 'hidden' }}>
+                    <div style={{ width: `${node.masteryScore}%`, height: '100%', background: '#f43f5e', borderRadius: '3px' }} />
+                  </div>
+                  <button
+                    onClick={() => onSelectNodeForPractice(node)}
+                    className="btn btn-primary btn-sm"
+                    style={{ fontSize: '0.75rem', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}
+                  >
+                    <Sparkles size={12} />
+                    <span>Practice with AI</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Main Graph Canvas & Sidebar Details Split */}
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 380px', gap: '24px' }}>
@@ -313,7 +448,7 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fda4af', fontWeight: 600, fontSize: '0.8125rem', marginBottom: '4px' }}>
                     <AlertCircle size={15} />
-                    <span>Identified Misconception Risk</span>
+                    <span>Where You're Going Wrong</span>
                   </div>
                   <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
                     <MathRenderer text={selectedNode.commonMisconception} />

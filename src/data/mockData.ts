@@ -1261,13 +1261,14 @@ export const mockParentSummary: ParentWeeklySummary = {
 
 export const mockAuthUsers: AuthUser[] = [
   {
-    id: 'stu_maya',
+    id: 'st_01',
     email: 'maya.lin@student.waypoint.edu',
     name: 'Maya Lin',
     role: 'student',
     password: 'demo123',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    title: 'Grade 11 AP Scholar'
+    title: 'Grade 11 AP Scholar',
+    linkedStudentId: 'st_01'
   },
   {
     id: 'parent_elena',
@@ -1277,7 +1278,47 @@ export const mockAuthUsers: AuthUser[] = [
     password: 'demo123',
     avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
     title: 'Parent of Maya Lin',
-    linkedStudentId: 'stu_maya'
+    linkedStudentId: 'st_01'
+  },
+  {
+    id: 'st_02',
+    email: 'leo.chen@student.waypoint.edu',
+    name: 'Leo Chen',
+    role: 'student',
+    password: 'demo123',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    title: 'Grade 11 AP Scholar',
+    linkedStudentId: 'st_02'
+  },
+  {
+    id: 'parent_david',
+    email: 'david.chen@parent.waypoint.edu',
+    name: 'David Chen',
+    role: 'parent',
+    password: 'demo123',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
+    title: 'Parent of Leo Chen',
+    linkedStudentId: 'st_02'
+  },
+  {
+    id: 'st_03',
+    email: 'ethan.hunt@student.waypoint.edu',
+    name: 'Ethan Hunt',
+    role: 'student',
+    password: 'demo123',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    title: 'Grade 11 AP Scholar',
+    linkedStudentId: 'st_03'
+  },
+  {
+    id: 'parent_sarah',
+    email: 'sarah.hunt@parent.waypoint.edu',
+    name: 'Sarah Hunt',
+    role: 'parent',
+    password: 'demo123',
+    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
+    title: 'Parent of Ethan Hunt',
+    linkedStudentId: 'st_03'
   },
   {
     id: 'teach_vance',
@@ -1291,7 +1332,7 @@ export const mockAuthUsers: AuthUser[] = [
 ];
 
 export const mockStudentComprehensiveReport: StudentComprehensiveReport = {
-  studentId: 'stu_maya',
+  studentId: 'st_01',
   studentName: 'Maya Lin',
   avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
   grade: 'Grade 11 (AP Advanced STEM)',
