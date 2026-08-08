@@ -48,6 +48,16 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const allStudents = BackendService.getClassroomMetrics();
 
+  const currentActiveStudent = currentStudentId 
+    ? allStudents.find(s => s.studentId === currentStudentId)
+    : currentUser?.linkedStudentId
+    ? allStudents.find(s => s.studentId === currentUser.linkedStudentId)
+    : allStudents.find(s => s.studentId === 'st_01') || allStudents[0];
+
+  const studentDisplayName = currentRole === 'student' 
+    ? (currentUser?.name || currentActiveStudent?.studentName || 'Maya Lin')
+    : (currentActiveStudent?.studentName || 'Maya Lin');
+
   return (
     <header
       style={{
@@ -113,10 +123,10 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <GraduationCap size={16} color="var(--primary-light)" />
             <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
-              Student: {currentUser?.name || 'Maya Lin'}
+              Student: {studentDisplayName}
             </span>
             <span className="badge badge-indigo" style={{ fontSize: '0.7rem', padding: '1px 6px' }}>
-              Grade 11 AP
+              {currentActiveStudent?.grade || '11th Grade AP'}
             </span>
           </div>
         )}
@@ -135,7 +145,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Users size={16} color="var(--primary-light)" />
             <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
-              Parent Guardian • Linked to: {currentUser?.name === 'David Chen' ? 'Leo Chen' : currentUser?.name === 'Sarah Hunt' ? 'Ethan Hunt' : 'Maya Lin'}
+              Parent Guardian • Linked to: {studentDisplayName}
             </span>
             <span className="badge badge-emerald" style={{ fontSize: '0.7rem', padding: '1px 6px' }}>
               Private Family View

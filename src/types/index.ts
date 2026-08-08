@@ -160,11 +160,11 @@ export interface CareerPath {
 export interface StudentClassroomMetric {
   studentId: string;
   studentName: string;
-  avatar: string;
+  avatar?: string;
   grade: string;
   overallMastery: number;
   status: 'thriving' | 'on_track' | 'needs_support' | 'at_risk';
-  gapTopicsCount: number;
+  gapTopicsCount?: number;
   lastActive: string;
   topicScores: Record<string, number>; // topicId -> score 0-100
   parentName?: string;
@@ -175,6 +175,15 @@ export interface StudentClassroomMetric {
   level?: number;
   studyHoursWeekly?: number;
   attendanceRate?: number;
+  trend?: 'improving' | 'stable' | 'declining';
+  activeTier?: 1 | 2 | 3;
+  recentMistakes?: {
+    topic: string;
+    mistakeType: string;
+    frequency: number;
+    severity: 'low' | 'medium' | 'high';
+    timestamp: string;
+  }[];
 }
 
 export interface DifferentiatedWorksheet {

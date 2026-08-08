@@ -29,49 +29,63 @@ export interface RateLimitOptions {
 }
 
 export function checkRateLimit(req: any, res: any, options: RateLimitOptions): boolean {
-  const { maxRequests, windowMs = 60000, endpointName = 'API' } = options;
-  const now = Date.now();
+  try {
+    const { maxRequests, windowMs = 60000, endpointName = 'API' } = options;
+    const now = Date.now();
 
-  // Extract client identifier: prioritize x-user-id header, then x-forwarded-for, then req.socket.remoteAddress
-  const rawIp = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.socket?.remoteAddress || '127.0.0.1';
-  const ip = Array.isArray(rawIp) ? rawIp[0] : rawIp.split(',')[0].trim();
-  const userId = req.headers['x-user-id'] || 'anonymous';
-  const key = `${endpointName}:${userId !== 'anonymous' ? userId : ip}`;
+    const headers = req?.headers || {};
+    const getHeader = (key: string): string | undefined => {
+      if (typeof headers.get === 'function') {
+        return headers.get(key) || undefined;
+      }
+      return headers[key] || headers[key.toLowerCase()];
+    };
 
-  let record = rateLimitStore.get(key);
-  if (!record) {
-    record = { timestamps: [] };
-    rateLimitStore.set(key, record);
-  }
+    const rawIp = getHeader('x-forwarded-for') || getHeader('x-real-ip') || req?.socket?.remoteAddress || '127.0.0.1';
+    const ip = Array.isArray(rawIp) ? rawIp[0] : String(rawIp).split(',')[0].trim();
+    const userId = getHeader('x-user-id') || 'anonymous';
+    const key = `${endpointName}:${userId !== 'anonymous' ? userId : ip}`;
 
-  // Filter timestamps within current sliding window
-  const windowStart = now - windowMs;
-  record.timestamps = record.timestamps.filter(ts => ts > windowStart);
-
-  const requestCount = record.timestamps.length;
-  const remaining = Math.max(0, maxRequests - requestCount - 1);
-  const resetTime = Math.ceil((windowStart + windowMs) / 1000);
-
-  // Set standard RateLimit headers
-  if (res && res.setHeader) {
-    res.setHeader('X-RateLimit-Limit', maxRequests.toString());
-    res.setHeader('X-RateLimit-Remaining', remaining.toString());
-    res.setHeader('X-RateLimit-Reset', resetTime.toString());
-  }
-
-  if (requestCount >= maxRequests) {
-    const retryAfterSec = Math.max(1, Math.ceil(((record.timestamps[0] + windowMs) - now) / 1000));
-    if (res && res.setHeader) {
-      res.setHeader('Retry-After', retryAfterSec.toString());
+    let record = rateLimitStore.get(key);
+    if (!record) {
+      record = { timestamps: [] };
+      rateLimitStore.set(key, record);
     }
-    res.status(429).json({
-      error: `Rate limit exceeded for ${endpointName}. Maximum ${maxRequests} requests per ${Math.round(windowMs / 1000)}s allowed.`,
-      retryAfterSeconds: retryAfterSec
-    });
-    return false; // Request throttled
-  }
 
-  // Record this request
-  record.timestamps.push(now);
-  return true; // Request allowed
+    // Filter timestamps within current sliding window
+    const windowStart = now - windowMs;
+    record.timestamps = record.timestamps.filter(ts => ts > windowStart);
+
+    const requestCount = record.timestamps.length;
+    const remaining = Math.max(0, maxRequests - requestCount - 1);
+    const resetTime = Math.ceil((windowStart + windowMs) / 1000);
+
+    // Set standard RateLimit headers
+    if (res && typeof res.setHeader === 'function') {
+      res.setHeader('X-RateLimit-Limit', maxRequests.toString());
+      res.setHeader('X-RateLimit-Remaining', remaining.toString());
+      res.setHeader('X-RateLimit-Reset', resetTime.toString());
+    }
+
+    if (requestCount >= maxRequests) {
+      const retryAfterSec = Math.max(1, Math.ceil(((record.timestamps[0] + windowMs) - now) / 1000));
+      if (res && typeof res.setHeader === 'function') {
+        res.setHeader('Retry-After', retryAfterSec.toString());
+      }
+      if (res && typeof res.status === 'function') {
+        res.status(429).json({
+          error: `Rate limit exceeded for ${endpointName}. Maximum ${maxRequests} requests per ${Math.round(windowMs / 1000)}s allowed.`,
+          retryAfterSeconds: retryAfterSec
+        });
+      }
+      return false; // Request throttled
+    }
+
+    // Record this request
+    record.timestamps.push(now);
+    return true; // Request allowed
+  } catch (err) {
+    // If rate limiter ever encounters an unexpected error, fail-open to avoid breaking user workflows
+    return true;
+  }
 }

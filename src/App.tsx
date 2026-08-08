@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { AuthUser, ColorThemeId, ConceptNode, RecallCard, UserProfile, UserRole } from './types';
+import { AuthUser, ColorThemeId, ConceptNode, NodeStatus, RecallCard, UserProfile, UserRole } from './types';
 import { StorageService } from './services/storageService';
 import { BackendService } from './services/backendService';
 import { isCardDue } from './services/srsEngine';
@@ -83,20 +83,75 @@ export const App: React.FC = () => {
         if (currentMetric) {
           const currentNodes = StorageService.getConceptNodes();
           const syncedNodes = currentNodes.map(node => {
-            const score = currentMetric.topicScores[node.id];
-            return score !== undefined ? { ...node, mastery: score } : node;
+            const score = currentMetric.topicScores?.[node.id];
+            if (score !== undefined) {
+              let status: NodeStatus = 'in_progress';
+              if (score >= 80) status = 'mastered';
+              else if (score < 50) status = 'weak';
+              return { ...node, masteryScore: score, status };
+            }
+            return node;
           });
           setConceptNodes(syncedNodes);
+          StorageService.saveConceptNodes(syncedNodes);
         }
       }
     });
     return () => unsubscribe();
   }, [activeStudentId]);
 
+  const handleSwitchStudent = (studentId: string) => {
+    setActiveStudentId(studentId);
+    const metric = BackendService.getClassroomMetrics().find(s => s.studentId === studentId);
+    if (metric) {
+      const newProfile: UserProfile = {
+        id: metric.studentId,
+        role: 'student',
+        name: metric.studentName,
+        avatar: metric.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        level: metric.level || Math.max(1, Math.floor(metric.overallMastery / 20)),
+        xp: metric.xp || (metric.overallMastery * 10),
+        streakDays: metric.streakDays || 8,
+        grade: metric.grade || '11th Grade',
+        dailyGoalMinutes: 30,
+        completedMinutesToday: 20,
+        cardsReviewedToday: 15
+      };
+      setProfile(newProfile);
+      StorageService.saveProfile(newProfile);
+
+      // Sync concept nodes to this student's exact topic scores & mastery levels
+      const baseNodes = StorageService.getConceptNodes();
+      const updatedNodes = baseNodes.map(node => {
+        const score = metric.topicScores?.[node.id];
+        if (score !== undefined) {
+          let status: NodeStatus = 'in_progress';
+          if (score >= 80) status = 'mastered';
+          else if (score < 50) status = 'weak';
+          return { ...node, masteryScore: score, status };
+        }
+        return node;
+      });
+      setConceptNodes(updatedNodes);
+      StorageService.saveConceptNodes(updatedNodes);
+    }
+  };
+
+  // Sync initial student context on mount
+  useEffect(() => {
+    if (currentUser) {
+      const targetStudentId = currentUser.linkedStudentId || (currentUser.role === 'student' ? currentUser.id : 'st_01');
+      handleSwitchStudent(targetStudentId);
+    }
+  }, []);
+
   const handleLogin = (user: AuthUser) => {
     setCurrentUser(user);
     setRole(user.role);
     StorageService.login(user);
+    const targetStudentId = user.linkedStudentId || (user.role === 'student' ? user.id : 'st_01');
+    handleSwitchStudent(targetStudentId);
+
     if (user.role === 'parent') {
       setParentTab('academic_report');
     } else if (user.role === 'teacher') {
@@ -125,37 +180,6 @@ export const App: React.FC = () => {
   const handleAddXP = (amount: number) => {
     const updated = StorageService.addXP(amount);
     setProfile(updated);
-  };
-
-  const handleSwitchStudent = (studentId: string) => {
-    setActiveStudentId(studentId);
-    const metric = BackendService.getClassroomMetrics().find(s => s.studentId === studentId);
-    if (metric) {
-      const newProfile: UserProfile = {
-        id: metric.studentId,
-        role: 'student',
-        name: metric.studentName,
-        avatar: metric.avatar,
-        level: Math.max(1, Math.floor(metric.overallMastery / 10)),
-        xp: metric.overallMastery * 25,
-        streakDays: Math.max(1, Math.floor((metric.attendanceRate || 95) / 10)),
-        grade: metric.grade || '11th Grade',
-        dailyGoalMinutes: 30,
-        completedMinutesToday: 20,
-        cardsReviewedToday: 15
-      };
-      setProfile(newProfile);
-      StorageService.saveProfile(newProfile);
-
-      // Sync concept nodes to this student's topic scores
-      const baseNodes = StorageService.getConceptNodes();
-      const updatedNodes = baseNodes.map(node => {
-        const score = metric.topicScores[node.id];
-        return score !== undefined ? { ...node, masteryScore: score } : node;
-      });
-      setConceptNodes(updatedNodes);
-      StorageService.saveConceptNodes(updatedNodes);
-    }
   };
 
   const handleUpdateNodeMastery = (nodeId: string, delta: number) => {
@@ -358,6 +382,7 @@ export const App: React.FC = () => {
               <Suspense fallback={<LoadingFallback message="Loading Guardian Portal & Progress Reports..." />}>
                 <ParentDashboard
                   activeParentTab={parentTab}
+                  onSelectTab={handleSelectTab}
                   currentUser={currentUser}
                 />
               </Suspense>

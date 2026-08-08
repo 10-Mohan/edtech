@@ -29,7 +29,8 @@ import {
   ArrowUpDown,
   Filter,
   Eye,
-  Send
+  Send,
+  Database
 } from 'lucide-react';
 
 const CurriculumEditorModal = lazy(() =>
@@ -37,6 +38,9 @@ const CurriculumEditorModal = lazy(() =>
 );
 const TeacherOnboardingModal = lazy(() =>
   import('./TeacherOnboardingModal').then(m => ({ default: m.TeacherOnboardingModal }))
+);
+const DatasetImportModal = lazy(() =>
+  import('./DatasetImportModal').then(m => ({ default: m.DatasetImportModal }))
 );
 
 interface TeacherDashboardProps {
@@ -57,6 +61,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const [isCurriculumModalOpen, setIsCurriculumModalOpen] = useState<boolean>(false);
   const [curriculumModalTab, setCurriculumModalTab] = useState<'topics' | 'worksheets' | 'ai_synthesizer'>('topics');
   const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(false);
+  const [isDatasetModalOpen, setIsDatasetModalOpen] = useState<boolean>(false);
 
   // Search, Filter & Sort Controls for 40-Student Cohort
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -181,6 +186,16 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           </div>
 
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => setIsDatasetModalOpen(true)}
+              className="btn btn-secondary"
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+              title="Import Kaggle & Real Educational Datasets"
+            >
+              <Database size={16} color="#06b6d4" />
+              <span>Import Kaggle Datasets</span>
+            </button>
+
             <button
               onClick={() => setIsOnboardingOpen(true)}
               className="btn btn-secondary"
@@ -749,6 +764,19 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               if (updatedWs.length > 0) {
                 setSelectedWorksheet(updatedWs[0]);
               }
+            }}
+          />
+        </Suspense>
+      )}
+
+      {/* Dataset & Kaggle Ingestion Modal */}
+      {isDatasetModalOpen && (
+        <Suspense fallback={<LoadingFallback message="Loading Dataset Importer..." />}>
+          <DatasetImportModal
+            isOpen={isDatasetModalOpen}
+            onClose={() => setIsDatasetModalOpen(false)}
+            onDatasetImported={count => {
+              setStudents(BackendService.getClassroomMetrics());
             }}
           />
         </Suspense>

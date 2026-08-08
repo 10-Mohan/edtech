@@ -443,41 +443,41 @@ export const mockClassroomMetrics: StudentClassroomMetric[] = [
   },
   {
     studentId: 'st_02',
-    studentName: 'Ethan Zhang',
-    avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+    studentName: 'Leo Chen',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
     grade: '11th Grade',
-    overallMastery: 94,
-    status: 'thriving',
-    gapTopicsCount: 0,
-    lastActive: '1 hour ago',
-    parentName: 'Arthur Zhang',
-    parentEmail: 'arthur.zhang@parent.waypoint.edu',
-    studentEmail: 'ethan.zhang@student.waypoint.edu',
-    streakDays: 19,
-    xp: 890,
-    level: 5,
-    studyHoursWeekly: 6.2,
-    attendanceRate: 99.1,
-    topicScores: { alg_01: 98, func_01: 96, trig_01: 94, lim_01: 95, diff_01: 90, vec_01: 92 }
+    overallMastery: 82,
+    status: 'on_track',
+    gapTopicsCount: 1,
+    lastActive: '45 mins ago',
+    parentName: 'David Chen',
+    parentEmail: 'david.chen@parent.waypoint.edu',
+    studentEmail: 'leo.chen@student.waypoint.edu',
+    streakDays: 11,
+    xp: 580,
+    level: 3,
+    studyHoursWeekly: 4.2,
+    attendanceRate: 98.4,
+    topicScores: { alg_01: 90, func_01: 85, trig_01: 82, lim_01: 88, diff_01: 68, vec_01: 80 }
   },
   {
     studentId: 'st_03',
-    studentName: 'Sophia Rodriguez',
-    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
+    studentName: 'Ethan Hunt',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
     grade: '11th Grade',
-    overallMastery: 56,
+    overallMastery: 64,
     status: 'needs_support',
-    gapTopicsCount: 3,
+    gapTopicsCount: 2,
     lastActive: 'Yesterday',
-    parentName: 'Carlos Rodriguez',
-    parentEmail: 'carlos.r@parent.waypoint.edu',
-    studentEmail: 'sophia.r@student.waypoint.edu',
-    streakDays: 4,
-    xp: 260,
+    parentName: 'Sarah Hunt',
+    parentEmail: 'sarah.hunt@parent.waypoint.edu',
+    studentEmail: 'ethan.hunt@student.waypoint.edu',
+    streakDays: 6,
+    xp: 380,
     level: 2,
-    studyHoursWeekly: 2.8,
-    attendanceRate: 91.5,
-    topicScores: { alg_01: 80, func_01: 62, trig_01: 45, lim_01: 58, diff_01: 35, vec_01: 55 }
+    studyHoursWeekly: 3.2,
+    attendanceRate: 93.5,
+    topicScores: { alg_01: 82, func_01: 70, trig_01: 58, lim_01: 66, diff_01: 45, vec_01: 62 }
   },
   {
     studentId: 'st_04',
@@ -519,22 +519,22 @@ export const mockClassroomMetrics: StudentClassroomMetric[] = [
   },
   {
     studentId: 'st_06',
-    studentName: 'Leo Chen',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    studentName: 'Ethan Zhang',
+    avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
     grade: '11th Grade',
-    overallMastery: 82,
-    status: 'on_track',
-    gapTopicsCount: 1,
-    lastActive: '45 mins ago',
-    parentName: 'Wei Chen',
-    parentEmail: 'wei.chen@parent.waypoint.edu',
-    studentEmail: 'leo.chen@student.waypoint.edu',
-    streakDays: 11,
-    xp: 580,
-    level: 3,
-    studyHoursWeekly: 4.2,
-    attendanceRate: 97.4,
-    topicScores: { alg_01: 90, func_01: 85, trig_01: 82, lim_01: 88, diff_01: 68, vec_01: 80 }
+    overallMastery: 94,
+    status: 'thriving',
+    gapTopicsCount: 0,
+    lastActive: '1 hour ago',
+    parentName: 'Arthur Zhang',
+    parentEmail: 'arthur.zhang@parent.waypoint.edu',
+    studentEmail: 'ethan.zhang@student.waypoint.edu',
+    streakDays: 19,
+    xp: 890,
+    level: 5,
+    studyHoursWeekly: 6.2,
+    attendanceRate: 99.1,
+    topicScores: { alg_01: 98, func_01: 96, trig_01: 94, lim_01: 95, diff_01: 90, vec_01: 92 }
   },
   {
     studentId: 'st_07',
@@ -1476,15 +1476,15 @@ export const mockStudentComprehensiveReport: StudentComprehensiveReport = {
 };
 
 export const mockLeoStudentReport: StudentComprehensiveReport = {
-  studentId: 'stu_leo',
-  studentName: 'Leo Lin',
-  avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
-  grade: 'Grade 9 (STEM Foundations & Geometry)',
-  school: 'Oakwood Horizon Junior High',
+  studentId: 'st_02',
+  studentName: 'Leo Chen',
+  avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+  grade: 'Grade 11 (AP Advanced STEM)',
+  school: 'Oakwood Horizon STEM Academy',
   academicYear: '2025 - 2026 Academic Term',
-  studentEmail: 'leo.lin@student.waypoint.edu',
-  parentEmail: 'elena.lin@parent.waypoint.edu',
-  parentName: 'Elena Lin',
+  studentEmail: 'leo.chen@student.waypoint.edu',
+  parentEmail: 'david.chen@parent.waypoint.edu',
+  parentName: 'David Chen',
 
   attendance: {
     overallRate: 98.4,
@@ -1631,7 +1631,7 @@ export function synthesizeReportFromMetric(metric: StudentClassroomMetric): Stud
   return {
     studentId: metric.studentId,
     studentName: metric.studentName,
-    avatar: metric.avatar,
+    avatar: metric.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     grade: metric.grade || '11th Grade (AP Advanced STEM)',
     school: 'Oakwood Horizon STEM Academy',
     academicYear: '2025 - 2026 Academic Term',
@@ -1711,33 +1711,78 @@ export function synthesizeReportFromMetric(metric: StudentClassroomMetric): Stud
 }
 
 export function generateParentSummaryForStudent(report: StudentComprehensiveReport): ParentWeeklySummary {
-  const isHigh = report.subjectBreakdown[0].score >= 85;
+  const firstScore = report?.subjectBreakdown?.[0]?.score ?? 85;
+  const isHigh = firstScore >= 85;
+  const habits = report?.studyHabits || {
+    weeklyFocusHours: 8.5,
+    activeRecallStreakDays: 12,
+    masteredCardsCount: 38,
+    socraticSessionsCompleted: 14,
+    completionRate: 94
+  };
+  const attendance = report?.attendance || {
+    overallRate: 96.8,
+    presentDays: 48,
+    totalDays: 50,
+    excusedAbsences: 2,
+    unexcusedAbsences: 0,
+    tardies: 0,
+    recentLog: []
+  };
+  const studentName = report?.studentName || 'Maya Lin';
+  const childFirst = studentName.split(' ')[0] || 'Your child';
+  const weakAreas = (report?.weakAreasRadar && report.weakAreasRadar.length > 0)
+    ? report.weakAreasRadar
+    : [
+        {
+          topic: 'Nested Chain Rule Derivatives',
+          subject: 'AP Calculus AB',
+          severity: 'moderate' as const,
+          misconceptionSummary: 'Confuses outer and inner derivative terms when differentiating composite functions.',
+          recommendedHomeAction: 'Prompt student to identify the innermost function before differentiating.'
+        }
+      ];
+  const subjects = (report?.subjectBreakdown && report.subjectBreakdown.length > 0)
+    ? report.subjectBreakdown
+    : [
+        {
+          subject: 'AP Calculus AB',
+          score: 88,
+          gradeLetter: 'A',
+          rankInClass: 'Top 15%',
+          strengths: ['Derivatives', 'Limits'],
+          weakSections: ['Chain Rule'],
+          teacherName: 'Dr. Eleanor Vance',
+          teacherRemarks: 'Great momentum in calculus.'
+        }
+      ];
+
   return {
     weekLabel: 'Week of Aug 1 - Aug 5, 2026',
     overallHealth: isHigh ? 'steady' : 'needs_attention',
-    hoursLearned: report.studyHabits.weeklyFocusHours,
+    hoursLearned: habits.weeklyFocusHours || 8.5,
     masteryGainPercent: isHigh ? 14 : 8,
-    cardsMasteredCount: report.studyHabits.masteredCardsCount,
-    headlineSummary: `${report.studentName} has logged ${report.studyHabits.weeklyFocusHours} hours this week with an active ${report.studyHabits.activeRecallStreakDays}-day streak!`,
+    cardsMasteredCount: habits.masteredCardsCount || 38,
+    headlineSummary: `${studentName} has logged ${habits.weeklyFocusHours || 8.5} hours this week with an active ${habits.activeRecallStreakDays || 12}-day streak!`,
     celebrations: [
-      `Maintained a ${report.attendance.overallRate}% classroom attendance rate.`,
-      `Completed ${report.studyHabits.socraticSessionsCompleted} interactive Socratic AI sessions.`,
-      `Mastered ${report.studyHabits.masteredCardsCount} active recall flashcards.`
+      `Maintained a ${attendance.overallRate}% classroom attendance rate.`,
+      `Completed ${habits.socraticSessionsCompleted || 14} interactive Socratic AI sessions.`,
+      `Mastered ${habits.masteredCardsCount || 38} active recall flashcards.`
     ],
-    focusAreas: report.weakAreasRadar.slice(0, 2).map(w => ({
+    focusAreas: weakAreas.slice(0, 2).map(w => ({
       subject: w.subject,
       topic: w.topic,
-      homeActionTip: w.recommendedHomeAction
+      homeActionTip: w.recommendedHomeAction || 'Practice problem breakdown together.'
     })),
     dinnerTablePrompts: [
       {
-        prompt: `"Hey ${report.studentName.split(' ')[0]}, tell me about what you discovered in ${report.subjectBreakdown[0].subject} this week!"`,
-        context: `${report.studentName} spent time reviewing ${report.weakAreasRadar[0]?.topic || 'core STEM concepts'}.`,
+        prompt: `"Hey ${childFirst}, tell me about what you discovered in ${subjects[0]?.subject || 'Calculus'} this week!"`,
+        context: `${studentName} spent time reviewing ${weakAreas[0]?.topic || 'core STEM concepts'}.`,
         followUp: 'Ask them to explain how they broke down difficult problems in Socratic mode!'
       },
       {
         prompt: `"What was the most exciting thing you built or practiced on Waypoint today?"`,
-        context: `${report.studentName} is on a ${report.studyHabits.activeRecallStreakDays}-day active learning streak.`,
+        context: `${studentName} is on a ${habits.activeRecallStreakDays || 12}-day active learning streak.`,
         followUp: 'Celebrate their consistency and encourage keeping the streak going!'
       }
     ]
@@ -1746,8 +1791,10 @@ export function generateParentSummaryForStudent(report: StudentComprehensiveRepo
 
 // Build 40-student reports map dynamically
 export const mockStudentReportsMap: Record<string, StudentComprehensiveReport> = {
+  'st_01': mockStudentComprehensiveReport,
   'stu_maya_01': mockStudentComprehensiveReport,
   'stu_maya': mockStudentComprehensiveReport,
+  'st_02': mockLeoStudentReport,
   'stu_leo_02': mockLeoStudentReport,
   'stu_leo': mockLeoStudentReport
 };

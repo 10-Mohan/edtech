@@ -14,7 +14,6 @@ import {
   AlertTriangle,
   ShieldCheck,
   Users,
-  Mail,
   Send,
   X,
   Heart,
@@ -25,16 +24,19 @@ import {
   HelpCircle,
   FileText,
   UserCheck,
-  ChevronRight
+  ChevronRight,
+  HeartHandshake
 } from 'lucide-react';
 
 interface ParentDashboardProps {
   activeParentTab: string;
+  onSelectTab?: (tab: string) => void;
   currentUser?: AuthUser | null;
 }
 
 export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   activeParentTab,
+  onSelectTab,
   currentUser
 }) => {
   // Determine child ID strictly linked to this parent account
@@ -49,15 +51,13 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   }, [currentUser]);
 
   const [selectedChildId, setSelectedChildId] = useState<string>(linkedChildIds[0]);
-  const [parentEmailInput, setParentEmailInput] = useState<string>('');
-  const [isSendingEmail, setIsSendingEmail] = useState<boolean>(false);
-  const [emailStatus, setEmailStatus] = useState<{
-    type: 'success' | 'error';
-    message: string;
-    delivered?: boolean;
-    previewHtml?: string;
-  } | null>(null);
-  const [showPreviewModal, setShowPreviewModal] = useState<boolean>(false);
+
+  // Synchronize selected child whenever active linked children change
+  useEffect(() => {
+    if (linkedChildIds.length > 0 && !linkedChildIds.includes(selectedChildId)) {
+      setSelectedChildId(linkedChildIds[0]);
+    }
+  }, [linkedChildIds, selectedChildId]);
 
   // Parent Encouragement Nudge modal state
   const [isNudgeModalOpen, setIsNudgeModalOpen] = useState<boolean>(false);
@@ -96,48 +96,20 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     return BackendService.getParentWeeklySummary(selectedChildId);
   }, [selectedChildId, refreshKey]);
 
-  // Sync parent email when child changes
-  useEffect(() => {
-    if (currentUser?.email) {
-      setParentEmailInput(currentUser.email);
-    } else if (studentReport.parentEmail) {
-      setParentEmailInput(studentReport.parentEmail);
-    }
-  }, [studentReport, currentUser]);
+  // Normalize active tab with robust fallbacks
+  const normalizedTab = (activeParentTab || 'academic_report').toLowerCase().trim();
+  const isAttendance = normalizedTab === 'attendance' || normalizedTab === 'live_attendance';
+  const isWeakSections = normalizedTab === 'weak_sections' || normalizedTab === 'weak_spots' || normalizedTab === 'misconceptions' || normalizedTab === 'weak';
+  const isWeeklyDigest = normalizedTab === 'weekly_digest' || normalizedTab === 'digest' || normalizedTab === 'growth' || normalizedTab === 'summary';
+  const isDinnerPrompts = normalizedTab === 'dinner_prompts' || normalizedTab === 'dinner' || normalizedTab === 'starters' || normalizedTab === 'prompts';
+  const isAcademic = normalizedTab === 'academic_report' || (!isAttendance && !isWeakSections && !isWeeklyDigest && !isDinnerPrompts);
 
-  const handleSendDigestEmail = async () => {
-    setIsSendingEmail(true);
-    setEmailStatus(null);
-    try {
-      const res = await BackendService.sendParentWeeklyDigestEmail({
-        studentId: selectedChildId,
-        parentEmail: parentEmailInput
-      });
-
-      if (res.success) {
-        setEmailStatus({
-          type: 'success',
-          message: res.delivered
-            ? `Weekly digest email dispatched live to ${parentEmailInput} via Resend / SendGrid!`
-            : `Digest rendered successfully for ${studentReport.studentName} in preview mode (Set RESEND_API_KEY for live email delivery).`,
-          delivered: res.delivered,
-          previewHtml: res.previewHtml
-        });
-      } else {
-        setEmailStatus({
-          type: 'error',
-          message: `Email dispatch failed: ${res.error || 'Unknown error'}`
-        });
-      }
-    } catch (err: any) {
-      setEmailStatus({
-        type: 'error',
-        message: `Error sending email: ${err?.message || 'Network error'}`
-      });
-    } finally {
-      setIsSendingEmail(false);
+  const handleTabClick = (tabKey: string) => {
+    if (onSelectTab) {
+      onSelectTab(tabKey);
     }
   };
+
 
   const handleSendNudge = (presetText?: string) => {
     const textToSend = presetText || nudgeMessage;
@@ -146,10 +118,10 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     BackendService.sendParentEncouragementNudge(
       selectedChildId,
       textToSend.trim(),
-      currentUser?.name || studentReport.parentName || 'Parent'
+      currentUser?.name || studentReport?.parentName || 'Parent'
     );
 
-    setNudgeSuccess(`Encouragement sent to ${studentReport.studentName}! It is now visible on their student dashboard.`);
+    setNudgeSuccess(`Encouragement sent to ${studentReport?.studentName || 'your child'}! It is now visible on their student dashboard.`);
     setNudgeMessage('');
     setTimeout(() => {
       setNudgeSuccess(null);
@@ -173,12 +145,50 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
 
   // Filtered attendance log
   const filteredAttendanceLog = useMemo(() => {
-    if (!studentReport?.attendance?.recentLog) return [];
-    if (attendanceFilter === 'all') return studentReport.attendance.recentLog;
-    return studentReport.attendance.recentLog.filter(log => log.status === attendanceFilter);
+    const rawLog = studentReport?.attendance?.recentLog || [];
+    if (attendanceFilter === 'all') return rawLog;
+    return rawLog.filter(log => log.status === attendanceFilter);
   }, [studentReport, attendanceFilter]);
 
-  const childFirstName = studentReport.studentName?.split(' ')[0] || 'Child';
+  const childFirstName = studentReport?.studentName?.split(' ')[0] || 'Child';
+
+  const tabNavigationItems = [
+    {
+      id: 'academic_report',
+      label: 'Subject Report & Strengths',
+      icon: <BookOpen size={16} />,
+      badge: `${studentReport?.subjectBreakdown?.length || 4} Courses`,
+      isActive: isAcademic
+    },
+    {
+      id: 'attendance',
+      label: 'Live Attendance Log',
+      icon: <CalendarCheck size={16} />,
+      badge: `${studentReport?.attendance?.overallRate || 96.8}%`,
+      isActive: isAttendance
+    },
+    {
+      id: 'weak_sections',
+      label: 'Weak Sections Radar',
+      icon: <AlertTriangle size={16} />,
+      badge: `${studentReport?.weakAreasRadar?.length || 2} Action Tips`,
+      isActive: isWeakSections
+    },
+    {
+      id: 'weekly_digest',
+      label: 'Weekly Growth Digest',
+      icon: <HeartHandshake size={16} />,
+      badge: summary?.weekLabel ? 'Active' : 'Aug W1',
+      isActive: isWeeklyDigest
+    },
+    {
+      id: 'dinner_prompts',
+      label: 'Dinner Table Starters',
+      icon: <Sparkles size={16} />,
+      badge: `${summary?.dinnerTablePrompts?.length || 2} Prompts`,
+      isActive: isDinnerPrompts
+    }
+  ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -187,8 +197,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <img
-              src={studentReport.avatar}
-              alt={studentReport.studentName}
+              src={studentReport?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
+              alt={studentReport?.studentName || 'Student'}
               style={{
                 width: '60px',
                 height: '60px',
@@ -198,26 +208,26 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               }}
             />
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                 <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>
-                  {studentReport.studentName}
+                  {studentReport?.studentName || 'Maya Lin'}
                 </h1>
                 <span className="badge badge-emerald" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <ShieldCheck size={13} />
                   Private Family Access
                 </span>
                 <span className="badge badge-indigo">
-                  {studentReport.grade}
+                  {studentReport?.grade || 'Grade 11 (AP Advanced STEM)'}
                 </span>
               </div>
               <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-dim)' }}>
-                {studentReport.school} • Parent Guardian: <strong style={{ color: 'var(--text-main)' }}>{currentUser?.name || studentReport.parentName}</strong> ({parentEmailInput})
+                {studentReport?.school || 'Oakwood Horizon STEM Academy'} • Parent Guardian: <strong style={{ color: 'var(--text-main)' }}>{currentUser?.name || studentReport?.parentName || 'Elena Lin'}</strong> ({currentUser?.email || studentReport?.parentEmail || 'guardian@family.org'})
               </p>
             </div>
           </div>
 
           {/* Sibling Switcher & Nudge CTA */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             {linkedChildIds.length > 1 && (
               <div
                 style={{
@@ -270,8 +280,60 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
         </div>
       </div>
 
+      {/* IN-PAGE PARENT TAB NAVIGATION STRIP */}
+      <div
+        className="glass-panel"
+        style={{
+          padding: '8px 12px',
+          display: 'flex',
+          gap: '8px',
+          overflowX: 'auto',
+          alignItems: 'center',
+          background: 'var(--bg-surface-elevated)',
+          border: '1px solid var(--border-medium)',
+          borderRadius: 'var(--radius-lg)'
+        }}
+      >
+        {tabNavigationItems.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => handleTabClick(tab.id)}
+            className={`btn btn-sm ${tab.isActive ? 'btn-primary' : 'btn-secondary'}`}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 14px',
+              borderRadius: 'var(--radius-md)',
+              whiteSpace: 'nowrap',
+              fontSize: '0.85rem',
+              fontWeight: tab.isActive ? 700 : 600,
+              boxShadow: tab.isActive ? '0 2px 10px rgba(99, 102, 241, 0.35)' : 'none',
+              transition: 'all 0.18s ease'
+            }}
+          >
+            {tab.icon}
+            <span>{tab.label}</span>
+            {tab.badge && (
+              <span
+                style={{
+                  fontSize: '0.7rem',
+                  padding: '2px 7px',
+                  borderRadius: '10px',
+                  background: tab.isActive ? 'rgba(255, 255, 255, 0.25)' : 'var(--bg-surface)',
+                  color: tab.isActive ? '#ffffff' : 'var(--text-dim)',
+                  fontWeight: 700
+                }}
+              >
+                {tab.badge}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
       {/* TAB 1: SUBJECT REPORT & STRENGTHS */}
-      {(activeParentTab === 'academic_report' || !activeParentTab) && (
+      {isAcademic && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {/* Key Metrics Strip */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
@@ -281,7 +343,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               </div>
               <div>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Weekly Focus</span>
-                <div style={{ fontSize: '1.75rem', fontWeight: 800 }}>{studentReport.studyHabits?.weeklyFocusHours || 8.5}h</div>
+                <div style={{ fontSize: '1.75rem', fontWeight: 800 }}>{studentReport?.studyHabits?.weeklyFocusHours || 8.5}h</div>
                 <span style={{ fontSize: '0.75rem', color: '#10b981' }}>+1.5h vs target</span>
               </div>
             </div>
@@ -292,10 +354,10 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               </div>
               <div>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Attendance Rate</span>
-                <div style={{ fontSize: '1.75rem', fontWeight: 800, color: studentReport.attendance.overallRate >= 95 ? '#10b981' : '#f59e0b' }}>
-                  {studentReport.attendance.overallRate}%
+                <div style={{ fontSize: '1.75rem', fontWeight: 800, color: (studentReport?.attendance?.overallRate || 96.8) >= 95 ? '#10b981' : '#f59e0b' }}>
+                  {studentReport?.attendance?.overallRate || 96.8}%
                 </div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{studentReport.attendance.presentDays}/{studentReport.attendance.totalDays} Days Present</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{studentReport?.attendance?.presentDays || 48}/{studentReport?.attendance?.totalDays || 50} Days Present</span>
               </div>
             </div>
 
@@ -305,8 +367,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               </div>
               <div>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Socratic Sessions</span>
-                <div style={{ fontSize: '1.75rem', fontWeight: 800 }}>{studentReport.studyHabits?.socraticSessionsCompleted || 14}</div>
-                <span style={{ fontSize: '0.75rem', color: '#10b981' }}>{studentReport.studyHabits?.completionRate || 94}% Completion</span>
+                <div style={{ fontSize: '1.75rem', fontWeight: 800 }}>{studentReport?.studyHabits?.socraticSessionsCompleted || 14}</div>
+                <span style={{ fontSize: '0.75rem', color: '#10b981' }}>{studentReport?.studyHabits?.completionRate || 94}% Completion</span>
               </div>
             </div>
 
@@ -316,8 +378,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               </div>
               <div>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Daily Active Streak</span>
-                <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f59e0b' }}>{studentReport.studyHabits?.activeRecallStreakDays || 12} Days</div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{studentReport.studyHabits?.masteredCardsCount || 38} Cards Mastered</span>
+                <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f59e0b' }}>{studentReport?.studyHabits?.activeRecallStreakDays || 12} Days</div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{studentReport?.studyHabits?.masteredCardsCount || 38} Cards Mastered</span>
               </div>
             </div>
           </div>
@@ -328,14 +390,14 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               <div>
                 <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 2px' }}>Enrolled Courses & Academic Standings</h2>
                 <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-dim)' }}>
-                  Detailed term assessments, faculty remarks, and class percentiles for {studentReport.studentName}.
+                  Detailed term assessments, faculty remarks, and class percentiles for {studentReport?.studentName || 'Maya Lin'}.
                 </p>
               </div>
-              <span className="badge badge-indigo">{studentReport.subjectBreakdown?.length || 5} Active Courses</span>
+              <span className="badge badge-indigo">{studentReport?.subjectBreakdown?.length || 4} Active Courses</span>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
-              {studentReport.subjectBreakdown?.map((sub, idx) => (
+              {studentReport?.subjectBreakdown?.map((sub, idx) => (
                 <div key={idx} className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
@@ -389,31 +451,31 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       )}
 
       {/* TAB 2: LIVE ATTENDANCE LOG */}
-      {activeParentTab === 'attendance' && (
+      {isAttendance && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {/* Attendance KPI Cards */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
             <div className="card" style={{ padding: '20px' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 700 }}>Overall Attendance</span>
-              <div style={{ fontSize: '2rem', fontWeight: 800, color: '#10b981', margin: '4px 0' }}>{studentReport.attendance.overallRate}%</div>
+              <div style={{ fontSize: '2rem', fontWeight: 800, color: '#10b981', margin: '4px 0' }}>{studentReport?.attendance?.overallRate || 96.8}%</div>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>School standard: 90%+</span>
             </div>
 
             <div className="card" style={{ padding: '20px' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 700 }}>Days Present</span>
-              <div style={{ fontSize: '2rem', fontWeight: 800, margin: '4px 0' }}>{studentReport.attendance.presentDays} <span style={{ fontSize: '1rem', color: 'var(--text-dim)' }}>/ {studentReport.attendance.totalDays}</span></div>
+              <div style={{ fontSize: '2rem', fontWeight: 800, margin: '4px 0' }}>{studentReport?.attendance?.presentDays || 48} <span style={{ fontSize: '1rem', color: 'var(--text-dim)' }}>/ {studentReport?.attendance?.totalDays || 50}</span></div>
               <span style={{ fontSize: '0.75rem', color: '#10b981' }}>High Punctuality</span>
             </div>
 
             <div className="card" style={{ padding: '20px' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 700 }}>Excused Absences</span>
-              <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--primary-light)', margin: '4px 0' }}>{studentReport.attendance.excusedAbsences || 2}</div>
+              <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--primary-light)', margin: '4px 0' }}>{studentReport?.attendance?.excusedAbsences ?? 2}</div>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Doctor / Verified</span>
             </div>
 
             <div className="card" style={{ padding: '20px' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 700 }}>Tardies / Late</span>
-              <div style={{ fontSize: '2rem', fontWeight: 800, color: '#f59e0b', margin: '4px 0' }}>{studentReport.attendance.tardies || 1}</div>
+              <div style={{ fontSize: '2rem', fontWeight: 800, color: '#f59e0b', margin: '4px 0' }}>{studentReport?.attendance?.tardies ?? 0}</div>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Transit delay</span>
             </div>
           </div>
@@ -426,7 +488,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   Verified Period Attendance Records
                 </h2>
                 <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-dim)' }}>
-                  Real-time check-in log reported by teachers and administration for {studentReport.studentName}.
+                  Real-time check-in log reported by teachers and administration for {studentReport?.studentName || 'Maya Lin'}.
                 </p>
               </div>
 
@@ -507,7 +569,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       )}
 
       {/* TAB 3: WEAK SECTIONS RADAR */}
-      {activeParentTab === 'weak_sections' && (
+      {isWeakSections && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <div className="card" style={{ padding: '24px 28px', borderLeft: '4px solid #f43f5e' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
@@ -536,7 +598,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {studentReport.weakAreasRadar && studentReport.weakAreasRadar.length > 0 ? (
+              {studentReport?.weakAreasRadar && studentReport.weakAreasRadar.length > 0 ? (
                 studentReport.weakAreasRadar.map((weak, idx) => (
                   <div
                     key={idx}
@@ -556,7 +618,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                         <span className="badge badge-indigo" style={{ fontSize: '0.75rem' }}>{weak.subject}</span>
                       </div>
                       <span className="badge" style={{ background: 'rgba(244, 63, 94, 0.12)', color: '#f43f5e', fontSize: '0.75rem', fontWeight: 700 }}>
-                        {weak.severity.toUpperCase()} PRIORITY GAP
+                        {(weak.severity || 'moderate').toUpperCase()} PRIORITY GAP
                       </span>
                     </div>
 
@@ -591,7 +653,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       )}
 
       {/* TAB 4: WEEKLY GROWTH DIGEST */}
-      {activeParentTab === 'weekly_digest' && (
+      {isWeeklyDigest && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <div className="card" style={{ padding: '24px 28px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
@@ -600,14 +662,14 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   Weekly AI Progress Digest
                 </h2>
                 <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-dim)' }}>
-                  Auto-compiled weekly learning recap and growth analysis for {studentReport.studentName}.
+                  Auto-compiled weekly learning recap and growth analysis for {studentReport?.studentName || 'Maya Lin'}.
                 </p>
               </div>
-              <span className="badge badge-indigo">{summary.weekLabel || 'Current Academic Week'}</span>
+              <span className="badge badge-indigo">{summary?.weekLabel || 'Current Academic Week'}</span>
             </div>
 
             <p style={{ fontSize: '0.95rem', lineHeight: 1.6, margin: '0 0 20px', color: 'var(--text-main)' }}>
-              {summary.headlineSummary}
+              {summary?.headlineSummary || `${studentReport?.studentName || 'Maya'} is making strong progress across all STEM subjects.`}
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '24px' }}>
@@ -618,7 +680,10 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   <span>Key Celebrations</span>
                 </div>
                 <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '0.85rem', color: 'var(--text-main)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {summary.celebrations.map((cel, idx) => (
+                  {(summary?.celebrations || [
+                    `Maintained a ${studentReport?.attendance?.overallRate || 96.8}% attendance rate.`,
+                    `Completed interactive Socratic sessions.`
+                  ]).map((cel, idx) => (
                     <li key={idx}>{cel}</li>
                   ))}
                 </ul>
@@ -631,7 +696,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   <span>Curriculum Focus Areas</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {summary.focusAreas?.map((fa, idx) => (
+                  {(summary?.focusAreas || []).map((fa, idx) => (
                     <div key={idx} style={{ fontSize: '0.8125rem' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, marginBottom: '2px' }}>
                         <span>{fa.topic}</span>
@@ -644,89 +709,12 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               </div>
             </div>
 
-            {/* Email Dispatcher Bar */}
-            <div
-              style={{
-                background: 'var(--bg-surface-glass)',
-                border: '1px solid var(--border-highlight)',
-                borderRadius: 'var(--radius-md)',
-                padding: '16px 20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '14px'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Mail size={20} color="var(--primary-light)" />
-                <div>
-                  <span style={{ fontSize: '0.875rem', fontWeight: 700 }}>Dispatch Weekly Digest to Guardian Email</span>
-                  <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-dim)' }}>
-                    Sends a clean HTML report directly to your inbox.
-                  </p>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, maxWidth: '440px' }}>
-                <input
-                  type="email"
-                  value={parentEmailInput}
-                  onChange={e => setParentEmailInput(e.target.value)}
-                  placeholder="parent@example.com"
-                  className="input"
-                  style={{ flex: 1, padding: '8px 12px', fontSize: '0.85rem' }}
-                />
-                <button
-                  onClick={handleSendDigestEmail}
-                  disabled={isSendingEmail || !parentEmailInput}
-                  className="btn btn-primary btn-sm"
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}
-                >
-                  <Send size={14} />
-                  <span>{isSendingEmail ? 'Sending...' : 'Send Email'}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Email Result Status Banner */}
-            {emailStatus && (
-              <div
-                style={{
-                  marginTop: '16px',
-                  padding: '12px 16px',
-                  borderRadius: 'var(--radius-md)',
-                  background: emailStatus.type === 'success' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
-                  border: `1px solid ${emailStatus.type === 'success' ? '#10b981' : '#ef4444'}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '12px'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {emailStatus.type === 'success' ? <CheckCircle2 size={16} color="#10b981" /> : <AlertTriangle size={16} color="#ef4444" />}
-                  <span style={{ fontSize: '0.8125rem', color: emailStatus.type === 'success' ? '#10b981' : '#ef4444' }}>
-                    {emailStatus.message}
-                  </span>
-                </div>
-                {emailStatus.previewHtml && (
-                  <button
-                    onClick={() => setShowPreviewModal(true)}
-                    className="btn btn-secondary btn-sm"
-                    style={{ fontSize: '0.75rem', padding: '4px 10px' }}
-                  >
-                    View HTML Email Preview
-                  </button>
-                )}
-              </div>
-            )}
           </div>
         </div>
       )}
 
       {/* TAB 5: DINNER TABLE STARTERS */}
-      {activeParentTab === 'dinner_prompts' && (
+      {isDinnerPrompts && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <div className="card" style={{ padding: '24px 28px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
@@ -751,7 +739,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {summary.dinnerTablePrompts && summary.dinnerTablePrompts.length > 0 ? (
+              {summary?.dinnerTablePrompts && summary.dinnerTablePrompts.length > 0 ? (
                 summary.dinnerTablePrompts.map((dp, idx) => {
                   const isDone = !!discussedPrompts[idx];
                   return (
@@ -854,7 +842,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 </div>
                 <div>
                   <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>
-                    Send Encouragement to {studentReport.studentName}
+                    Send Encouragement to {studentReport?.studentName || 'your child'}
                   </h3>
                   <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
                     Your message will instantly appear on {childFirstName}'s learning portal.
@@ -935,47 +923,6 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
         </div>
       )}
 
-      {/* HTML Email Preview Modal */}
-      {showPreviewModal && emailStatus?.previewHtml && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0, 0, 0, 0.75)',
-            backdropFilter: 'blur(8px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 100,
-            padding: '20px'
-          }}
-        >
-          <div
-            className="glass-panel"
-            style={{
-              width: '100%',
-              maxWidth: '680px',
-              maxHeight: '85vh',
-              display: 'flex',
-              flexDirection: 'column',
-              borderRadius: 'var(--radius-lg)',
-              overflow: 'hidden'
-            }}
-          >
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-medium)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>
-                Weekly Digest Email Preview • {studentReport.studentName}
-              </h3>
-              <button onClick={() => setShowPreviewModal(false)} className="btn btn-secondary btn-icon" style={{ width: '32px', height: '32px' }}>
-                <X size={16} />
-              </button>
-            </div>
-            <div style={{ padding: '20px', overflowY: 'auto', background: '#ffffff', color: '#1e293b' }}>
-              <div dangerouslySetInnerHTML={{ __html: emailStatus.previewHtml }} />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
