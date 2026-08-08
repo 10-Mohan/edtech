@@ -207,7 +207,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       )}
 
       {/* View 2: Differentiated Worksheets Studio */}
-      {activeTeacherTab === 'worksheet_studio' && (
+      {(activeTeacherTab === 'tiered_worksheets' || activeTeacherTab === 'worksheet_studio') && (
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 320px) minmax(0, 1fr)', gap: '24px' }}>
           {/* Left Column: List of Worksheets */}
           <div className="glass-panel" style={{ padding: '20px' }}>
@@ -330,7 +330,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       )}
 
       {/* View 3: Cohort Misconception Radar */}
-      {activeTeacherTab === 'misconceptions' && (
+      {(activeTeacherTab === 'misconception_alerts' || activeTeacherTab === 'misconceptions') && (
         <div className="glass-panel" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
             <AlertTriangle size={24} color="#f43f5e" />
