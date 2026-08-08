@@ -1,6 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { AuthUser, ColorThemeId, ConceptNode, RecallCard, UserProfile, UserRole } from './types';
 import { StorageService } from './services/storageService';
+import { BackendService } from './services/backendService';
 import { isCardDue } from './services/srsEngine';
 import { mockDiagnosticQuestions } from './data/mockData';
 
@@ -52,6 +53,7 @@ export const App: React.FC = () => {
   const [isBackendSettingsOpen, setIsBackendSettingsOpen] = useState<boolean>(false);
   const [isGovernanceOpen, setIsGovernanceOpen] = useState<boolean>(false);
 
+  const [activeStudentId, setActiveStudentId] = useState<string>('st_01');
   const [profile, setProfile] = useState<UserProfile>(StorageService.getProfile());
   const [conceptNodes, setConceptNodes] = useState<ConceptNode[]>(StorageService.getConceptNodes());
   const [recallCards, setRecallCards] = useState<RecallCard[]>(StorageService.getRecallCards());
@@ -72,6 +74,24 @@ export const App: React.FC = () => {
   useEffect(() => {
     StorageService.setColorTheme(colorTheme);
   }, [colorTheme]);
+
+  // Subscribe to real-time updates across the platform
+  useEffect(() => {
+    const unsubscribe = BackendService.subscribe(msg => {
+      if (msg.type === 'STUDENT_METRIC_UPDATED' || msg.type === 'REMOTE_DB_SYNC') {
+        const currentMetric = BackendService.getClassroomMetrics().find(s => s.studentId === activeStudentId);
+        if (currentMetric) {
+          const currentNodes = StorageService.getConceptNodes();
+          const syncedNodes = currentNodes.map(node => {
+            const score = currentMetric.topicScores[node.id];
+            return score !== undefined ? { ...node, mastery: score } : node;
+          });
+          setConceptNodes(syncedNodes);
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, [activeStudentId]);
 
   const handleLogin = (user: AuthUser) => {
     setCurrentUser(user);
@@ -107,10 +127,47 @@ export const App: React.FC = () => {
     setProfile(updated);
   };
 
+  const handleSwitchStudent = (studentId: string) => {
+    setActiveStudentId(studentId);
+    const metric = BackendService.getClassroomMetrics().find(s => s.studentId === studentId);
+    if (metric) {
+      const newProfile: UserProfile = {
+        id: metric.studentId,
+        role: 'student',
+        name: metric.studentName,
+        avatar: metric.avatar,
+        level: Math.max(1, Math.floor(metric.overallMastery / 10)),
+        xp: metric.overallMastery * 25,
+        streakDays: Math.max(1, Math.floor((metric.attendanceRate || 95) / 10)),
+        grade: metric.grade || '11th Grade',
+        dailyGoalMinutes: 30,
+        completedMinutesToday: 20,
+        cardsReviewedToday: 15
+      };
+      setProfile(newProfile);
+      StorageService.saveProfile(newProfile);
+
+      // Sync concept nodes to this student's topic scores
+      const baseNodes = StorageService.getConceptNodes();
+      const updatedNodes = baseNodes.map(node => {
+        const score = metric.topicScores[node.id];
+        return score !== undefined ? { ...node, masteryScore: score } : node;
+      });
+      setConceptNodes(updatedNodes);
+      StorageService.saveConceptNodes(updatedNodes);
+    }
+  };
+
   const handleUpdateNodeMastery = (nodeId: string, delta: number) => {
     const updated = StorageService.updateNodeMastery(nodeId, delta);
     setConceptNodes(updated);
     if (delta > 0) handleAddXP(20);
+
+    // Sync back to BackendService 40-student classroom metrics
+    const targetNode = updated.find(n => n.id === nodeId);
+    if (targetNode) {
+      BackendService.updateStudentTopicScore(activeStudentId, nodeId, targetNode.masteryScore);
+    }
   };
 
   const handleSaveCard = (card: RecallCard) => {
@@ -228,6 +285,8 @@ export const App: React.FC = () => {
           onOpenThemeModal={() => setIsThemeModalOpen(true)}
           onOpenDiagnostic={() => setIsDiagnosticOpen(true)}
           onOpenAISettings={() => setIsAISettingsOpen(true)}
+          currentStudentId={activeStudentId}
+          onSwitchStudent={handleSwitchStudent}
         />
 
         {/* Page Body */}
@@ -283,6 +342,10 @@ export const App: React.FC = () => {
                 <TeacherDashboard
                   nodes={conceptNodes}
                   activeTeacherTab={teacherTab}
+                  onNodesUpdated={updatedNodes => {
+                    setConceptNodes(updatedNodes);
+                    StorageService.saveConceptNodes(updatedNodes);
+                  }}
                 />
               </Suspense>
             )}

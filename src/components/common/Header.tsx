@@ -1,5 +1,6 @@
 import React from 'react';
-import { AuthUser, ColorThemeId, UserProfile, UserRole } from '../../types';
+import { AuthUser, ColorThemeId, StudentClassroomMetric, UserProfile, UserRole } from '../../types';
+import { BackendService } from '../../services/backendService';
 import {
   Compass,
   Flame,
@@ -13,7 +14,7 @@ import {
   LogOut,
   Palette,
   Sparkles,
-  Settings
+  ChevronDown
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -27,6 +28,8 @@ interface HeaderProps {
   onOpenThemeModal: () => void;
   onOpenDiagnostic: () => void;
   onOpenAISettings?: () => void;
+  currentStudentId?: string;
+  onSwitchStudent?: (studentId: string) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -39,9 +42,11 @@ export const Header: React.FC<HeaderProps> = ({
   colorTheme,
   onOpenThemeModal,
   onOpenDiagnostic,
-  onOpenAISettings
+  onOpenAISettings,
+  currentStudentId,
+  onSwitchStudent
 }) => {
-
+  const allStudents = BackendService.getClassroomMetrics();
 
   return (
     <header
@@ -92,24 +97,43 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Role-Locked Portal Indicator Badge (Strict Access Boundary) */}
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        {currentRole === 'student' && (
+      {/* Center Portal / Student Switcher */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {currentRole === 'student' && onSwitchStudent && (
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              padding: '6px 16px',
+              padding: '4px 12px',
               borderRadius: 'var(--radius-full)',
               background: 'var(--primary-subtle)',
               border: '1px solid var(--border-highlight)'
             }}
           >
             <GraduationCap size={16} color="var(--primary-light)" />
-            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
-              Student Learning Hub
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main)' }}>
+              Active Student:
             </span>
+            <select
+              value={currentStudentId || 'st_01'}
+              onChange={e => onSwitchStudent(e.target.value)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--primary-light)',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                outline: 'none'
+              }}
+            >
+              {allStudents.map(st => (
+                <option key={st.studentId} value={st.studentId} style={{ background: 'var(--bg-surface)', color: 'var(--text-main)' }}>
+                  {st.studentName} ({st.grade || '11th Grade'})
+                </option>
+              ))}
+            </select>
           </div>
         )}
 
@@ -127,7 +151,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Users size={16} color="var(--primary-light)" />
             <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
-              Parent Portal • Multi-Student Connected
+              Parent Guardian Portal ({allStudents.length} Students Synchronized)
             </span>
           </div>
         )}
@@ -146,7 +170,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Briefcase size={16} color="var(--primary-light)" />
             <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
-              Teacher Orchestration Cockpit
+              Teacher Orchestration Cockpit • AP STEM ({allStudents.length} Enrolled)
             </span>
           </div>
         )}
@@ -165,8 +189,6 @@ export const Header: React.FC<HeaderProps> = ({
             <span>Gap Diagnostic</span>
           </button>
         )}
-
-
 
         {/* Streak Counter (Student only) */}
         {currentRole === 'student' && (
@@ -292,7 +314,7 @@ export const Header: React.FC<HeaderProps> = ({
           />
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-main)' }}>
-              {currentUser?.name || (currentRole === 'student' ? 'Maya Lin' : currentRole === 'parent' ? 'Elena Lin' : 'Dr. Vance')}
+              {currentUser?.name || profile.name || (currentRole === 'student' ? 'Maya Lin' : currentRole === 'parent' ? 'Elena Lin' : 'Dr. Vance')}
             </span>
             <span style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>
               {currentRole === 'parent' ? 'Parent Account' : currentRole === 'student' ? 'Student Account' : 'Faculty Account'}

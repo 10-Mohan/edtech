@@ -1,8 +1,10 @@
 import {
   AuthUser,
   ChatMessage,
+  CohortMisconceptionAnalysis,
   ConceptNode,
   DifferentiatedWorksheet,
+  ParentWeeklySummary,
   RecallCard,
   StudentClassroomMetric,
   StudentComprehensiveReport,
@@ -10,13 +12,17 @@ import {
   UserRole
 } from '../types';
 import {
+  generateParentSummaryForStudent,
+  getComprehensiveReportForStudent,
   mockAuthUsers,
   mockClassroomMetrics,
   mockConceptNodes,
   mockRecallCards,
   mockStudentReport,
+  mockStudentReportsMap,
   mockUserProfile,
-  mockWorksheets
+  mockWorksheets,
+  synthesizeReportFromMetric
 } from '../data/mockData';
 import { SupabaseService } from './supabaseClient';
 
@@ -42,6 +48,8 @@ export type SyncEventType =
   | 'TOPIC_CREATED'
   | 'USER_REGISTERED'
   | 'CHILD_SWITCHED'
+  | 'STUDENT_METRIC_UPDATED'
+  | 'COHORT_DATA_IMPORTED'
   | 'REMOTE_DB_SYNC';
 
 export interface SyncMessage {
@@ -508,13 +516,17 @@ class BackendServiceManager {
   }
 
   // -------------------------------------------------------------
-  // Classroom Metrics & Parent Reports
+  // Classroom Metrics & Synchronized Cohort State
   // -------------------------------------------------------------
   public getClassroomMetrics(): StudentClassroomMetric[] {
     const raw = localStorage.getItem(STORAGE_KEYS.METRICS);
     if (raw) {
       try {
-        return JSON.parse(raw);
+        const parsed = JSON.parse(raw);
+        // Ensure we don't hold outdated 5-student cache; must contain full cohort
+        if (Array.isArray(parsed) && parsed.length >= mockClassroomMetrics.length) {
+          return parsed;
+        }
       } catch (e) {}
     }
     this.saveClassroomMetrics(mockClassroomMetrics);
@@ -525,14 +537,186 @@ class BackendServiceManager {
     localStorage.setItem(STORAGE_KEYS.METRICS, JSON.stringify(metrics));
   }
 
-  public getStudentReport(studentId: string = 'stu_maya_01'): StudentComprehensiveReport {
+  public getStudentById(studentIdOrName: string): StudentClassroomMetric | undefined {
+    const metrics = this.getClassroomMetrics();
+    const clean = (studentIdOrName || '').toLowerCase().trim();
+    return metrics.find(
+      m => m.studentId.toLowerCase() === clean || m.studentName.toLowerCase() === clean
+    );
+  }
+
+  public updateStudentClassroomMetric(
+    studentId: string,
+    updates: Partial<StudentClassroomMetric>,
+    senderRole: UserRole = 'teacher'
+  ): StudentClassroomMetric[] {
+    const metrics = this.getClassroomMetrics();
+    const idx = metrics.findIndex(m => m.studentId === studentId);
+    if (idx >= 0) {
+      metrics[idx] = { ...metrics[idx], ...updates };
+      this.saveClassroomMetrics(metrics);
+
+      // Also update comprehensive report in cache
+      const updatedReport = synthesizeReportFromMetric(metrics[idx]);
+      this.saveStudentReport(updatedReport);
+
+      this.broadcast('STUDENT_METRIC_UPDATED', { studentId, metric: metrics[idx] }, senderRole);
+    }
+    return metrics;
+  }
+
+  public updateStudentTopicScore(
+    studentId: string,
+    topicId: string,
+    score: number,
+    senderRole: UserRole = 'student'
+  ): StudentClassroomMetric[] {
+    const metrics = this.getClassroomMetrics();
+    const idx = metrics.findIndex(m => m.studentId === studentId);
+    if (idx >= 0) {
+      const currentScores = { ...metrics[idx].topicScores, [topicId]: score };
+      const scoreValues = Object.values(currentScores);
+      const overallMastery = Math.round(scoreValues.reduce((a, b) => a + b, 0) / (scoreValues.length || 1));
+      
+      let status: 'thriving' | 'on_track' | 'needs_support' | 'at_risk' = 'on_track';
+      if (overallMastery >= 85) status = 'thriving';
+      else if (overallMastery >= 70) status = 'on_track';
+      else if (overallMastery >= 50) status = 'needs_support';
+      else status = 'at_risk';
+
+      metrics[idx] = {
+        ...metrics[idx],
+        topicScores: currentScores,
+        overallMastery,
+        status,
+        lastActive: 'Just now'
+      };
+      this.saveClassroomMetrics(metrics);
+      const updatedReport = synthesizeReportFromMetric(metrics[idx]);
+      this.saveStudentReport(updatedReport);
+      this.broadcast('STUDENT_METRIC_UPDATED', { studentId, metric: metrics[idx] }, senderRole);
+    }
+    return metrics;
+  }
+
+  // Dynamic Cohort Misconception Aggregation Engine
+  public computeCohortMisconceptions(customMetrics?: StudentClassroomMetric[]): CohortMisconceptionAnalysis[] {
+    const metrics = customMetrics || this.getClassroomMetrics();
+    const totalStudents = metrics.length || 40;
+
+    const topicDefinitions = [
+      {
+        id: 'misc_diff_01',
+        topicId: 'diff_01',
+        topicTitle: 'Composite Chain Rule Derivatives',
+        subject: 'AP Calculus AB',
+        threshold: 70,
+        misconceptionDetails: 'Students repeatedly drop the inner derivative term g\'(x) when differentiating composite f(g(x)), confusing single-variable power rules with nested functions.',
+        recommendedIntervention: 'Deploy 2-step "Onion Peeling" decomposition worksheet and interactive step-by-step Socratic practice.',
+        suggestedTierWorksheet: 'ws_01'
+      },
+      {
+        id: 'misc_trig_01',
+        topicId: 'trig_01',
+        topicTitle: 'Trigonometric Identities & Double Angles',
+        subject: 'Trigonometry & Precalc',
+        threshold: 70,
+        misconceptionDetails: 'Students confuse double angle identity transformations sin(2x) = 2sin(x)cos(x) with simple scalar factoring 2sin(x).',
+        recommendedIntervention: 'Conduct 10-minute geometric unit circle proof drill and assign spaced recall flashcard deck.',
+        suggestedTierWorksheet: 'ws_02'
+      },
+      {
+        id: 'misc_lim_01',
+        topicId: 'lim_01',
+        topicTitle: 'Limits & Asymptotic Continuity',
+        subject: 'AP Calculus AB',
+        threshold: 70,
+        misconceptionDetails: 'Struggles distinguishing jump discontinuities from removable point holes during two-sided limit convergence tests.',
+        recommendedIntervention: 'Assign piecewise curve tracing practice on graph visualization sandbox.'
+      },
+      {
+        id: 'misc_func_01',
+        topicId: 'func_01',
+        topicTitle: 'Function Phase Shifts & Translations',
+        subject: 'Algebra & Precalc',
+        threshold: 70,
+        misconceptionDetails: 'Reverses horizontal phase shifts f(x - c) versus f(x + c) and scaling factors inside nested arguments.',
+        recommendedIntervention: 'Review inverse input transformation properties in Socratic Feynman Mode.'
+      },
+      {
+        id: 'misc_vec_01',
+        topicId: 'vec_01',
+        topicTitle: 'Vector Dot vs Cross Products',
+        subject: 'Physics & Vectors',
+        threshold: 70,
+        misconceptionDetails: 'Confuses scalar dot product work integrals with orthogonal vector cross product torque directions.',
+        recommendedIntervention: 'Hands-on 3D right-hand rule interactive simulator demonstration.'
+      }
+    ];
+
+    const results: CohortMisconceptionAnalysis[] = [];
+
+    for (const def of topicDefinitions) {
+      const affected: { id: string; name: string; score: number; avatar: string }[] = [];
+      let totalScoreOfAffected = 0;
+
+      for (const st of metrics) {
+        const score = st.topicScores?.[def.topicId];
+        if (score !== undefined && score < def.threshold) {
+          affected.push({
+            id: st.studentId,
+            name: st.studentName,
+            score: score,
+            avatar: st.avatar
+          });
+          totalScoreOfAffected += score;
+        }
+      }
+
+      if (affected.length > 0) {
+        const affectedCount = affected.length;
+        const affectedPercentage = Math.round((affectedCount / totalStudents) * 100);
+        const averageScore = Math.round(totalScoreOfAffected / affectedCount);
+        const severity: 'critical' | 'moderate' | 'mild' =
+          affectedPercentage >= 25 ? 'critical' : affectedPercentage >= 15 ? 'moderate' : 'mild';
+
+        results.push({
+          id: def.id,
+          topicId: def.topicId,
+          topicTitle: def.topicTitle,
+          subject: def.subject,
+          severity,
+          affectedCount,
+          totalStudents,
+          affectedPercentage,
+          averageScore,
+          misconceptionDetails: def.misconceptionDetails,
+          affectedStudents: affected.sort((a, b) => a.score - b.score),
+          recommendedIntervention: def.recommendedIntervention,
+          suggestedTierWorksheet: def.suggestedTierWorksheet
+        });
+      }
+    }
+
+    // Sort by affected count descending (most critical first)
+    return results.sort((a, b) => b.affectedCount - a.affectedCount);
+  }
+
+  public getStudentReport(studentId: string = 'st_01'): StudentComprehensiveReport {
     const raw = localStorage.getItem(`${STORAGE_KEYS.REPORTS}_${studentId}`);
     if (raw) {
       try {
         return JSON.parse(raw);
       } catch (e) {}
     }
-    return mockStudentReport;
+    const report = getComprehensiveReportForStudent(studentId);
+    this.saveStudentReport(report);
+    return report;
+  }
+
+  public getParentWeeklySummary(studentId: string = 'st_01'): ParentWeeklySummary {
+    const report = this.getStudentReport(studentId);
+    return generateParentSummaryForStudent(report);
   }
 
   public saveStudentReport(report: StudentComprehensiveReport): void {

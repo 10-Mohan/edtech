@@ -167,6 +167,14 @@ export interface StudentClassroomMetric {
   gapTopicsCount: number;
   lastActive: string;
   topicScores: Record<string, number>; // topicId -> score 0-100
+  parentName?: string;
+  parentEmail?: string;
+  studentEmail?: string;
+  streakDays?: number;
+  xp?: number;
+  level?: number;
+  studyHoursWeekly?: number;
+  attendanceRate?: number;
 }
 
 export interface DifferentiatedWorksheet {
@@ -210,6 +218,22 @@ export interface ParentWeeklySummary {
     context: string;
     followUp: string;
   }[];
+}
+
+export interface CohortMisconceptionAnalysis {
+  id: string;
+  topicId: string;
+  topicTitle: string;
+  subject: string;
+  severity: 'critical' | 'moderate' | 'mild';
+  affectedCount: number;
+  totalStudents: number;
+  affectedPercentage: number;
+  averageScore: number;
+  misconceptionDetails: string;
+  affectedStudents: { id: string; name: string; score: number; avatar: string }[];
+  recommendedIntervention: string;
+  suggestedTierWorksheet?: string;
 }
 
 export interface AuthUser {

@@ -1,17 +1,10 @@
-import React, { useState, Suspense, lazy } from 'react';
-import { ConceptNode, DifferentiatedWorksheet, StudentClassroomMetric } from '../../types';
-import { mockClassroomMetrics } from '../../data/mockData';
+import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
+import { ConceptNode, DifferentiatedWorksheet, StudentClassroomMetric, CohortMisconceptionAnalysis } from '../../types';
 import { MathRenderer } from '../common/MathRenderer';
 import { BackendService } from '../../services/backendService';
 import { CurriculumGeneratorService } from '../../services/curriculumGenerator';
 import { LoadingFallback } from '../common/LoadingFallback';
-
-const CurriculumEditorModal = lazy(() =>
-  import('./CurriculumEditorModal').then(m => ({ default: m.CurriculumEditorModal }))
-);
-const TeacherOnboardingModal = lazy(() =>
-  import('./TeacherOnboardingModal').then(m => ({ default: m.TeacherOnboardingModal }))
-);
+import { StudentDetailModal } from './StudentDetailModal';
 import {
   LayoutDashboard,
   FileSpreadsheet,
@@ -26,8 +19,25 @@ import {
   Layers,
   GitFork,
   BookOpen,
-  Compass
+  Compass,
+  Search,
+  SlidersHorizontal,
+  ChevronRight,
+  UserCheck,
+  Flame,
+  Award,
+  ArrowUpDown,
+  Filter,
+  Eye,
+  Send
 } from 'lucide-react';
+
+const CurriculumEditorModal = lazy(() =>
+  import('./CurriculumEditorModal').then(m => ({ default: m.CurriculumEditorModal }))
+);
+const TeacherOnboardingModal = lazy(() =>
+  import('./TeacherOnboardingModal').then(m => ({ default: m.TeacherOnboardingModal }))
+);
 
 interface TeacherDashboardProps {
   nodes: ConceptNode[];
@@ -40,19 +50,103 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   activeTeacherTab,
   onNodesUpdated
 }) => {
-  const [students, setStudents] = useState<StudentClassroomMetric[]>(BackendService.getClassroomMetrics());
-  const [worksheets, setWorksheets] = useState<DifferentiatedWorksheet[]>(BackendService.getWorksheets());
-  const [selectedWorksheet, setSelectedWorksheet] = useState<DifferentiatedWorksheet>(worksheets[0] || BackendService.getWorksheets()[0]);
+  const [students, setStudents] = useState<StudentClassroomMetric[]>(() => BackendService.getClassroomMetrics());
+  const [worksheets, setWorksheets] = useState<DifferentiatedWorksheet[]>(() => BackendService.getWorksheets());
+  const [selectedWorksheet, setSelectedWorksheet] = useState<DifferentiatedWorksheet>(() => worksheets[0] || BackendService.getWorksheets()[0]);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [isCurriculumModalOpen, setIsCurriculumModalOpen] = useState<boolean>(false);
   const [curriculumModalTab, setCurriculumModalTab] = useState<'topics' | 'worksheets' | 'ai_synthesizer'>('topics');
   const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(false);
 
-  const handleGenerateNewWorksheet = async () => {
+  // Search, Filter & Sort Controls for 40-Student Cohort
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'thriving' | 'on_track' | 'needs_support' | 'at_risk'>('all');
+  const [sortBy, setSortBy] = useState<'mastery_desc' | 'mastery_asc' | 'name' | 'attendance'>('mastery_desc');
+
+  // Deep-Dive Modal State
+  const [selectedStudentForDetail, setSelectedStudentForDetail] = useState<StudentClassroomMetric | null>(null);
+
+  // Subscribe to live multi-device / cross-tab updates
+  useEffect(() => {
+    const unsubscribe = BackendService.subscribe(msg => {
+      if (
+        msg.type === 'STUDENT_METRIC_UPDATED' ||
+        msg.type === 'COHORT_DATA_IMPORTED' ||
+        msg.type === 'REMOTE_DB_SYNC'
+      ) {
+        setStudents(BackendService.getClassroomMetrics());
+      }
+      if (msg.type === 'WORKSHEET_CREATED') {
+        const latestWs = BackendService.getWorksheets();
+        setWorksheets(latestWs);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Compute Cohort KPIs
+  const cohortStats = useMemo(() => {
+    const total = students.length || 40;
+    const avgMastery = Math.round(students.reduce((acc, s) => acc + s.overallMastery, 0) / total);
+    const avgAttendance = (
+      students.reduce((acc, s) => acc + (s.attendanceRate || 95), 0) / total
+    ).toFixed(1);
+    const thrivingCount = students.filter(s => s.status === 'thriving').length;
+    const onTrackCount = students.filter(s => s.status === 'on_track').length;
+    const needsSupportCount = students.filter(s => s.status === 'needs_support').length;
+    const atRiskCount = students.filter(s => s.status === 'at_risk').length;
+
+    return {
+      total,
+      avgMastery,
+      avgAttendance,
+      thrivingCount,
+      onTrackCount,
+      needsSupportCount,
+      atRiskCount
+    };
+  }, [students]);
+
+  // Dynamically compute Misconception Clusters
+  const misconceptions = useMemo(() => {
+    return BackendService.computeCohortMisconceptions(students);
+  }, [students]);
+
+  // Filtered & Sorted Student List
+  const filteredStudents = useMemo(() => {
+    let list = [...students];
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter(
+        s =>
+          s.studentName.toLowerCase().includes(q) ||
+          s.studentId.toLowerCase().includes(q) ||
+          (s.studentEmail && s.studentEmail.toLowerCase().includes(q)) ||
+          (s.parentName && s.parentName.toLowerCase().includes(q))
+      );
+    }
+
+    if (statusFilter !== 'all') {
+      list = list.filter(s => s.status === statusFilter);
+    }
+
+    list.sort((a, b) => {
+      if (sortBy === 'mastery_desc') return b.overallMastery - a.overallMastery;
+      if (sortBy === 'mastery_asc') return a.overallMastery - b.overallMastery;
+      if (sortBy === 'name') return a.studentName.localeCompare(b.studentName);
+      if (sortBy === 'attendance') return (b.attendanceRate || 0) - (a.attendanceRate || 0);
+      return 0;
+    });
+
+    return list;
+  }, [students, searchQuery, statusFilter, sortBy]);
+
+  const handleGenerateNewWorksheet = async (topicTitle?: string) => {
     setIsGenerating(true);
     try {
-      const topicName = nodes[Math.floor(Math.random() * nodes.length)]?.title || 'Vector Spaces & Matrices';
-      const newWs = await CurriculumGeneratorService.generateDifferentiatedWorksheetAI(topicName, 'math');
+      const targetTopic = topicTitle || nodes[Math.floor(Math.random() * nodes.length)]?.title || 'Composite Chain Rule Derivatives';
+      const newWs = await CurriculumGeneratorService.generateDifferentiatedWorksheetAI(targetTopic, 'math');
       const updated = BackendService.addWorksheet(newWs, 'teacher');
       setWorksheets(updated);
       setSelectedWorksheet(newWs);
@@ -79,10 +173,10 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
               <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>Teacher Orchestration Portal</h1>
-              <span className="badge badge-cyan">AP STEM Cohort A</span>
+              <span className="badge badge-cyan">AP STEM Cohort ({students.length} Enrolled)</span>
             </div>
             <p style={{ margin: 0 }}>
-              Live mastery matrices and automated 3-tier worksheet generation to eliminate 10+ hours of manual lesson differentiation.
+              Live mastery matrices, 40-student synchronized records, and automated 3-tier worksheet generation to eliminate 10+ hours of manual lesson differentiation.
             </p>
           </div>
 
@@ -110,7 +204,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             </button>
 
             <button
-              onClick={handleGenerateNewWorksheet}
+              onClick={() => handleGenerateNewWorksheet()}
               disabled={isGenerating}
               className="btn btn-primary"
             >
@@ -121,88 +215,267 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         </div>
       </div>
 
-      {/* View 1: Classroom Mastery Heatmap */}
+      {/* Cohort Key Performance Metrics Strip */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+        <div className="glass-card" style={{ padding: '18px 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', fontWeight: 600 }}>Total Cohort Roster</span>
+            <Users size={18} color="var(--primary-light)" />
+          </div>
+          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>
+            {cohortStats.total} Students
+          </div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+            Fully synchronized across faculty and parent portals
+          </div>
+        </div>
+
+        <div className="glass-card" style={{ padding: '18px 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', fontWeight: 600 }}>Class Average Mastery</span>
+            <Award size={18} color="#10b981" />
+          </div>
+          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#10b981' }}>
+            {cohortStats.avgMastery}%
+          </div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+            {cohortStats.thrivingCount} Thriving • {cohortStats.onTrackCount} On Track
+          </div>
+        </div>
+
+        <div className="glass-card" style={{ padding: '18px 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', fontWeight: 600 }}>Average Attendance</span>
+            <UserCheck size={18} color="#06b6d4" />
+          </div>
+          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#06b6d4' }}>
+            {cohortStats.avgAttendance}%
+          </div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+            Oakwood Horizon STEM Academy Term
+          </div>
+        </div>
+
+        <div className="glass-card" style={{ padding: '18px 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', fontWeight: 600 }}>Target Interventions</span>
+            <AlertTriangle size={18} color="#f43f5e" />
+          </div>
+          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f43f5e' }}>
+            {cohortStats.needsSupportCount + cohortStats.atRiskCount} Students
+          </div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+            {cohortStats.atRiskCount} Critical At-Risk • {cohortStats.needsSupportCount} Support Needed
+          </div>
+        </div>
+      </div>
+
+      {/* View 1: Classroom Mastery Heatmap (40-Student Synchronized Roster) */}
       {activeTeacherTab === 'class_overview' && (
-        <div className="glass-panel" style={{ padding: '24px', overflowX: 'auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Classroom Concept Mastery Matrix</h3>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <span className="badge badge-emerald">Mastered (85%+)</span>
-              <span className="badge badge-cyan">Proficient (70-84%)</span>
-              <span className="badge badge-amber">Developing (50-69%)</span>
-              <span className="badge badge-rose">Misconception Risk (&lt;50%)</span>
+        <div className="glass-panel" style={{ padding: '24px' }}>
+          {/* Header & Controls Bar */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
+            <div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 4px 0' }}>Classroom Concept Mastery Matrix</h3>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
+                Showing {filteredStudents.length} of {students.length} students
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+              {/* Search Box */}
+              <div style={{ position: 'relative', minWidth: '220px' }}>
+                <Search size={15} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)' }} />
+                <input
+                  type="text"
+                  placeholder="Search student or ID..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  style={{
+                    paddingLeft: '32px',
+                    paddingRight: '12px',
+                    paddingTop: '6px',
+                    paddingBottom: '6px',
+                    fontSize: '0.85rem',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--border-subtle)',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    color: 'var(--text-main)',
+                    width: '100%'
+                  }}
+                />
+              </div>
+
+              {/* Status Filter Dropdown */}
+              <select
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value as any)}
+                style={{
+                  padding: '6px 10px',
+                  fontSize: '0.85rem',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-surface-elevated)',
+                  color: 'var(--text-main)'
+                }}
+              >
+                <option value="all">All Statuses ({students.length})</option>
+                <option value="thriving">Thriving ({cohortStats.thrivingCount})</option>
+                <option value="on_track">On Track ({cohortStats.onTrackCount})</option>
+                <option value="needs_support">Needs Support ({cohortStats.needsSupportCount})</option>
+                <option value="at_risk">At Risk ({cohortStats.atRiskCount})</option>
+              </select>
+
+              {/* Sort Dropdown */}
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value as any)}
+                style={{
+                  padding: '6px 10px',
+                  fontSize: '0.85rem',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-surface-elevated)',
+                  color: 'var(--text-main)'
+                }}
+              >
+                <option value="mastery_desc">Highest Mastery</option>
+                <option value="mastery_asc">Lowest Mastery (Intervention)</option>
+                <option value="name">Alphabetical (A-Z)</option>
+                <option value="attendance">Highest Attendance</option>
+              </select>
             </div>
           </div>
 
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-medium)', textAlign: 'left' }}>
-                <th style={{ padding: '12px 16px', color: 'var(--text-dim)' }}>Student</th>
-                <th style={{ padding: '12px 16px', color: 'var(--text-dim)' }}>Overall</th>
-                {nodes.slice(0, 6).map(node => (
-                  <th key={node.id} style={{ padding: '12px 16px', color: 'var(--text-dim)', textAlign: 'center' }}>
-                    {node.title.split(' ')[0]}
-                  </th>
-                ))}
-                <th style={{ padding: '12px 16px', color: 'var(--text-dim)' }}>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {students.map(student => (
-                <tr key={student.studentId} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                  <td style={{ padding: '14px 16px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <img src={student.avatar} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
-                      <div>
-                        <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{student.studentName}</div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>{student.grade}</div>
-                      </div>
-                    </div>
-                  </td>
+          {/* Heatmap Legend */}
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+            <span className="badge badge-emerald">Mastered (85%+)</span>
+            <span className="badge badge-cyan">Proficient (70-84%)</span>
+            <span className="badge badge-amber">Developing (50-69%)</span>
+            <span className="badge badge-rose">Misconception Risk (&lt;50%)</span>
+          </div>
 
-                  <td style={{ padding: '14px 16px', fontWeight: 700 }}>
-                    {student.overallMastery}%
-                  </td>
-
-                  {nodes.slice(0, 6).map(node => {
-                    const score = student.topicScores[node.id];
-                    return (
-                      <td key={node.id} style={{ padding: '10px', textAlign: 'center' }}>
-                        <div
-                          style={{
-                            padding: '6px 10px',
-                            borderRadius: '6px',
-                            background: getHeatmapColor(score),
-                            fontWeight: 700,
-                            display: 'inline-block',
-                            minWidth: '42px'
-                          }}
-                        >
-                          {score !== undefined ? `${score}%` : '—'}
-                        </div>
-                      </td>
-                    );
-                  })}
-
-                  <td style={{ padding: '14px 16px' }}>
-                    <span
-                      className={`badge ${
-                        student.status === 'thriving'
-                          ? 'badge-emerald'
-                          : student.status === 'on_track'
-                          ? 'badge-cyan'
-                          : student.status === 'needs_support'
-                          ? 'badge-amber'
-                          : 'badge-rose'
-                      }`}
-                    >
-                      {student.status.replace('_', ' ').toUpperCase()}
-                    </span>
-                  </td>
+          {/* Responsive Table Container */}
+          <div style={{ overflowX: 'auto', maxHeight: '600px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+              <thead style={{ position: 'sticky', top: 0, background: 'var(--bg-surface)', zIndex: 10 }}>
+                <tr style={{ borderBottom: '1px solid var(--border-medium)', textAlign: 'left' }}>
+                  <th style={{ padding: '12px 16px', color: 'var(--text-dim)' }}>Student Name & ID</th>
+                  <th style={{ padding: '12px 16px', color: 'var(--text-dim)' }}>Mastery</th>
+                  <th style={{ padding: '12px 16px', color: 'var(--text-dim)', textAlign: 'center' }}>Attendance</th>
+                  {nodes.slice(0, 6).map(node => (
+                    <th key={node.id} style={{ padding: '12px 16px', color: 'var(--text-dim)', textAlign: 'center' }}>
+                      {node.title.split(' ')[0]}
+                    </th>
+                  ))}
+                  <th style={{ padding: '12px 16px', color: 'var(--text-dim)' }}>Status</th>
+                  <th style={{ padding: '12px 16px', color: 'var(--text-dim)', textAlign: 'center' }}>Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredStudents.map(student => (
+                  <tr
+                    key={student.studentId}
+                    style={{
+                      borderBottom: '1px solid var(--border-subtle)',
+                      transition: 'background 0.2s ease'
+                    }}
+                    className="interactive-row"
+                  >
+                    <td style={{ padding: '14px 16px' }}>
+                      <div
+                        style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+                        onClick={() => setSelectedStudentForDetail(student)}
+                      >
+                        <img
+                          src={student.avatar}
+                          alt={student.studentName}
+                          style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }}
+                        />
+                        <div>
+                          <div style={{ fontWeight: 600, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span>{student.studentName}</span>
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
+                            ID: {student.studentId} • {student.grade || '11th Grade'}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td style={{ padding: '14px 16px', fontWeight: 700 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span>{student.overallMastery}%</span>
+                        <div style={{ width: '50px', height: '5px', borderRadius: '3px', background: 'var(--border-subtle)', overflow: 'hidden' }}>
+                          <div
+                            style={{
+                              height: '100%',
+                              width: `${student.overallMastery}%`,
+                              background: student.overallMastery >= 85 ? '#10b981' : student.overallMastery >= 70 ? '#06b6d4' : student.overallMastery >= 50 ? '#f59e0b' : '#f43f5e'
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </td>
+
+                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                      <span style={{ fontWeight: 600, color: (student.attendanceRate || 95) >= 95 ? '#10b981' : '#f59e0b' }}>
+                        {student.attendanceRate || 95}%
+                      </span>
+                    </td>
+
+                    {nodes.slice(0, 6).map(node => {
+                      const score = student.topicScores[node.id];
+                      return (
+                        <td key={node.id} style={{ padding: '10px', textAlign: 'center' }}>
+                          <div
+                            style={{
+                              padding: '6px 10px',
+                              borderRadius: '6px',
+                              background: getHeatmapColor(score),
+                              fontWeight: 700,
+                              display: 'inline-block',
+                              minWidth: '42px'
+                            }}
+                          >
+                            {score !== undefined ? `${score}%` : '—'}
+                          </div>
+                        </td>
+                      );
+                    })}
+
+                    <td style={{ padding: '14px 16px' }}>
+                      <span
+                        className={`badge ${
+                          student.status === 'thriving'
+                            ? 'badge-emerald'
+                            : student.status === 'on_track'
+                            ? 'badge-cyan'
+                            : student.status === 'needs_support'
+                            ? 'badge-amber'
+                            : 'badge-rose'
+                        }`}
+                      >
+                        {student.status.replace('_', ' ').toUpperCase()}
+                      </span>
+                    </td>
+
+                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                      <button
+                        onClick={() => setSelectedStudentForDetail(student)}
+                        className="btn btn-secondary btn-sm"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px' }}
+                        title="Open comprehensive 360° student report"
+                      >
+                        <Eye size={13} />
+                        <span>360° Report</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -233,7 +506,8 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                   className={`glass-card interactive ${selectedWorksheet?.id === ws.id ? 'selected-card' : ''}`}
                   style={{
                     padding: '14px',
-                    border: selectedWorksheet?.id === ws.id ? '2px solid var(--primary-light)' : '1px solid var(--border-subtle)'
+                    border: selectedWorksheet?.id === ws.id ? '2px solid var(--primary-light)' : '1px solid var(--border-subtle)',
+                    cursor: 'pointer'
                   }}
                 >
                   <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-main)', marginBottom: '4px' }}>
@@ -329,42 +603,113 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         </div>
       )}
 
-      {/* View 3: Cohort Misconception Radar */}
+      {/* View 3: Dynamic Cohort Misconception Radar (Calculated from 40 Students) */}
       {(activeTeacherTab === 'misconception_alerts' || activeTeacherTab === 'misconceptions') && (
         <div className="glass-panel" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
-            <AlertTriangle size={24} color="#f43f5e" />
-            <h3 style={{ fontSize: '1.35rem', fontWeight: 800 }}>Cohort Misconception Alerts</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <AlertTriangle size={24} color="#f43f5e" />
+              <div>
+                <h3 style={{ fontSize: '1.35rem', fontWeight: 800, margin: 0 }}>Dynamic Cohort Misconception Radar</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
+                  Aggregated from {students.length} active student diagnostic scores and topic error logs
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => handleGenerateNewWorksheet('Composite Chain Rule Derivatives')}
+              disabled={isGenerating}
+              className="btn btn-primary btn-sm"
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <Sparkles size={14} />
+              <span>{isGenerating ? 'Synthesizing...' : 'Generate 3-Tier Remediation Pack'}</span>
+            </button>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px' }}>
-            <div style={{ padding: '20px', borderRadius: 'var(--radius-lg)', background: 'rgba(244, 63, 94, 0.08)', border: '1px solid rgba(244, 63, 94, 0.3)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontWeight: 700, color: '#fda4af' }}>Composite Derivatives (Chain Rule)</span>
-                <span className="badge badge-rose">3 Students Affected</span>
-              </div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', marginBottom: '10px' }}>
-                <MathRenderer text="Students are repeatedly dropping the internal derivative during $\frac{d}{dx}f(g(x))$." />
-              </div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                Affected: Maya Lin, Sophia Rodriguez, Lucas Vance
-              </div>
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '18px' }}>
+            {misconceptions.map(item => (
+              <div
+                key={item.id}
+                style={{
+                  padding: '22px',
+                  borderRadius: 'var(--radius-lg)',
+                  background: item.severity === 'critical' ? 'rgba(244, 63, 94, 0.08)' : 'rgba(245, 158, 11, 0.08)',
+                  border: `1px solid ${item.severity === 'critical' ? 'rgba(244, 63, 94, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '14px'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
+                  <div>
+                    <h4 style={{ fontWeight: 800, fontSize: '1.1rem', margin: '0 0 2px 0', color: item.severity === 'critical' ? '#fda4af' : '#fcd34d' }}>
+                      {item.topicTitle}
+                    </h4>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>{item.subject}</span>
+                  </div>
+                  <span className={`badge ${item.severity === 'critical' ? 'badge-rose' : 'badge-amber'}`}>
+                    {item.affectedCount} of {item.totalStudents} Students ({item.affectedPercentage}%)
+                  </span>
+                </div>
 
-            <div style={{ padding: '20px', borderRadius: 'var(--radius-lg)', background: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontWeight: 700, color: '#fcd34d' }}>Trigonometric Algebraic Isolation</span>
-                <span className="badge badge-amber">2 Students Affected</span>
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-main)' }}>
+                  <MathRenderer text={item.misconceptionDetails} />
+                </div>
+
+                {/* Affected Students Avatars */}
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: '6px', fontWeight: 600 }}>
+                    Affected Cohort (Avg Score: {item.averageScore}%):
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {item.affectedStudents.map(st => (
+                      <div
+                        key={st.id}
+                        onClick={() => {
+                          const full = students.find(s => s.studentId === st.id);
+                          if (full) setSelectedStudentForDetail(full);
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          background: 'rgba(0, 0, 0, 0.25)',
+                          border: '1px solid var(--border-subtle)',
+                          fontSize: '0.75rem',
+                          cursor: 'pointer'
+                        }}
+                        title={`Score: ${st.score}% - Click for 360 report`}
+                      >
+                        <img src={st.avatar} alt="" style={{ width: '16px', height: '16px', borderRadius: '50%' }} />
+                        <span>{st.name}</span>
+                        <span style={{ color: '#f87171', fontWeight: 700 }}>({st.score}%)</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Recommended Home / Class Action */}
+                <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.04)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  <strong style={{ color: 'var(--primary-light)' }}>Action Plan: </strong>
+                  {item.recommendedIntervention}
+                </div>
               </div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', marginBottom: '10px' }}>
-                <MathRenderer text="Students are neglecting negative roots when taking square roots of $\sin^2(x)$." />
-              </div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                Affected: Sophia Rodriguez, Lucas Vance
-              </div>
-            </div>
+            ))}
           </div>
         </div>
+      )}
+
+      {/* Student 360 Deep-Dive Modal */}
+      {selectedStudentForDetail && (
+        <StudentDetailModal
+          student={selectedStudentForDetail}
+          isOpen={!!selectedStudentForDetail}
+          onClose={() => setSelectedStudentForDetail(null)}
+        />
       )}
 
       {/* Curriculum Studio Modal */}

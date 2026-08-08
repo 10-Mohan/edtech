@@ -431,6 +431,14 @@ export const mockClassroomMetrics: StudentClassroomMetric[] = [
     status: 'on_track',
     gapTopicsCount: 1,
     lastActive: '10 mins ago',
+    parentName: 'Elena Lin',
+    parentEmail: 'elena.lin@parent.waypoint.edu',
+    studentEmail: 'maya.lin@student.waypoint.edu',
+    streakDays: 8,
+    xp: 420,
+    level: 3,
+    studyHoursWeekly: 4.5,
+    attendanceRate: 96.8,
     topicScores: { alg_01: 95, func_01: 88, trig_01: 72, lim_01: 92, diff_01: 42, vec_01: 68 }
   },
   {
@@ -438,11 +446,19 @@ export const mockClassroomMetrics: StudentClassroomMetric[] = [
     studentName: 'Ethan Zhang',
     avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
     grade: '11th Grade',
-    overallMastery: 91,
+    overallMastery: 94,
     status: 'thriving',
     gapTopicsCount: 0,
     lastActive: '1 hour ago',
-    topicScores: { alg_01: 98, func_01: 95, trig_01: 90, lim_01: 94, diff_01: 86, vec_01: 85 }
+    parentName: 'Arthur Zhang',
+    parentEmail: 'arthur.zhang@parent.waypoint.edu',
+    studentEmail: 'ethan.zhang@student.waypoint.edu',
+    streakDays: 19,
+    xp: 890,
+    level: 5,
+    studyHoursWeekly: 6.2,
+    attendanceRate: 99.1,
+    topicScores: { alg_01: 98, func_01: 96, trig_01: 94, lim_01: 95, diff_01: 90, vec_01: 92 }
   },
   {
     studentId: 'st_03',
@@ -453,6 +469,14 @@ export const mockClassroomMetrics: StudentClassroomMetric[] = [
     status: 'needs_support',
     gapTopicsCount: 3,
     lastActive: 'Yesterday',
+    parentName: 'Carlos Rodriguez',
+    parentEmail: 'carlos.r@parent.waypoint.edu',
+    studentEmail: 'sophia.r@student.waypoint.edu',
+    streakDays: 4,
+    xp: 260,
+    level: 2,
+    studyHoursWeekly: 2.8,
+    attendanceRate: 91.5,
     topicScores: { alg_01: 80, func_01: 62, trig_01: 45, lim_01: 58, diff_01: 35, vec_01: 55 }
   },
   {
@@ -464,6 +488,14 @@ export const mockClassroomMetrics: StudentClassroomMetric[] = [
     status: 'at_risk',
     gapTopicsCount: 4,
     lastActive: '3 days ago',
+    parentName: 'Rebecca Vance',
+    parentEmail: 'rebecca.vance@parent.waypoint.edu',
+    studentEmail: 'lucas.vance@student.waypoint.edu',
+    streakDays: 2,
+    xp: 180,
+    level: 1,
+    studyHoursWeekly: 1.5,
+    attendanceRate: 88.0,
     topicScores: { alg_01: 65, func_01: 48, trig_01: 38, lim_01: 40, diff_01: 28, vec_01: 42 }
   },
   {
@@ -471,11 +503,684 @@ export const mockClassroomMetrics: StudentClassroomMetric[] = [
     studentName: 'Aria Patel',
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
     grade: '11th Grade',
-    overallMastery: 84,
+    overallMastery: 91,
     status: 'thriving',
-    gapTopicsCount: 1,
+    gapTopicsCount: 0,
     lastActive: '25 mins ago',
-    topicScores: { alg_01: 92, func_01: 90, trig_01: 82, lim_01: 88, diff_01: 65, vec_01: 88 }
+    parentName: 'Dev Patel',
+    parentEmail: 'dev.patel@parent.waypoint.edu',
+    studentEmail: 'aria.patel@student.waypoint.edu',
+    streakDays: 14,
+    xp: 750,
+    level: 4,
+    studyHoursWeekly: 5.5,
+    attendanceRate: 98.5,
+    topicScores: { alg_01: 94, func_01: 92, trig_01: 88, lim_01: 91, diff_01: 86, vec_01: 94 }
+  },
+  {
+    studentId: 'st_06',
+    studentName: 'Leo Chen',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 82,
+    status: 'on_track',
+    gapTopicsCount: 1,
+    lastActive: '45 mins ago',
+    parentName: 'Wei Chen',
+    parentEmail: 'wei.chen@parent.waypoint.edu',
+    studentEmail: 'leo.chen@student.waypoint.edu',
+    streakDays: 11,
+    xp: 580,
+    level: 3,
+    studyHoursWeekly: 4.2,
+    attendanceRate: 97.4,
+    topicScores: { alg_01: 90, func_01: 85, trig_01: 82, lim_01: 88, diff_01: 68, vec_01: 80 }
+  },
+  {
+    studentId: 'st_07',
+    studentName: 'Liam Walker',
+    avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 76,
+    status: 'on_track',
+    gapTopicsCount: 1,
+    lastActive: '2 hours ago',
+    parentName: 'Sarah Walker',
+    parentEmail: 'sarah.w@parent.waypoint.edu',
+    studentEmail: 'liam.walker@student.waypoint.edu',
+    streakDays: 7,
+    xp: 430,
+    level: 3,
+    studyHoursWeekly: 3.9,
+    attendanceRate: 95.8,
+    topicScores: { alg_01: 88, func_01: 80, trig_01: 74, lim_01: 82, diff_01: 58, vec_01: 72 }
+  },
+  {
+    studentId: 'st_08',
+    studentName: 'Emma Wilson',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 80,
+    status: 'on_track',
+    gapTopicsCount: 1,
+    lastActive: '3 hours ago',
+    parentName: 'James Wilson',
+    parentEmail: 'james.wilson@parent.waypoint.edu',
+    studentEmail: 'emma.wilson@student.waypoint.edu',
+    streakDays: 9,
+    xp: 510,
+    level: 3,
+    studyHoursWeekly: 4.1,
+    attendanceRate: 96.5,
+    topicScores: { alg_01: 92, func_01: 86, trig_01: 78, lim_01: 84, diff_01: 64, vec_01: 78 }
+  },
+  {
+    studentId: 'st_09',
+    studentName: 'Noah Davis',
+    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 59,
+    status: 'needs_support',
+    gapTopicsCount: 2,
+    lastActive: 'Yesterday',
+    parentName: 'Michelle Davis',
+    parentEmail: 'michelle.d@parent.waypoint.edu',
+    studentEmail: 'noah.davis@student.waypoint.edu',
+    streakDays: 3,
+    xp: 290,
+    level: 2,
+    studyHoursWeekly: 2.5,
+    attendanceRate: 92.0,
+    topicScores: { alg_01: 78, func_01: 68, trig_01: 55, lim_01: 62, diff_01: 38, vec_01: 48 }
+  },
+  {
+    studentId: 'st_10',
+    studentName: 'Olivia Martinez',
+    avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 92,
+    status: 'thriving',
+    gapTopicsCount: 0,
+    lastActive: '20 mins ago',
+    parentName: 'Javier Martinez',
+    parentEmail: 'javier.m@parent.waypoint.edu',
+    studentEmail: 'olivia.m@student.waypoint.edu',
+    streakDays: 16,
+    xp: 820,
+    level: 5,
+    studyHoursWeekly: 5.8,
+    attendanceRate: 98.9,
+    topicScores: { alg_01: 96, func_01: 94, trig_01: 90, lim_01: 92, diff_01: 88, vec_01: 92 }
+  },
+  {
+    studentId: 'st_11',
+    studentName: 'Marcus Vance',
+    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 89,
+    status: 'thriving',
+    gapTopicsCount: 0,
+    lastActive: '15 mins ago',
+    parentName: 'Rebecca Vance',
+    parentEmail: 'rebecca.vance@parent.waypoint.edu',
+    studentEmail: 'marcus.v@student.waypoint.edu',
+    streakDays: 12,
+    xp: 690,
+    level: 4,
+    studyHoursWeekly: 4.9,
+    attendanceRate: 97.8,
+    topicScores: { alg_01: 95, func_01: 90, trig_01: 86, lim_01: 90, diff_01: 84, vec_01: 88 }
+  },
+  {
+    studentId: 'st_12',
+    studentName: 'Chloe Bennett',
+    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 93,
+    status: 'thriving',
+    gapTopicsCount: 0,
+    lastActive: '50 mins ago',
+    parentName: 'Robert Bennett',
+    parentEmail: 'robert.b@parent.waypoint.edu',
+    studentEmail: 'chloe.b@student.waypoint.edu',
+    streakDays: 18,
+    xp: 860,
+    level: 5,
+    studyHoursWeekly: 6.0,
+    attendanceRate: 99.0,
+    topicScores: { alg_01: 98, func_01: 95, trig_01: 92, lim_01: 94, diff_01: 89, vec_01: 91 }
+  },
+  {
+    studentId: 'st_13',
+    studentName: 'Jordan Lee',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 38,
+    status: 'at_risk',
+    gapTopicsCount: 5,
+    lastActive: '4 days ago',
+    parentName: 'Sung Lee',
+    parentEmail: 'sung.lee@parent.waypoint.edu',
+    studentEmail: 'jordan.lee@student.waypoint.edu',
+    streakDays: 1,
+    xp: 130,
+    level: 1,
+    studyHoursWeekly: 1.1,
+    attendanceRate: 85.2,
+    topicScores: { alg_01: 45, func_01: 32, trig_01: 30, lim_01: 35, diff_01: 24, vec_01: 38 }
+  },
+  {
+    studentId: 'st_14',
+    studentName: 'Daniel Kim',
+    avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 88,
+    status: 'thriving',
+    gapTopicsCount: 0,
+    lastActive: '1 hour ago',
+    parentName: 'Min-Jun Kim',
+    parentEmail: 'minjun.kim@parent.waypoint.edu',
+    studentEmail: 'daniel.kim@student.waypoint.edu',
+    streakDays: 13,
+    xp: 680,
+    level: 4,
+    studyHoursWeekly: 4.8,
+    attendanceRate: 98.1,
+    topicScores: { alg_01: 94, func_01: 90, trig_01: 84, lim_01: 89, diff_01: 82, vec_01: 89 }
+  },
+  {
+    studentId: 'st_15',
+    studentName: 'Benjamin Scott',
+    avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 74,
+    status: 'on_track',
+    gapTopicsCount: 1,
+    lastActive: '5 hours ago',
+    parentName: 'Rachel Scott',
+    parentEmail: 'rachel.scott@parent.waypoint.edu',
+    studentEmail: 'benjamin.s@student.waypoint.edu',
+    streakDays: 6,
+    xp: 390,
+    level: 2,
+    studyHoursWeekly: 3.4,
+    attendanceRate: 94.7,
+    topicScores: { alg_01: 85, func_01: 78, trig_01: 70, lim_01: 80, diff_01: 52, vec_01: 70 }
+  },
+  {
+    studentId: 'st_16',
+    studentName: 'Harper Clark',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 79,
+    status: 'on_track',
+    gapTopicsCount: 1,
+    lastActive: '30 mins ago',
+    parentName: 'David Clark',
+    parentEmail: 'david.clark@parent.waypoint.edu',
+    studentEmail: 'harper.c@student.waypoint.edu',
+    streakDays: 8,
+    xp: 480,
+    level: 3,
+    studyHoursWeekly: 4.0,
+    attendanceRate: 96.2,
+    topicScores: { alg_01: 91, func_01: 84, trig_01: 76, lim_01: 85, diff_01: 62, vec_01: 77 }
+  },
+  {
+    studentId: 'st_17',
+    studentName: 'Zoe Cooper',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 62,
+    status: 'needs_support',
+    gapTopicsCount: 2,
+    lastActive: 'Yesterday',
+    parentName: 'Thomas Cooper',
+    parentEmail: 'thomas.c@parent.waypoint.edu',
+    studentEmail: 'zoe.cooper@student.waypoint.edu',
+    streakDays: 4,
+    xp: 310,
+    level: 2,
+    studyHoursWeekly: 2.6,
+    attendanceRate: 93.1,
+    topicScores: { alg_01: 82, func_01: 70, trig_01: 48, lim_01: 65, diff_01: 44, vec_01: 58 }
+  },
+  {
+    studentId: 'st_18',
+    studentName: 'Julian Chen',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 90,
+    status: 'thriving',
+    gapTopicsCount: 0,
+    lastActive: '12 mins ago',
+    parentName: 'Linda Chen',
+    parentEmail: 'linda.chen@parent.waypoint.edu',
+    studentEmail: 'julian.c@student.waypoint.edu',
+    streakDays: 15,
+    xp: 760,
+    level: 4,
+    studyHoursWeekly: 5.2,
+    attendanceRate: 98.4,
+    topicScores: { alg_01: 95, func_01: 92, trig_01: 86, lim_01: 91, diff_01: 85, vec_01: 90 }
+  },
+  {
+    studentId: 'st_19',
+    studentName: 'Grace Taylor',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 87,
+    status: 'thriving',
+    gapTopicsCount: 0,
+    lastActive: '1 hour ago',
+    parentName: 'Christopher Taylor',
+    parentEmail: 'chris.t@parent.waypoint.edu',
+    studentEmail: 'grace.t@student.waypoint.edu',
+    streakDays: 11,
+    xp: 670,
+    level: 4,
+    studyHoursWeekly: 4.7,
+    attendanceRate: 97.9,
+    topicScores: { alg_01: 92, func_01: 89, trig_01: 85, lim_01: 88, diff_01: 81, vec_01: 87 }
+  },
+  {
+    studentId: 'st_20',
+    studentName: 'Caleb Ward',
+    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 42,
+    status: 'at_risk',
+    gapTopicsCount: 4,
+    lastActive: '2 days ago',
+    parentName: 'Patricia Ward',
+    parentEmail: 'patricia.w@parent.waypoint.edu',
+    studentEmail: 'caleb.ward@student.waypoint.edu',
+    streakDays: 2,
+    xp: 160,
+    level: 1,
+    studyHoursWeekly: 1.4,
+    attendanceRate: 87.5,
+    topicScores: { alg_01: 50, func_01: 38, trig_01: 35, lim_01: 38, diff_01: 22, vec_01: 36 }
+  },
+  {
+    studentId: 'st_21',
+    studentName: 'Mason Hall',
+    avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 72,
+    status: 'on_track',
+    gapTopicsCount: 1,
+    lastActive: '6 hours ago',
+    parentName: 'Brian Hall',
+    parentEmail: 'brian.hall@parent.waypoint.edu',
+    studentEmail: 'mason.hall@student.waypoint.edu',
+    streakDays: 5,
+    xp: 370,
+    level: 2,
+    studyHoursWeekly: 3.2,
+    attendanceRate: 94.0,
+    topicScores: { alg_01: 84, func_01: 76, trig_01: 68, lim_01: 78, diff_01: 50, vec_01: 68 }
+  },
+  {
+    studentId: 'st_22',
+    studentName: 'Evelyn Adams',
+    avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 81,
+    status: 'on_track',
+    gapTopicsCount: 1,
+    lastActive: '40 mins ago',
+    parentName: 'Jennifer Adams',
+    parentEmail: 'jennifer.a@parent.waypoint.edu',
+    studentEmail: 'evelyn.a@student.waypoint.edu',
+    streakDays: 10,
+    xp: 540,
+    level: 3,
+    studyHoursWeekly: 4.3,
+    attendanceRate: 97.0,
+    topicScores: { alg_01: 91, func_01: 85, trig_01: 80, lim_01: 86, diff_01: 66, vec_01: 79 }
+  },
+  {
+    studentId: 'st_23',
+    studentName: 'Alexander Wright',
+    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 75,
+    status: 'on_track',
+    gapTopicsCount: 1,
+    lastActive: '4 hours ago',
+    parentName: 'Richard Wright',
+    parentEmail: 'richard.w@parent.waypoint.edu',
+    studentEmail: 'alex.wright@student.waypoint.edu',
+    streakDays: 6,
+    xp: 410,
+    level: 3,
+    studyHoursWeekly: 3.6,
+    attendanceRate: 95.0,
+    topicScores: { alg_01: 86, func_01: 79, trig_01: 72, lim_01: 81, diff_01: 54, vec_01: 71 }
+  },
+  {
+    studentId: 'st_24',
+    studentName: 'Elijah Reed',
+    avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 54,
+    status: 'needs_support',
+    gapTopicsCount: 3,
+    lastActive: 'Yesterday',
+    parentName: 'Karen Reed',
+    parentEmail: 'karen.reed@parent.waypoint.edu',
+    studentEmail: 'elijah.reed@student.waypoint.edu',
+    streakDays: 3,
+    xp: 250,
+    level: 2,
+    studyHoursWeekly: 2.2,
+    attendanceRate: 90.8,
+    topicScores: { alg_01: 76, func_01: 60, trig_01: 42, lim_01: 54, diff_01: 32, vec_01: 50 }
+  },
+  {
+    studentId: 'st_25',
+    studentName: 'Abigail Mitchell',
+    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 77,
+    status: 'on_track',
+    gapTopicsCount: 1,
+    lastActive: '1 hour ago',
+    parentName: 'Matthew Mitchell',
+    parentEmail: 'matthew.m@parent.waypoint.edu',
+    studentEmail: 'abigail.m@student.waypoint.edu',
+    streakDays: 7,
+    xp: 450,
+    level: 3,
+    studyHoursWeekly: 3.8,
+    attendanceRate: 96.0,
+    topicScores: { alg_01: 89, func_01: 82, trig_01: 75, lim_01: 83, diff_01: 60, vec_01: 74 }
+  },
+  {
+    studentId: 'st_26',
+    studentName: 'Lucas Miller',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 83,
+    status: 'on_track',
+    gapTopicsCount: 1,
+    lastActive: '35 mins ago',
+    parentName: 'Laura Miller',
+    parentEmail: 'laura.m@parent.waypoint.edu',
+    studentEmail: 'lucas.m@student.waypoint.edu',
+    streakDays: 10,
+    xp: 570,
+    level: 3,
+    studyHoursWeekly: 4.4,
+    attendanceRate: 97.2,
+    topicScores: { alg_01: 92, func_01: 87, trig_01: 81, lim_01: 87, diff_01: 70, vec_01: 82 }
+  },
+  {
+    studentId: 'st_27',
+    studentName: 'Isaac Newton Lee',
+    avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 95,
+    status: 'thriving',
+    gapTopicsCount: 0,
+    lastActive: '5 mins ago',
+    parentName: 'Dr. H. Lee',
+    parentEmail: 'h.lee@parent.waypoint.edu',
+    studentEmail: 'isaac.lee@student.waypoint.edu',
+    streakDays: 21,
+    xp: 940,
+    level: 6,
+    studyHoursWeekly: 6.8,
+    attendanceRate: 99.5,
+    topicScores: { alg_01: 99, func_01: 98, trig_01: 95, lim_01: 97, diff_01: 93, vec_01: 94 }
+  },
+  {
+    studentId: 'st_28',
+    studentName: 'Emily Perez',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 73,
+    status: 'on_track',
+    gapTopicsCount: 1,
+    lastActive: '3 hours ago',
+    parentName: 'Hector Perez',
+    parentEmail: 'hector.perez@parent.waypoint.edu',
+    studentEmail: 'emily.perez@student.waypoint.edu',
+    streakDays: 5,
+    xp: 380,
+    level: 2,
+    studyHoursWeekly: 3.3,
+    attendanceRate: 94.5,
+    topicScores: { alg_01: 85, func_01: 77, trig_01: 69, lim_01: 79, diff_01: 53, vec_01: 69 }
+  },
+  {
+    studentId: 'st_29',
+    studentName: 'Mia Howard',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 66,
+    status: 'needs_support',
+    gapTopicsCount: 2,
+    lastActive: 'Yesterday',
+    parentName: 'Nancy Howard',
+    parentEmail: 'nancy.howard@parent.waypoint.edu',
+    studentEmail: 'mia.howard@student.waypoint.edu',
+    streakDays: 4,
+    xp: 340,
+    level: 2,
+    studyHoursWeekly: 2.9,
+    attendanceRate: 93.8,
+    topicScores: { alg_01: 84, func_01: 72, trig_01: 56, lim_01: 70, diff_01: 48, vec_01: 58 }
+  },
+  {
+    studentId: 'st_30',
+    studentName: 'Henry Evans',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 78,
+    status: 'on_track',
+    gapTopicsCount: 1,
+    lastActive: '2 hours ago',
+    parentName: 'George Evans',
+    parentEmail: 'george.evans@parent.waypoint.edu',
+    studentEmail: 'henry.evans@student.waypoint.edu',
+    streakDays: 8,
+    xp: 460,
+    level: 3,
+    studyHoursWeekly: 4.0,
+    attendanceRate: 96.1,
+    topicScores: { alg_01: 90, func_01: 83, trig_01: 76, lim_01: 84, diff_01: 61, vec_01: 76 }
+  },
+  {
+    studentId: 'st_31',
+    studentName: 'Ella Turner',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 84,
+    status: 'on_track',
+    gapTopicsCount: 0,
+    lastActive: '30 mins ago',
+    parentName: 'Stephanie Turner',
+    parentEmail: 'stephanie.t@parent.waypoint.edu',
+    studentEmail: 'ella.turner@student.waypoint.edu',
+    streakDays: 11,
+    xp: 610,
+    level: 4,
+    studyHoursWeekly: 4.6,
+    attendanceRate: 97.6,
+    topicScores: { alg_01: 93, func_01: 88, trig_01: 83, lim_01: 89, diff_01: 74, vec_01: 84 }
+  },
+  {
+    studentId: 'st_32',
+    studentName: 'Sophia Wang',
+    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 89,
+    status: 'thriving',
+    gapTopicsCount: 0,
+    lastActive: '15 mins ago',
+    parentName: 'Victor Wang',
+    parentEmail: 'victor.wang@parent.waypoint.edu',
+    studentEmail: 'sophia.wang@student.waypoint.edu',
+    streakDays: 13,
+    xp: 710,
+    level: 4,
+    studyHoursWeekly: 5.0,
+    attendanceRate: 98.2,
+    topicScores: { alg_01: 95, func_01: 91, trig_01: 87, lim_01: 90, diff_01: 83, vec_01: 88 }
+  },
+  {
+    studentId: 'st_33',
+    studentName: 'Logan Cox',
+    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 58,
+    status: 'needs_support',
+    gapTopicsCount: 3,
+    lastActive: '2 days ago',
+    parentName: 'Daniel Cox',
+    parentEmail: 'daniel.cox@parent.waypoint.edu',
+    studentEmail: 'logan.cox@student.waypoint.edu',
+    streakDays: 3,
+    xp: 270,
+    level: 2,
+    studyHoursWeekly: 2.3,
+    attendanceRate: 91.2,
+    topicScores: { alg_01: 78, func_01: 64, trig_01: 44, lim_01: 58, diff_01: 39, vec_01: 52 }
+  },
+  {
+    studentId: 'st_34',
+    studentName: 'Ava Brooks',
+    avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 46,
+    status: 'at_risk',
+    gapTopicsCount: 4,
+    lastActive: '3 days ago',
+    parentName: 'Melissa Brooks',
+    parentEmail: 'melissa.b@parent.waypoint.edu',
+    studentEmail: 'ava.brooks@student.waypoint.edu',
+    streakDays: 2,
+    xp: 190,
+    level: 1,
+    studyHoursWeekly: 1.6,
+    attendanceRate: 88.5,
+    topicScores: { alg_01: 66, func_01: 50, trig_01: 34, lim_01: 42, diff_01: 30, vec_01: 40 }
+  },
+  {
+    studentId: 'st_35',
+    studentName: 'Samuel Jackson',
+    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 86,
+    status: 'thriving',
+    gapTopicsCount: 0,
+    lastActive: '1 hour ago',
+    parentName: 'Brenda Jackson',
+    parentEmail: 'brenda.j@parent.waypoint.edu',
+    studentEmail: 'samuel.j@student.waypoint.edu',
+    streakDays: 12,
+    xp: 660,
+    level: 4,
+    studyHoursWeekly: 4.8,
+    attendanceRate: 97.7,
+    topicScores: { alg_01: 94, func_01: 89, trig_01: 84, lim_01: 88, diff_01: 79, vec_01: 86 }
+  },
+  {
+    studentId: 'st_36',
+    studentName: 'Sebastian Diaz',
+    avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 71,
+    status: 'on_track',
+    gapTopicsCount: 1,
+    lastActive: '5 hours ago',
+    parentName: 'Antonio Diaz',
+    parentEmail: 'antonio.diaz@parent.waypoint.edu',
+    studentEmail: 'sebastian.d@student.waypoint.edu',
+    streakDays: 5,
+    xp: 360,
+    level: 2,
+    studyHoursWeekly: 3.1,
+    attendanceRate: 93.9,
+    topicScores: { alg_01: 83, func_01: 75, trig_01: 67, lim_01: 77, diff_01: 49, vec_01: 67 }
+  },
+  {
+    studentId: 'st_37',
+    studentName: 'Scarlett Parker',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 82,
+    status: 'on_track',
+    gapTopicsCount: 1,
+    lastActive: '50 mins ago',
+    parentName: 'Kimberly Parker',
+    parentEmail: 'kimberly.p@parent.waypoint.edu',
+    studentEmail: 'scarlett.p@student.waypoint.edu',
+    streakDays: 9,
+    xp: 550,
+    level: 3,
+    studyHoursWeekly: 4.3,
+    attendanceRate: 97.1,
+    topicScores: { alg_01: 91, func_01: 86, trig_01: 80, lim_01: 87, diff_01: 67, vec_01: 81 }
+  },
+  {
+    studentId: 'st_38',
+    studentName: 'Jack Collins',
+    avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 77,
+    status: 'on_track',
+    gapTopicsCount: 1,
+    lastActive: '2 hours ago',
+    parentName: 'Timothy Collins',
+    parentEmail: 'tim.collins@parent.waypoint.edu',
+    studentEmail: 'jack.collins@student.waypoint.edu',
+    streakDays: 7,
+    xp: 440,
+    level: 3,
+    studyHoursWeekly: 3.7,
+    attendanceRate: 95.9,
+    topicScores: { alg_01: 89, func_01: 81, trig_01: 74, lim_01: 83, diff_01: 59, vec_01: 73 }
+  },
+  {
+    studentId: 'st_39',
+    studentName: 'Rachel Green',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 91,
+    status: 'thriving',
+    gapTopicsCount: 0,
+    lastActive: '18 mins ago',
+    parentName: 'Cynthia Green',
+    parentEmail: 'cynthia.g@parent.waypoint.edu',
+    studentEmail: 'rachel.green@student.waypoint.edu',
+    streakDays: 15,
+    xp: 790,
+    level: 4,
+    studyHoursWeekly: 5.4,
+    attendanceRate: 98.7,
+    topicScores: { alg_01: 96, func_01: 93, trig_01: 89, lim_01: 92, diff_01: 86, vec_01: 91 }
+  },
+  {
+    studentId: 'st_40',
+    studentName: 'Lily Murphy',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+    grade: '11th Grade',
+    overallMastery: 79,
+    status: 'on_track',
+    gapTopicsCount: 1,
+    lastActive: '1 hour ago',
+    parentName: 'Andrew Murphy',
+    parentEmail: 'andrew.murphy@parent.waypoint.edu',
+    studentEmail: 'lily.murphy@student.waypoint.edu',
+    streakDays: 8,
+    xp: 490,
+    level: 3,
+    studyHoursWeekly: 4.1,
+    attendanceRate: 96.4,
+    topicScores: { alg_01: 91, func_01: 85, trig_01: 77, lim_01: 85, diff_01: 63, vec_01: 78 }
   }
 ];
 
@@ -804,16 +1509,238 @@ export const mockLeoStudentReport: StudentComprehensiveReport = {
   }
 };
 
-export const mockStudentReport = mockStudentComprehensiveReport;
-export const mockConceptNodes = initialConceptNodes;
-export const mockRecallCards = initialRecallCards;
-export const mockUserProfile = initialStudentProfile;
+export function synthesizeReportFromMetric(metric: StudentClassroomMetric): StudentComprehensiveReport {
+  const attendanceRate = metric.attendanceRate || 96.0;
+  const presentDays = Math.round((attendanceRate / 100) * 50);
+  const excused = Math.max(0, 50 - presentDays - (metric.status === 'at_risk' ? 2 : 1));
+  const unexcused = 50 - presentDays - excused;
 
+  // Derive weak areas from topic scores
+  const weakAreas: StudentComprehensiveReport['weakAreasRadar'] = [];
+  const scores = metric.topicScores || {};
+
+  if ((scores.diff_01 ?? 100) < 75) {
+    weakAreas.push({
+      topic: 'Composite Chain Rule Derivatives',
+      subject: 'AP Calculus AB',
+      severity: (scores.diff_01 ?? 0) < 50 ? 'critical' : 'moderate',
+      misconceptionSummary: 'Drops inner derivative g\'(x) during nested composite differentiation f(g(x)).',
+      recommendedHomeAction: 'Prompt student to use the "onion peeling" or box method to decompose inner from outer functions.'
+    });
+  }
+
+  if ((scores.trig_01 ?? 100) < 75) {
+    weakAreas.push({
+      topic: 'Trigonometric Identities & Equations',
+      subject: 'Trigonometry & Precalc',
+      severity: (scores.trig_01 ?? 0) < 50 ? 'critical' : 'moderate',
+      misconceptionSummary: 'Confuses double-angle identities with compound angle addition formulas.',
+      recommendedHomeAction: 'Encourage a quick 10-minute flashcard review on unit circle angles and identities.'
+    });
+  }
+
+  if ((scores.lim_01 ?? 100) < 75) {
+    weakAreas.push({
+      topic: 'Limits & Continuity',
+      subject: 'AP Calculus AB',
+      severity: (scores.lim_01 ?? 0) < 50 ? 'critical' : 'moderate',
+      misconceptionSummary: 'Struggles with one-sided vs two-sided limit evaluation at asymptotic discontinuities.',
+      recommendedHomeAction: 'Trace left and right curve approaches on a piece of paper to verify limit convergence.'
+    });
+  }
+
+  if ((scores.func_01 ?? 100) < 75) {
+    weakAreas.push({
+      topic: 'Function Transformations',
+      subject: 'Algebra & Precalc',
+      severity: (scores.func_01 ?? 0) < 50 ? 'critical' : 'moderate',
+      misconceptionSummary: 'Reverses horizontal phase shifts f(x - c) versus f(x + c).',
+      recommendedHomeAction: 'Explain why modifying the input variable directly moves the graph in the inverse direction.'
+    });
+  }
+
+  if ((scores.vec_01 ?? 100) < 75) {
+    weakAreas.push({
+      topic: 'Vectors & 3D Geometry',
+      subject: 'Physics & Precalc',
+      severity: (scores.vec_01 ?? 0) < 50 ? 'critical' : 'moderate',
+      misconceptionSummary: 'Confuses scalar dot product magnitude with orthogonal cross product normal vectors.',
+      recommendedHomeAction: 'Ask student to demonstrate the right-hand rule for 3D torque and rotational vectors.'
+    });
+  }
+
+  if (weakAreas.length === 0) {
+    weakAreas.push({
+      topic: 'Multivariable Calculus Extension',
+      subject: 'AP Calculus BC',
+      severity: 'mild',
+      misconceptionSummary: 'Occasional algebraic simplifications in 3D partial derivatives.',
+      recommendedHomeAction: 'Encourage tackling advanced challenge proofs on Waypoint extension worksheets.'
+    });
+  }
+
+  const calcScore = Math.min(99, Math.max(40, Math.round(metric.overallMastery + ((scores.diff_01 || 70) - 70) * 0.2)));
+  const csScore = Math.min(99, Math.max(50, Math.round(metric.overallMastery + 4)));
+  const physScore = Math.min(99, Math.max(45, Math.round(metric.overallMastery - 2)));
+  const chemScore = Math.min(99, Math.max(45, Math.round(metric.overallMastery - 5)));
+
+  const getGrade = (s: number) => s >= 93 ? 'A+' : s >= 88 ? 'A' : s >= 82 ? 'A-' : s >= 78 ? 'B+' : s >= 72 ? 'B' : s >= 65 ? 'C+' : s >= 55 ? 'C' : 'D';
+  const getRank = (s: number) => s >= 90 ? 'Top 5%' : s >= 80 ? 'Top 20%' : s >= 70 ? 'Top 45%' : s >= 60 ? 'Middle 50%' : 'Needs Intervention';
+
+  return {
+    studentId: metric.studentId,
+    studentName: metric.studentName,
+    avatar: metric.avatar,
+    grade: metric.grade || '11th Grade (AP Advanced STEM)',
+    school: 'Oakwood Horizon STEM Academy',
+    academicYear: '2025 - 2026 Academic Term',
+    studentEmail: metric.studentEmail || `${metric.studentName.toLowerCase().replace(/\s+/g, '.')}@student.waypoint.edu`,
+    parentEmail: metric.parentEmail || `${(metric.parentName || 'parent').toLowerCase().replace(/\s+/g, '.')}@parent.waypoint.edu`,
+    parentName: metric.parentName || 'Parent / Guardian',
+    attendance: {
+      overallRate: attendanceRate,
+      presentDays: presentDays,
+      totalDays: 50,
+      excusedAbsences: excused,
+      unexcusedAbsences: unexcused,
+      tardies: metric.status === 'at_risk' ? 3 : metric.status === 'needs_support' ? 2 : 0,
+      recentLog: [
+        { date: 'Aug 05, 2026', status: 'present', subject: 'AP Calculus AB', note: 'Interactive Socratic recall session' },
+        { date: 'Aug 04, 2026', status: 'present', subject: 'AP Physics C', note: 'Mechanics laboratory on rotational inertia' },
+        { date: 'Aug 03, 2026', status: unexcused > 0 ? 'absent' : 'present', subject: 'AP Computer Science A', note: unexcused > 0 ? 'Unexcused absence' : 'Recursion module completed' },
+        { date: 'Aug 02, 2026', status: 'present', subject: 'AP Chemistry', note: 'Acid-base buffer equilibrium check' },
+        { date: 'Aug 01, 2026', status: 'present', subject: 'AP Calculus AB', note: 'Concept diagnostic quiz' }
+      ]
+    },
+    subjectBreakdown: [
+      {
+        subject: 'AP Calculus AB',
+        score: calcScore,
+        gradeLetter: getGrade(calcScore),
+        rankInClass: getRank(calcScore),
+        strengths: calcScore >= 80 ? ['Limits and continuity proof structure', 'Analytical curve sketching'] : ['Basic polynomial differentiation'],
+        weakSections: (scores.diff_01 ?? 75) < 75 ? ['Nested Chain Rule', 'Implicit differentiation'] : [],
+        teacherName: 'Dr. Eleanor Vance',
+        teacherRemarks: metric.status === 'thriving' 
+          ? `${metric.studentName} is demonstrating university-level mastery and analytical rigor.`
+          : metric.status === 'on_track'
+          ? `${metric.studentName} has strong steady momentum. Focused revision on chain rule derivatives will solidify an A.`
+          : `${metric.studentName} needs targeted scaffolded practice and 1-on-1 tutoring on core calculus definitions.`
+      },
+      {
+        subject: 'AP Computer Science A',
+        score: csScore,
+        gradeLetter: getGrade(csScore),
+        rankInClass: getRank(csScore),
+        strengths: ['Algorithmic decomposition', 'Object-oriented data structures'],
+        weakSections: csScore < 70 ? ['2D Array boundary iterations'] : [],
+        teacherName: 'Prof. Marcus Brody',
+        teacherRemarks: `${metric.studentName} is actively engaged in coding lab challenges.`
+      },
+      {
+        subject: 'AP Physics C: Mechanics',
+        score: physScore,
+        gradeLetter: getGrade(physScore),
+        rankInClass: getRank(physScore),
+        strengths: ['Kinematics vector modeling', 'Energy conservation equations'],
+        weakSections: physScore < 75 ? ['Rotational moment of inertia integrals'] : [],
+        teacherName: 'Dr. Sarah Jenkins',
+        teacherRemarks: `Good laboratory intuition. Extra practice on angular momentum recommended.`
+      },
+      {
+        subject: 'AP Chemistry',
+        score: chemScore,
+        gradeLetter: getGrade(chemScore),
+        rankInClass: getRank(chemScore),
+        strengths: ['Atomic structure and periodic trends'],
+        weakSections: chemScore < 75 ? ['Equilibrium ICE tables'] : [],
+        teacherName: 'Mr. David Kim',
+        teacherRemarks: `Steady progress in chemical stoichiometry.`
+      }
+    ],
+    weakAreasRadar: weakAreas,
+    studyHabits: {
+      weeklyFocusHours: metric.studyHoursWeekly || (metric.overallMastery / 20),
+      activeRecallStreakDays: metric.streakDays || 5,
+      masteredCardsCount: Math.round(metric.overallMastery * 0.3),
+      socraticSessionsCompleted: Math.round(metric.overallMastery / 12),
+      completionRate: Math.min(100, Math.round(metric.overallMastery + 5))
+    }
+  };
+}
+
+export function generateParentSummaryForStudent(report: StudentComprehensiveReport): ParentWeeklySummary {
+  const isHigh = report.subjectBreakdown[0].score >= 85;
+  return {
+    weekLabel: 'Week of Aug 1 - Aug 5, 2026',
+    overallHealth: isHigh ? 'steady' : 'needs_attention',
+    hoursLearned: report.studyHabits.weeklyFocusHours,
+    masteryGainPercent: isHigh ? 14 : 8,
+    cardsMasteredCount: report.studyHabits.masteredCardsCount,
+    headlineSummary: `${report.studentName} has logged ${report.studyHabits.weeklyFocusHours} hours this week with an active ${report.studyHabits.activeRecallStreakDays}-day streak!`,
+    celebrations: [
+      `Maintained a ${report.attendance.overallRate}% classroom attendance rate.`,
+      `Completed ${report.studyHabits.socraticSessionsCompleted} interactive Socratic AI sessions.`,
+      `Mastered ${report.studyHabits.masteredCardsCount} active recall flashcards.`
+    ],
+    focusAreas: report.weakAreasRadar.slice(0, 2).map(w => ({
+      subject: w.subject,
+      topic: w.topic,
+      homeActionTip: w.recommendedHomeAction
+    })),
+    dinnerTablePrompts: [
+      {
+        prompt: `"Hey ${report.studentName.split(' ')[0]}, tell me about what you discovered in ${report.subjectBreakdown[0].subject} this week!"`,
+        context: `${report.studentName} spent time reviewing ${report.weakAreasRadar[0]?.topic || 'core STEM concepts'}.`,
+        followUp: 'Ask them to explain how they broke down difficult problems in Socratic mode!'
+      },
+      {
+        prompt: `"What was the most exciting thing you built or practiced on Waypoint today?"`,
+        context: `${report.studentName} is on a ${report.studyHabits.activeRecallStreakDays}-day active learning streak.`,
+        followUp: 'Celebrate their consistency and encourage keeping the streak going!'
+      }
+    ]
+  };
+}
+
+// Build 40-student reports map dynamically
 export const mockStudentReportsMap: Record<string, StudentComprehensiveReport> = {
   'stu_maya_01': mockStudentComprehensiveReport,
   'stu_maya': mockStudentComprehensiveReport,
   'stu_leo_02': mockLeoStudentReport,
   'stu_leo': mockLeoStudentReport
 };
+
+// Populate all 40 students into the report map
+mockClassroomMetrics.forEach(metric => {
+  if (!mockStudentReportsMap[metric.studentId]) {
+    mockStudentReportsMap[metric.studentId] = synthesizeReportFromMetric(metric);
+  }
+  // Also map by name key for easy lookup
+  const nameKey = `stu_${metric.studentName.toLowerCase().replace(/\s+/g, '_')}`;
+  if (!mockStudentReportsMap[nameKey]) {
+    mockStudentReportsMap[nameKey] = mockStudentReportsMap[metric.studentId];
+  }
+});
+
+export const mockStudentReport = mockStudentReportsMap['st_01'] || mockStudentComprehensiveReport;
+export const mockConceptNodes = initialConceptNodes;
+export const mockRecallCards = initialRecallCards;
+export const mockUserProfile = initialStudentProfile;
+
+export function getComprehensiveReportForStudent(studentIdOrName: string): StudentComprehensiveReport {
+  if (mockStudentReportsMap[studentIdOrName]) {
+    return mockStudentReportsMap[studentIdOrName];
+  }
+  const matched = mockClassroomMetrics.find(m => 
+    m.studentId.toLowerCase() === studentIdOrName.toLowerCase() || 
+    m.studentName.toLowerCase() === studentIdOrName.toLowerCase()
+  );
+  if (matched) {
+    return synthesizeReportFromMetric(matched);
+  }
+  return mockStudentComprehensiveReport;
+}
+
 
 
