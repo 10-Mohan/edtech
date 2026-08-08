@@ -138,6 +138,10 @@ export async function evaluateFeynmanExplanationAsync(
 export function generateSocraticResponse(userMessage: string, contextTopic?: string): string {
   const msg = userMessage.toLowerCase();
   
+  if (msg.includes('airplane') || msg.includes('plane') || msg.includes('fly') || msg.includes('flight') || msg.includes('wing') || msg.includes('lift') || msg.includes('bernoulli')) {
+    return `Let's examine the physics of flight from first principles! An airplane wing (airfoil) is curved on top and flatter on the bottom. When air flows faster over the curved top, what does Bernoulli's principle tell us about the air pressure above vs. below the wing? Which direction must the net aerodynamic force act?`;
+  }
+
   if (msg.includes('derivative') || msg.includes('calculus') || msg.includes('rate of change')) {
     return `Great question! Before calculating the derivative mechanically, let's think about what a derivative physically represents. If you were looking at a car's speedometer at an exact split second, how does that relate to the total distance traveled over time? What happens if the time interval $\\Delta t$ shrinks toward zero?`;
   }
@@ -150,17 +154,21 @@ export function generateSocraticResponse(userMessage: string, contextTopic?: str
     return `Let's trace the energy currency! Sunlight hits the thylakoid membrane, but what is the exact molecule that gets split to release oxygen and provide excited electrons? Try walking through the Light-Dependent reactions first.`;
   }
 
-  if (msg.includes('force') || msg.includes('newton') || msg.includes('friction') || msg.includes('gravity')) {
+  if (msg.includes('force') || msg.includes('newton') || msg.includes('friction') || msg.includes('gravity') || msg.includes('momentum')) {
     return `Let's draw a mental Free Body Diagram first! What are all the individual contact forces and non-contact forces acting on the object along each axis? Is there any net unbalanced force, or is the system in dynamic equilibrium?`;
   }
 
-  if (msg.includes('recursion') || msg.includes('binary tree') || msg.includes('algorithm')) {
+  if (msg.includes('money') || msg.includes('inflation') || msg.includes('economy') || msg.includes('price')) {
+    return `Let's think in first principles! If the total amount of currency circulating on an island doubles overnight, but the total supply of grain and goods stays identical, what must happen to the price of each basket of grain when consumers bid for them?`;
+  }
+
+  if (msg.includes('recursion') || msg.includes('binary tree') || msg.includes('algorithm') || msg.includes('code')) {
     return `With recursion, the secret is always in the base case and the sub-problem contract! If your function solved the problem for a sub-tree of size $(N-1)$, what is the single remaining step to combine that with the root?`;
   }
 
   const socraticPrompts = [
     `That's a pivotal concept in ${contextTopic || 'this discipline'}. What is the fundamental definition you are applying here, and what assumptions are you making about starting conditions?`,
-    `Let's break that down into smaller steps. What is the very first thing that occurs before this step? How can you verify that intermediate result?`,
+    `Let's break that down into smaller steps. What is the very first physical or mathematical thing that occurs before this step? How can you verify that intermediate result?`,
     `Interesting intuition! If we tested an extreme edge case (like when $x = 0$ or as $x \\to \\infty$), does your explanation still hold true? What happens?`,
     `Could you explain what you expect to happen if we reverse the process? What is the core mechanism driving this behavior?`
   ];
