@@ -18,7 +18,14 @@ import {
   Send,
   X,
   Heart,
-  Lightbulb
+  Lightbulb,
+  BookOpen,
+  Check,
+  Coffee,
+  HelpCircle,
+  FileText,
+  UserCheck,
+  ChevronRight
 } from 'lucide-react';
 
 interface ParentDashboardProps {
@@ -56,6 +63,12 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const [isNudgeModalOpen, setIsNudgeModalOpen] = useState<boolean>(false);
   const [nudgeMessage, setNudgeMessage] = useState<string>('');
   const [nudgeSuccess, setNudgeSuccess] = useState<string | null>(null);
+
+  // Attendance filter state
+  const [attendanceFilter, setAttendanceFilter] = useState<'all' | 'present' | 'tardy' | 'absent' | 'excused'>('all');
+
+  // Dinner discussion marked state
+  const [discussedPrompts, setDiscussedPrompts] = useState<Record<number, boolean>>({});
 
   // Refresh trigger on real-time event updates
   const [refreshKey, setRefreshKey] = useState<number>(0);
@@ -144,12 +157,28 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     }, 2200);
   };
 
+  const togglePromptDiscussed = (idx: number) => {
+    setDiscussedPrompts(prev => ({
+      ...prev,
+      [idx]: !prev[idx]
+    }));
+  };
+
   const presetNudges = [
     `Proud of your hard work! Take 10 minutes to review the Chain Rule practice before tomorrow's class.`,
     `You're doing great in Calculus! Don't hesitate to ask the AI Socratic Tutor if you get stuck on any step.`,
     `Cheering for you! Let's celebrate after you finish your physics active recall cards tonight!`,
     `Remember to take your time on multi-step problems. You've got this!`
   ];
+
+  // Filtered attendance log
+  const filteredAttendanceLog = useMemo(() => {
+    if (!studentReport?.attendance?.recentLog) return [];
+    if (attendanceFilter === 'all') return studentReport.attendance.recentLog;
+    return studentReport.attendance.recentLog.filter(log => log.status === attendanceFilter);
+  }, [studentReport, attendanceFilter]);
+
+  const childFirstName = studentReport.studentName?.split(' ')[0] || 'Child';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -187,7 +216,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             </div>
           </div>
 
-          {/* Sibling Switcher (Only shown if this parent has multiple registered children) */}
+          {/* Sibling Switcher & Nudge CTA */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             {linkedChildIds.length > 1 && (
               <div
@@ -241,8 +270,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
         </div>
       </div>
 
-      {/* VIEW: ACADEMIC REPORT */}
-      {activeParentTab === 'academic_report' && (
+      {/* TAB 1: SUBJECT REPORT & STRENGTHS */}
+      {(activeParentTab === 'academic_report' || !activeParentTab) && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {/* Key Metrics Strip */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
@@ -293,113 +322,60 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             </div>
           </div>
 
-          {/* CRITICAL SECTION: Where Child Needs Improvement & What to Do */}
-          <div className="card" style={{ padding: '24px 28px', borderLeft: '4px solid #f43f5e' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(244, 63, 94, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f43f5e' }}>
-                  <AlertTriangle size={20} />
-                </div>
-                <div>
-                  <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>
-                    Identified Areas for Improvement & Action Plan
-                  </h2>
-                  <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--text-dim)' }}>
-                    Synchronized with {studentReport.studentName}'s student portal and Dr. Vance's curriculum tracker.
-                  </p>
-                </div>
-              </div>
-
-              <button
-                onClick={() => setIsNudgeModalOpen(true)}
-                className="btn btn-secondary btn-sm"
-                style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-              >
-                <MessageCircle size={14} />
-                <span>Send Support Note to {studentReport.studentName.split(' ')[0]}</span>
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {studentReport.weakAreasRadar && studentReport.weakAreasRadar.length > 0 ? (
-                studentReport.weakAreasRadar.map((weak, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      background: 'var(--bg-surface-elevated)',
-                      border: '1px solid var(--border-medium)',
-                      borderRadius: 'var(--radius-md)',
-                      padding: '16px 20px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '10px'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{weak.topic}</span>
-                        <span className="badge badge-indigo" style={{ fontSize: '0.7rem' }}>{weak.subject}</span>
-                      </div>
-                      <span className="badge" style={{ background: 'rgba(244, 63, 94, 0.12)', color: '#f43f5e', fontSize: '0.75rem', fontWeight: 600 }}>
-                        {weak.severity.toUpperCase()} PRIORITY GAP
-                      </span>
-                    </div>
-
-                    {/* What's Going Wrong */}
-                    <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', background: 'var(--bg-surface)', padding: '10px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', color: '#f43f5e', fontWeight: 700, fontSize: '0.8rem' }}>
-                        <AlertTriangle size={14} />
-                        <span>Where {studentReport.studentName.split(' ')[0]} is going wrong:</span>
-                      </div>
-                      <p style={{ margin: 0, lineHeight: 1.45 }}>{weak.misconceptionSummary}</p>
-                    </div>
-
-                    {/* Parent Home Support Tip */}
-                    <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)', background: 'var(--primary-subtle)', padding: '10px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-highlight)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', color: 'var(--primary-light)', fontWeight: 700, fontSize: '0.8rem' }}>
-                        <Lightbulb size={14} />
-                        <span>How you can support at home (No advanced math required):</span>
-                      </div>
-                      <p style={{ margin: 0, lineHeight: 1.45, color: 'var(--text-main)' }}>{weak.recommendedHomeAction}</p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-dim)' }}>
-                  <CheckCircle2 size={32} color="#10b981" style={{ margin: '0 auto 8px' }} />
-                  <p style={{ margin: 0, fontWeight: 600 }}>All concept modules are currently on track with no critical gaps detected!</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Subject Performance Breakdown Grid */}
+          {/* Enrolled Courses Grid */}
           <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '16px' }}>Enrolled Courses & Academic Standings</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 2px' }}>Enrolled Courses & Academic Standings</h2>
+                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-dim)' }}>
+                  Detailed term assessments, faculty remarks, and class percentiles for {studentReport.studentName}.
+                </p>
+              </div>
+              <span className="badge badge-indigo">{studentReport.subjectBreakdown?.length || 5} Active Courses</span>
+            </div>
+
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
               {studentReport.subjectBreakdown?.map((sub, idx) => (
-                <div key={idx} className="card" style={{ padding: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                    <div>
-                      <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: '0 0 4px' }}>{sub.subject}</h3>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>Instructor: {sub.teacherName}</span>
+                <div key={idx} className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                      <div>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 4px' }}>{sub.subject}</h3>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>Instructor: <strong>{sub.teacherName}</strong></span>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <span className={`badge ${sub.gradeLetter.startsWith('A') ? 'badge-emerald' : sub.gradeLetter.startsWith('B') ? 'badge-indigo' : 'badge-amber'}`} style={{ fontSize: '0.95rem', fontWeight: 800 }}>
+                          {sub.gradeLetter}
+                        </span>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-dim)', marginTop: '2px' }}>{sub.score}%</div>
+                      </div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <span className={`badge ${sub.gradeLetter.startsWith('A') ? 'badge-emerald' : sub.gradeLetter.startsWith('B') ? 'badge-indigo' : 'badge-amber'}`} style={{ fontSize: '0.9rem', fontWeight: 800 }}>
-                        {sub.gradeLetter}
-                      </span>
-                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-dim)', marginTop: '2px' }}>{sub.score}%</div>
-                    </div>
+
+                    <p style={{ fontSize: '0.8125rem', color: 'var(--text-main)', background: 'var(--bg-surface-elevated)', padding: '10px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', margin: '0 0 14px', lineHeight: 1.45, fontStyle: 'italic' }}>
+                      "{sub.teacherRemarks}"
+                    </p>
+
+                    {/* Strengths */}
+                    {sub.strengths && sub.strengths.length > 0 && (
+                      <div style={{ marginBottom: '14px' }}>
+                        <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', color: '#10b981', display: 'block', marginBottom: '6px' }}>
+                          Verified Strengths:
+                        </span>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                          {sub.strengths.map((str, sIdx) => (
+                            <span key={sIdx} className="badge badge-emerald" style={{ fontSize: '0.72rem' }}>
+                              ✓ {str}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  <p style={{ fontSize: '0.8125rem', color: 'var(--text-dim)', margin: '0 0 16px', lineHeight: 1.45, fontStyle: 'italic' }}>
-                    "{sub.teacherRemarks}"
-                  </p>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '10px', borderTop: '1px solid var(--border-subtle)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
-                      <span style={{ color: 'var(--text-dim)' }}>Course Score</span>
-                      <span style={{ fontWeight: 700 }}>{sub.score}%</span>
+                      <span style={{ color: 'var(--text-dim)' }}>Rank in Cohort: <strong>{sub.rankInClass}</strong></span>
+                      <span style={{ fontWeight: 700 }}>{sub.score}% Mastery</span>
                     </div>
                     <div style={{ width: '100%', height: '6px', background: 'var(--bg-surface-elevated)', borderRadius: '3px', overflow: 'hidden' }}>
                       <div style={{ width: `${sub.score}%`, height: '100%', background: 'var(--primary-gradient)', borderRadius: '3px' }} />
@@ -412,10 +388,211 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
         </div>
       )}
 
-      {/* VIEW: WEEKLY SUMMARY & EMAIL DISPATCH */}
-      {activeParentTab === 'weekly_summary' && (
+      {/* TAB 2: LIVE ATTENDANCE LOG */}
+      {activeParentTab === 'attendance' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {/* Automated Weekly Digest Card */}
+          {/* Attendance KPI Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
+            <div className="card" style={{ padding: '20px' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 700 }}>Overall Attendance</span>
+              <div style={{ fontSize: '2rem', fontWeight: 800, color: '#10b981', margin: '4px 0' }}>{studentReport.attendance.overallRate}%</div>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>School standard: 90%+</span>
+            </div>
+
+            <div className="card" style={{ padding: '20px' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 700 }}>Days Present</span>
+              <div style={{ fontSize: '2rem', fontWeight: 800, margin: '4px 0' }}>{studentReport.attendance.presentDays} <span style={{ fontSize: '1rem', color: 'var(--text-dim)' }}>/ {studentReport.attendance.totalDays}</span></div>
+              <span style={{ fontSize: '0.75rem', color: '#10b981' }}>High Punctuality</span>
+            </div>
+
+            <div className="card" style={{ padding: '20px' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 700 }}>Excused Absences</span>
+              <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--primary-light)', margin: '4px 0' }}>{studentReport.attendance.excusedAbsences || 2}</div>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Doctor / Verified</span>
+            </div>
+
+            <div className="card" style={{ padding: '20px' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 700 }}>Tardies / Late</span>
+              <div style={{ fontSize: '2rem', fontWeight: 800, color: '#f59e0b', margin: '4px 0' }}>{studentReport.attendance.tardies || 1}</div>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Transit delay</span>
+            </div>
+          </div>
+
+          {/* Attendance Audit Log Table */}
+          <div className="card" style={{ padding: '24px 28px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 2px' }}>
+                  Verified Period Attendance Records
+                </h2>
+                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-dim)' }}>
+                  Real-time check-in log reported by teachers and administration for {studentReport.studentName}.
+                </p>
+              </div>
+
+              {/* Status Filter Buttons */}
+              <div style={{ display: 'flex', gap: '6px', background: 'var(--bg-surface-elevated)', padding: '4px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-medium)' }}>
+                {(['all', 'present', 'tardy', 'excused', 'absent'] as const).map(tabKey => (
+                  <button
+                    key={tabKey}
+                    onClick={() => setAttendanceFilter(tabKey)}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: 'var(--radius-sm)',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      border: 'none',
+                      background: attendanceFilter === tabKey ? 'var(--primary)' : 'transparent',
+                      color: attendanceFilter === tabKey ? '#ffffff' : 'var(--text-dim)',
+                      cursor: 'pointer',
+                      textTransform: 'capitalize'
+                    }}
+                  >
+                    {tabKey}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Records Table */}
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-medium)', textAlign: 'left', color: 'var(--text-dim)' }}>
+                    <th style={{ padding: '12px 14px', fontWeight: 600 }}>Date</th>
+                    <th style={{ padding: '12px 14px', fontWeight: 600 }}>Course / Period</th>
+                    <th style={{ padding: '12px 14px', fontWeight: 600 }}>Status</th>
+                    <th style={{ padding: '12px 14px', fontWeight: 600 }}>Instructor Note / Verification</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredAttendanceLog.length > 0 ? (
+                    filteredAttendanceLog.map((log, idx) => (
+                      <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ padding: '12px 14px', fontWeight: 600 }}>{log.date}</td>
+                        <td style={{ padding: '12px 14px' }}>{log.subject}</td>
+                        <td style={{ padding: '12px 14px' }}>
+                          <span
+                            className={`badge ${
+                              log.status === 'present'
+                                ? 'badge-emerald'
+                                : log.status === 'tardy'
+                                ? 'badge-amber'
+                                : log.status === 'excused'
+                                ? 'badge-indigo'
+                                : 'badge-rose'
+                            }`}
+                            style={{ textTransform: 'capitalize' }}
+                          >
+                            {log.status}
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px 14px', color: 'var(--text-dim)' }}>
+                          {log.note || 'Verified on-time arrival'}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} style={{ padding: '24px', textAlign: 'center', color: 'var(--text-dim)' }}>
+                        No attendance records matching the selected filter.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: WEAK SECTIONS RADAR */}
+      {activeParentTab === 'weak_sections' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div className="card" style={{ padding: '24px 28px', borderLeft: '4px solid #f43f5e' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(244, 63, 94, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f43f5e' }}>
+                  <AlertTriangle size={20} />
+                </div>
+                <div>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>
+                    Identified Areas for Improvement & Action Plan
+                  </h2>
+                  <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--text-dim)' }}>
+                    Synchronized with {childFirstName}'s student portal and Dr. Vance's curriculum tracker.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsNudgeModalOpen(true)}
+                className="btn btn-secondary btn-sm"
+                style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                <MessageCircle size={14} />
+                <span>Send Support Note to {childFirstName}</span>
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {studentReport.weakAreasRadar && studentReport.weakAreasRadar.length > 0 ? (
+                studentReport.weakAreasRadar.map((weak, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      background: 'var(--bg-surface-elevated)',
+                      border: '1px solid var(--border-medium)',
+                      borderRadius: 'var(--radius-md)',
+                      padding: '18px 20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontWeight: 800, fontSize: '1.05rem' }}>{weak.topic}</span>
+                        <span className="badge badge-indigo" style={{ fontSize: '0.75rem' }}>{weak.subject}</span>
+                      </div>
+                      <span className="badge" style={{ background: 'rgba(244, 63, 94, 0.12)', color: '#f43f5e', fontSize: '0.75rem', fontWeight: 700 }}>
+                        {weak.severity.toUpperCase()} PRIORITY GAP
+                      </span>
+                    </div>
+
+                    {/* What's Going Wrong */}
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-main)', background: 'var(--bg-surface)', padding: '12px 16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', color: '#f43f5e', fontWeight: 700, fontSize: '0.82rem' }}>
+                        <AlertTriangle size={15} />
+                        <span>Where {childFirstName} is going wrong:</span>
+                      </div>
+                      <p style={{ margin: 0, lineHeight: 1.5 }}>{weak.misconceptionSummary}</p>
+                    </div>
+
+                    {/* Parent Home Support Tip */}
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-dim)', background: 'var(--primary-subtle)', padding: '12px 16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-highlight)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', color: 'var(--primary-light)', fontWeight: 700, fontSize: '0.82rem' }}>
+                        <Lightbulb size={15} />
+                        <span>How you can support at home (No advanced math required):</span>
+                      </div>
+                      <p style={{ margin: 0, lineHeight: 1.5, color: 'var(--text-main)' }}>{weak.recommendedHomeAction}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-dim)' }}>
+                  <CheckCircle2 size={36} color="#10b981" style={{ margin: '0 auto 10px' }} />
+                  <p style={{ margin: 0, fontWeight: 700, color: 'var(--text-main)' }}>All concept modules are currently on track with no critical gaps detected!</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: WEEKLY GROWTH DIGEST */}
+      {activeParentTab === 'weekly_digest' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <div className="card" style={{ padding: '24px 28px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
               <div>
@@ -423,7 +600,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   Weekly AI Progress Digest
                 </h2>
                 <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-dim)' }}>
-                  Auto-compiled weekly learning recap and family dinner conversation starters.
+                  Auto-compiled weekly learning recap and growth analysis for {studentReport.studentName}.
                 </p>
               </div>
               <span className="badge badge-indigo">{summary.weekLabel || 'Current Academic Week'}</span>
@@ -435,29 +612,32 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '24px' }}>
               {/* Celebrations */}
-              <div style={{ background: 'var(--bg-surface-elevated)', padding: '16px 20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-medium)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981', fontWeight: 700, fontSize: '0.85rem', marginBottom: '10px' }}>
-                  <Award size={16} />
+              <div style={{ background: 'var(--bg-surface-elevated)', padding: '18px 20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-medium)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981', fontWeight: 700, fontSize: '0.875rem', marginBottom: '12px' }}>
+                  <Award size={18} />
                   <span>Key Celebrations</span>
                 </div>
-                <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '0.8125rem', color: 'var(--text-dim)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '0.85rem', color: 'var(--text-main)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {summary.celebrations.map((cel, idx) => (
                     <li key={idx}>{cel}</li>
                   ))}
                 </ul>
               </div>
 
-              {/* Dinner Prompts */}
-              <div style={{ background: 'var(--bg-surface-elevated)', padding: '16px 20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-medium)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-light)', fontWeight: 700, fontSize: '0.85rem', marginBottom: '10px' }}>
-                  <Sparkles size={16} />
-                  <span>Dinner Table STEM Questions</span>
+              {/* Weekly Highlights */}
+              <div style={{ background: 'var(--bg-surface-elevated)', padding: '18px 20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-medium)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-light)', fontWeight: 700, fontSize: '0.875rem', marginBottom: '12px' }}>
+                  <TrendingUp size={18} />
+                  <span>Curriculum Focus Areas</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {summary.dinnerTablePrompts?.map((dp, idx) => (
+                  {summary.focusAreas?.map((fa, idx) => (
                     <div key={idx} style={{ fontSize: '0.8125rem' }}>
-                      <p style={{ margin: '0 0 2px', fontWeight: 600, color: 'var(--text-main)' }}>"{dp.prompt}"</p>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>Context: {dp.context}</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, marginBottom: '2px' }}>
+                        <span>{fa.topic}</span>
+                        <span className="badge badge-cyan" style={{ fontSize: '0.7rem' }}>{fa.subject}</span>
+                      </div>
+                      <p style={{ margin: 0, color: 'var(--text-dim)', fontSize: '0.78rem' }}>{fa.homeActionTip}</p>
                     </div>
                   ))}
                 </div>
@@ -545,46 +725,99 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
         </div>
       )}
 
-      {/* VIEW: TEACHER MESSAGING & CONSULTATION */}
-      {activeParentTab === 'teacher_chat' && (
-        <div className="card" style={{ padding: '24px 28px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
-            <img
-              src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80"
-              alt="Dr. Vance"
-              style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }}
-            />
-            <div>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '0 0 2px' }}>Direct Faculty Consultation: Dr. Eleanor Vance</h2>
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>AP STEM Department Chair • Usually responds within 2 hours</span>
-            </div>
-          </div>
-
-          <div style={{ background: 'var(--bg-surface-elevated)', borderRadius: 'var(--radius-md)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-              <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700 }}>
-                EV
+      {/* TAB 5: DINNER TABLE STARTERS */}
+      {activeParentTab === 'dinner_prompts' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div className="card" style={{ padding: '24px 28px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--primary-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
+                  <Sparkles size={22} />
+                </div>
+                <div>
+                  <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>
+                    Family Dinner Table STEM Starters
+                  </h2>
+                  <p style={{ margin: '2px 0 0', fontSize: '0.82rem', color: 'var(--text-dim)' }}>
+                    Thought-provoking conversation hooks tailored to what {childFirstName} is learning this week.
+                  </p>
+                </div>
               </div>
-              <div style={{ background: 'var(--bg-surface)', padding: '12px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', maxWidth: '580px' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-dim)', display: 'block', marginBottom: '4px' }}>Dr. Vance • Yesterday 4:15 PM</span>
-                <p style={{ margin: 0, fontSize: '0.85rem', lineHeight: 1.5 }}>
-                  Hello {currentUser?.name || studentReport.parentName}, {studentReport.studentName} is doing great in Calculus overall! I have assigned a targeted remediation module for the Composite Chain Rule in their portal. If they complete the 5-question Socratic drill before Friday, they will be fully prepared for the exam.
-                </p>
-              </div>
-            </div>
-          </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <input
-              type="text"
-              placeholder={`Send a quick note to Dr. Vance regarding ${studentReport.studentName.split(' ')[0]}'s progress...`}
-              className="input"
-              style={{ flex: 1 }}
-            />
-            <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Send size={15} />
-              <span>Send</span>
-            </button>
+              <span className="badge badge-emerald" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Coffee size={13} />
+                Zero Math Test Stress
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {summary.dinnerTablePrompts && summary.dinnerTablePrompts.length > 0 ? (
+                summary.dinnerTablePrompts.map((dp, idx) => {
+                  const isDone = !!discussedPrompts[idx];
+                  return (
+                    <div
+                      key={idx}
+                      className="card"
+                      style={{
+                        padding: '20px',
+                        background: isDone ? 'var(--bg-surface-elevated)' : 'var(--bg-surface-glass)',
+                        border: isDone ? '1px solid #10b981' : '1px solid var(--border-medium)',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px', gap: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--primary)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 800 }}>
+                            {idx + 1}
+                          </span>
+                          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary-light)', textTransform: 'uppercase' }}>
+                            Conversation Hook
+                          </span>
+                        </div>
+
+                        <button
+                          onClick={() => togglePromptDiscussed(idx)}
+                          className={`btn btn-sm ${isDone ? 'btn-primary' : 'btn-secondary'}`}
+                          style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem' }}
+                        >
+                          <Check size={14} />
+                          <span>{isDone ? 'Discussed Tonight ✓' : 'Mark as Discussed'}</span>
+                        </button>
+                      </div>
+
+                      <blockquote style={{ margin: '0 0 14px', fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.5, borderLeft: '3px solid var(--primary)', paddingLeft: '14px' }}>
+                        "{dp.prompt}"
+                      </blockquote>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
+                        <div style={{ background: 'var(--bg-surface)', padding: '12px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                          <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+                            Why this matters:
+                          </span>
+                          <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-main)', lineHeight: 1.45 }}>
+                            {dp.context}
+                          </p>
+                        </div>
+
+                        <div style={{ background: 'var(--primary-subtle)', padding: '12px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-highlight)' }}>
+                          <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--primary-light)', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+                            Fun follow-up question:
+                          </span>
+                          <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-main)', lineHeight: 1.45 }}>
+                            {dp.followUp}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-dim)' }}>
+                  <HelpCircle size={32} style={{ margin: '0 auto 8px' }} />
+                  <p style={{ margin: 0 }}>Dinner prompts will be generated automatically as new concepts are covered in class.</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -624,7 +857,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     Send Encouragement to {studentReport.studentName}
                   </h3>
                   <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
-                    Your message will instantly appear on {studentReport.studentName.split(' ')[0]}'s learning portal.
+                    Your message will instantly appear on {childFirstName}'s learning portal.
                   </span>
                 </div>
               </div>

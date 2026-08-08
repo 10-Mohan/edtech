@@ -269,6 +269,8 @@ export const App: React.FC = () => {
         activeTab={currentActiveTab}
         onSelectTab={handleSelectTab}
         dueCardsCount={dueCardsCount}
+        currentUser={currentUser}
+        currentStudentId={activeStudentId}
       />
 
       {/* Main Content Area */}

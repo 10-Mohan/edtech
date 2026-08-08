@@ -1,5 +1,6 @@
-import React from 'react';
-import { UserRole } from '../../types';
+import React, { useMemo } from 'react';
+import { AuthUser, UserRole } from '../../types';
+import { BackendService } from '../../services/backendService';
 import {
   Network,
   Layers,
@@ -25,14 +26,27 @@ interface SidebarProps {
   activeTab: string;
   onSelectTab: (tab: string) => void;
   dueCardsCount: number;
+  currentUser?: AuthUser | null;
+  currentStudentId?: string;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   currentRole,
   activeTab,
   onSelectTab,
-  dueCardsCount
+  dueCardsCount,
+  currentUser,
+  currentStudentId
 }) => {
+  // Resolve active child's name and metrics for parent portal dynamically
+  const linkedChildReport = useMemo(() => {
+    if (currentRole !== 'parent') return null;
+    const childId = currentUser?.linkedStudentId || currentStudentId || 'st_01';
+    return BackendService.getStudentReport(childId);
+  }, [currentRole, currentUser, currentStudentId]);
+
+  const childFirstName = linkedChildReport?.studentName?.split(' ')[0] || 'Student';
+
   return (
     <aside
       style={{
@@ -56,7 +70,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div style={{ padding: '0 12px 12px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-dim)' }}>
           {currentRole === 'student' && 'Student Hub'}
           {currentRole === 'teacher' && 'Instructor Tools'}
-          {currentRole === 'parent' && 'Maya\'s Family Portal'}
+          {currentRole === 'parent' && `${childFirstName}'s Family Portal`}
         </div>
 
         {/* Student Navigation Items */}
@@ -141,7 +155,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               label="Subject Report & Strengths"
               active={activeTab === 'academic_report'}
               onClick={() => onSelectTab('academic_report')}
-              badge="5 Courses"
+              badge={linkedChildReport?.subjectBreakdown ? `${linkedChildReport.subjectBreakdown.length} Courses` : '5 Courses'}
               badgeColor="badge-indigo"
             />
             <NavItem
@@ -149,7 +163,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               label="Live Attendance Log"
               active={activeTab === 'attendance'}
               onClick={() => onSelectTab('attendance')}
-              badge="96.8%"
+              badge={linkedChildReport?.attendance?.overallRate ? `${linkedChildReport.attendance.overallRate}%` : '96.8%'}
               badgeColor="badge-emerald"
             />
             <NavItem
@@ -198,8 +212,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
         <p style={{ fontSize: '0.72rem', color: 'var(--text-dim)', margin: 0, lineHeight: 1.4 }}>
           {currentRole === 'parent'
-            ? 'Synchronized with Maya Lin\'s active coursework.'
-            : 'Graph node tracking & spaced recall intervals active.'}
+            ? `Synchronized with ${childFirstName}'s faculty & curriculum logs.`
+            : currentRole === 'teacher'
+            ? 'Real-time telemetry from student Socratic drill sessions.'
+            : 'Feynman technique + active recall spaced repetition active.'}
         </p>
       </div>
     </aside>
@@ -231,39 +247,36 @@ const NavItem: React.FC<NavItemProps> = ({
         alignItems: 'center',
         justifyContent: 'space-between',
         width: '100%',
-        padding: '10px 14px',
+        padding: '10px 12px',
         borderRadius: 'var(--radius-md)',
-        background: active ? 'var(--primary-subtle)' : 'transparent',
-        border: active ? '1px solid var(--border-highlight)' : '1px solid transparent',
-        color: active ? 'var(--text-main)' : 'var(--text-muted)',
-        fontFamily: 'var(--font-body)',
-        fontSize: '0.875rem',
-        fontWeight: active ? 600 : 500,
+        border: active ? '1px solid var(--primary)' : '1px solid transparent',
+        background: active ? 'var(--primary-surface)' : 'transparent',
+        color: active ? 'var(--primary-light)' : 'var(--text-dim)',
         cursor: 'pointer',
-        transition: 'all 0.18s ease',
-        textAlign: 'left',
+        transition: 'all 0.15s ease',
+        fontWeight: active ? 600 : 500,
+        fontSize: '0.875rem',
+        textAlign: 'left'
       }}
-      onMouseEnter={(e) => {
+      onMouseEnter={e => {
         if (!active) {
-          e.currentTarget.style.background = 'var(--bg-glass-hover)';
+          e.currentTarget.style.background = 'var(--bg-surface-elevated)';
           e.currentTarget.style.color = 'var(--text-main)';
         }
       }}
-      onMouseLeave={(e) => {
+      onMouseLeave={e => {
         if (!active) {
           e.currentTarget.style.background = 'transparent';
-          e.currentTarget.style.color = 'var(--text-muted)';
+          e.currentTarget.style.color = 'var(--text-dim)';
         }
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <span style={{ color: active ? 'var(--primary-light)' : 'var(--text-dim)' }}>
-          {icon}
-        </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <span style={{ color: active ? 'var(--primary)' : 'inherit' }}>{icon}</span>
         <span>{label}</span>
       </div>
       {badge && (
-        <span className={`badge ${badgeColor}`} style={{ fontSize: '0.65rem', padding: '1px 6px' }}>
+        <span className={`badge ${badgeColor}`} style={{ fontSize: '0.7rem', padding: '2px 6px' }}>
           {badge}
         </span>
       )}
