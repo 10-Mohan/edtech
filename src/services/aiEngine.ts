@@ -8,7 +8,7 @@ Instead:
 2. Ask them to explain what physically or geometrically happens at intermediate steps.
 3. Propose intuitive thought experiments (e.g. "What happens if $x \\to 0$ or as $t \\to \\infty$?").
 4. Validate their correct reasoning with enthusiasm and gently illuminate any misconceptions with targeted counter-questions.
-5. Format mathematical equations with standard LaTeX ($x^2$, $\\frac{df}{dx}$, \\int). Keep responses concise (under 120 words) to encourage dynamic back-and-forth dialogue.`;
+5. Format mathematical equations using clean, natural mathematical notation (e.g. F = G * (m1 * m2) / r², dy/dx, x², √(x)). Avoid raw LaTeX syntax like \\frac or curly braces. Keep responses concise (under 120 words) to encourage dynamic back-and-forth dialogue.`;
 
 export const FEYNMAN_SYSTEM_PROMPT = `You are a Feynman Technique Mastery Evaluator.
 The student will attempt to explain a complex STEM topic in simple, intuitive terms as if teaching a beginner.
@@ -155,7 +155,7 @@ export function generateSocraticResponse(userMessage: string, contextTopic?: str
   }
 
   if (msg.includes('gravity') || msg.includes('gravitation') || msg.includes('orbit') || msg.includes('planet') || msg.includes('black hole')) {
-    return `Let's explore gravitation from first principles! Newton described gravity as an attractive force proportional to mass and inversely proportional to the square of distance: $$F = G \\frac{m_1 m_2}{r^2}$$. Einstein later revealed gravity as the curvature of spacetime itself. If you double the distance $r$ between the Earth and the Moon, what happens to the gravitational pull between them? And why does a satellite in orbit stay in perpetual free-fall without crashing into Earth?`;
+    return `Let's explore gravitation from first principles! Newton described gravity as an attractive force proportional to mass and inversely proportional to the square of distance: $$F = G * (m1 * m2) / r²$$. Einstein later revealed gravity as the curvature of spacetime itself. If you double the distance r between the Earth and the Moon, what happens to the gravitational pull between them? And why does a satellite in orbit stay in perpetual free-fall without crashing into Earth?`;
   }
 
   if (msg.includes('force') || msg.includes('newton') || msg.includes('friction') || msg.includes('momentum')) {
