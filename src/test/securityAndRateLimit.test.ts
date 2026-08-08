@@ -108,7 +108,8 @@ describe('Security, Rate-Limiting & AI Gate Architecture', () => {
       expect(SUPABASE_SQL_SCHEMA).toContain('CREATE POLICY "Students can access own recall cards"');
       expect(SUPABASE_SQL_SCHEMA).toContain('CREATE POLICY "Teachers can modify concept nodes"');
       expect(SUPABASE_SQL_SCHEMA).toContain('CREATE POLICY "Student and Parent report access"');
-      expect(SUPABASE_SQL_SCHEMA).toContain('CREATE POLICY "Teachers manage classroom metrics"');
+      expect(SUPABASE_SQL_SCHEMA).toContain('CREATE POLICY "Teachers can manage student reports"');
+      expect(SUPABASE_SQL_SCHEMA).toContain('CREATE POLICY "Teachers can access classroom metrics"');
     });
   });
 });
