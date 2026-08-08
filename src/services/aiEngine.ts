@@ -55,8 +55,8 @@ export async function generateSocraticResponseAsync(
     }
   }
 
-  // High-fidelity fallback
-  return generateSocraticResponse(userMessage, contextTopic);
+  // High-fidelity fallback with conversation history
+  return generateSocraticResponse(userMessage, contextTopic, history);
 }
 
 /**
@@ -91,7 +91,7 @@ export async function generateSocraticResponseStreamAsync(
     }
   }
 
-  const fallback = generateSocraticResponse(userMessage, contextTopic);
+  const fallback = generateSocraticResponse(userMessage, contextTopic, history);
   if (onChunk) {
     onChunk(fallback, fallback);
   }
@@ -133,10 +133,79 @@ export async function evaluateFeynmanExplanationAsync(
 }
 
 /**
- * Synchronous / Heuristic Socratic Generator (used as instant fallback & unit tests)
+ * Multi-Turn Socratic Dialogue Generator (Maintains progressive pedagogical chain)
  */
-export function generateSocraticResponse(userMessage: string, contextTopic?: string): string {
+export function generateSocraticResponse(
+  userMessage: string,
+  contextTopic?: string,
+  history: ChatMessage[] = []
+): string {
   const msg = userMessage.toLowerCase().trim();
+  const priorUserMessages = history.filter(m => m.sender === 'user');
+  const userTurn = priorUserMessages.length + 1; // 1 = first question, 2+ = multi-turn answer
+  const lastAssistantMsg = history.filter(m => m.sender === 'assistant').slice(-1)[0]?.text.toLowerCase() || '';
+
+  // -------------------------------------------------------------
+  // Check if student is asking for a hint or expresses confusion
+  // -------------------------------------------------------------
+  const isAskingForHint = msg.includes("don't know") || msg.includes('dont know') || msg.includes('not sure') || msg.includes('hint') || msg.includes('help') || msg.includes('confused') || msg.includes('no idea') || msg === '?';
+  if (isAskingForHint) {
+    if (lastAssistantMsg.includes('bernoulli') || lastAssistantMsg.includes('wing') || lastAssistantMsg.includes('pressure')) {
+      return `Here's an intuitive hint: Imagine holding a piece of paper horizontally beneath your mouth and blowing over the top surface. The fast-moving air above lowers the pressure, so the normal atmospheric pressure underneath lifts the paper up! Applying that to a wing: what does faster air over the curved top do to the pressure difference?`;
+    }
+    if (lastAssistantMsg.includes('ice') || lastAssistantMsg.includes('density') || lastAssistantMsg.includes('lattice')) {
+      return `Here's a visual clue: Think of liquid water molecules as people mingling closely in a crowded room. When it freezes into ice, they must all hold hands at arms' length in a rigid hexagon. Does that crowd take up more space or less space? What does that mean for mass per unit volume (density)?`;
+    }
+    if (lastAssistantMsg.includes('derivative') || lastAssistantMsg.includes('slope') || lastAssistantMsg.includes('secant')) {
+      return `Here's a direct analogy: If you drive 60 miles in 1 hour, your average speed was 60 mph. But at second 45, you could have been stopped at a red light! To find your exact speed at second 45, we shrink the measured time window $\\Delta t$ closer and closer to 0. What geometric line does that secant line turn into at that exact instant?`;
+    }
+    return `Let's break it down into a simpler stepping stone! Think about the system before any change happens: what is the single main force or variable acting here? If you had to guess just the direction of change (increasing or decreasing), which way would it go?`;
+  }
+
+  // -------------------------------------------------------------
+  // Multi-Turn Follow-Up Logic (Turn 2, Turn 3, Turn 4+)
+  // -------------------------------------------------------------
+  if (userTurn > 1) {
+    // A. Aerodynamics Follow-Up
+    if (lastAssistantMsg.includes('bernoulli') || lastAssistantMsg.includes('wing') || lastAssistantMsg.includes('air pressure') || lastAssistantMsg.includes('stall')) {
+      if (lastAssistantMsg.includes('pressure') && !lastAssistantMsg.includes('angle of attack')) {
+        return `Spot on! Higher pressure underneath and lower pressure on top creates a net upward aerodynamic force: **Lift**! Now here is the next crucial step: If the airplane needs more lift at low speeds (e.g. landing), the pilot tilts the wing upward (increasing the angle of attack). What happens if they tilt the wing too steep? At what point does the smooth airflow detach from the upper surface?`;
+      }
+      return `Brilliant insight! Exceeding the critical angle of attack causes boundary layer separation—the air can no longer follow the wing's curve, resulting in an aerodynamic stall. You have just derived the core aerodynamic principles of lift and stall recovery from first principles! How does this compare to how an airplane flies upside down?`;
+    }
+
+    // B. Ice & Density Follow-Up
+    if (lastAssistantMsg.includes('lattice') || lastAssistantMsg.includes('ice') || lastAssistantMsg.includes('archimedes') || lastAssistantMsg.includes('lake')) {
+      if (!lastAssistantMsg.includes('aquatic') && !lastAssistantMsg.includes('lake')) {
+        return `Exactly right! The rigid hexagonal lattice forces the molecules farther apart, expanding the volume and making solid ice ~9% less dense than liquid water. According to Archimedes' principle, the buoyant force of the displaced water easily supports it. Now, connect this to ecology: Why is it vital for fish and aquatic life in winter that ice floats and insulates lakes from the top down, rather than freezing solid from the bottom up?`;
+      }
+      return `Outstanding synthesis! Because ice stays at the surface, it forms an insulating thermal blanket that prevents lakes from freezing solid to the seabed, preserving life below. You connected molecular hydrogen bonding directly to global ecological survival! What other liquid behaves this way?`;
+    }
+
+    // C. Calculus Derivatives Follow-Up
+    if (lastAssistantMsg.includes('derivative') || lastAssistantMsg.includes('speedometer') || lastAssistantMsg.includes('secant') || lastAssistantMsg.includes('power rule')) {
+      if (!lastAssistantMsg.includes('power rule') && !lastAssistantMsg.includes('t^2')) {
+        return `Precisely! The secant line slope converges to the slope of the tangent line at that exact instant. Let's make this concrete: if a particle's position is $s(t) = t^2$, write out the average rate of change $\\frac{s(t + \\Delta t) - s(t)}{\\Delta t}$. What happens when you expand $(t + \\Delta t)^2$ and cancel out $\\Delta t$?`;
+      }
+      return `Fantastic! When you expand $\\frac{t^2 + 2t\\Delta t + (\\Delta t)^2 - t^2}{\\Delta t}$, the $t^2$ cancels, the $\\Delta t$ factors out leaving $2t + \\Delta t$, which becomes exactly $2t$ as $\\Delta t \\to 0$. You've just derived the Power Rule directly from Fermat and Newton's definition of the derivative! What would happen for $s(t) = t^3$?`;
+    }
+
+    // D. Electromagnetism & Circuits Follow-Up
+    if (lastAssistantMsg.includes('circuit') || lastAssistantMsg.includes('resistor') || lastAssistantMsg.includes('voltage') || lastAssistantMsg.includes('current')) {
+      return `Correct! In a series circuit, conservation of charge dictates current $I$ is constant everywhere ($I = V_{total} / R_{total}$). In a parallel circuit, however, each branch experiences the full source voltage. If you add a third identical lightbulb in parallel to a household circuit, does the brightness of the existing bulbs change, and what happens to the total current drawn from the wall outlet?`;
+    }
+
+    // E. General Multi-Turn Progress (Contextual acknowledge + next logical step)
+    const acknowledgedText = userMessage.length > 40 ? userMessage.slice(0, 40) + '...' : userMessage;
+    return `Excellent reasoning when you note **"${acknowledgedText}"**!
+That validates the first mechanism. Taking this to the next step:
+1. How does this intermediate effect influence the overall equilibrium of the system?
+2. If we push this system to an extreme limit (e.g. infinite time or zero resistance), what is the final steady-state outcome?`;
+  }
+
+  // -------------------------------------------------------------
+  // Initial Inquiry (Turn 1): Rich First-Principles Topic Triggers
+  // -------------------------------------------------------------
   
   // 1. Aerodynamics & Fluid Dynamics
   if (msg.includes('airplane') || msg.includes('plane') || msg.includes('fly') || msg.includes('flight') || msg.includes('wing') || msg.includes('lift') || msg.includes('bernoulli') || msg.includes('airfoil')) {
@@ -209,7 +278,6 @@ export function generateSocraticResponse(userMessage: string, contextTopic?: str
   }
 
   // 15. Dynamic First-Principles Parser for Any Specific Question
-  // Extract key nouns/phrases from the user's prompt to formulate a contextual Socratic response
   const cleaned = msg.replace(/^(what is|what are|why does|why do|why is|how does|how do|how is|explain|tell me about|can you explain)\s+/i, '').replace(/[?!.]/g, '').trim();
   const subjectSnippet = cleaned.length > 3 ? cleaned : (contextTopic || 'this topic');
 
