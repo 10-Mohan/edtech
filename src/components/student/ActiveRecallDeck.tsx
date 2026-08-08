@@ -237,38 +237,39 @@ export const ActiveRecallDeck: React.FC<ActiveRecallDeckProps> = ({
               <div
                 className="card-flip-front glass-panel"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(22, 29, 48, 0.9) 0%, rgba(16, 21, 34, 0.95) 100%)',
-                  border: '1px solid var(--border-medium)',
+                  background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
                   minHeight: '320px',
                   display: 'flex',
                   flexDirection: 'column',
-                  justifyContent: 'space-between'
+                  justifyContent: 'space-between',
+                  color: '#ffffff'
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span className="badge badge-cyan" style={{ textTransform: 'uppercase' }}>
                     {activeCard.subject}
                   </span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <Eye size={13} /> Click card to flip
                   </span>
                 </div>
 
-                <div style={{ padding: '24px 0', fontSize: '1.25rem', fontWeight: 600, lineHeight: 1.5 }}>
+                <div style={{ padding: '24px 0', fontSize: '1.25rem', fontWeight: 600, lineHeight: 1.5, color: '#ffffff' }}>
                   <MathRenderer text={activeCard.front} />
                 </div>
 
                 {activeCard.hint && (
                   <div>
                     {showHint ? (
-                      <div style={{ fontSize: '0.8125rem', color: 'var(--accent-cyan)', background: 'rgba(6, 182, 212, 0.1)', padding: '8px 12px', borderRadius: 'var(--radius-sm)' }}>
-                        <strong>Hint:</strong> <MathRenderer text={activeCard.hint} />
+                      <div style={{ fontSize: '0.8125rem', color: '#67e8f9', background: 'rgba(6, 182, 212, 0.15)', padding: '8px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(6, 182, 212, 0.3)' }}>
+                        <strong style={{ color: '#a5f3fc' }}>Hint:</strong> <MathRenderer text={activeCard.hint} />
                       </div>
                     ) : (
                       <button
                         onClick={(e) => { e.stopPropagation(); setShowHint(true); }}
                         className="btn btn-ghost btn-sm"
-                        style={{ fontSize: '0.75rem' }}
+                        style={{ fontSize: '0.75rem', color: '#94a3b8' }}
                       >
                         <HelpCircle size={13} /> Show Hint
                       </button>
@@ -281,22 +282,23 @@ export const ActiveRecallDeck: React.FC<ActiveRecallDeckProps> = ({
               <div
                 className="card-flip-back glass-panel"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(26, 35, 60, 0.95) 0%, rgba(16, 21, 34, 0.98) 100%)',
-                  border: '1px solid var(--border-highlight)',
+                  background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+                  border: '1px solid rgba(16, 185, 129, 0.3)',
                   minHeight: '320px',
                   display: 'flex',
                   flexDirection: 'column',
-                  justifyContent: 'space-between'
+                  justifyContent: 'space-between',
+                  color: '#ffffff'
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span className="badge badge-emerald">Recall Solution</span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
                     Repetitions: {activeCard.repetitions}
                   </span>
                 </div>
 
-                <div style={{ padding: '20px 0', fontSize: '1.15rem', color: 'var(--text-main)', lineHeight: 1.6 }}>
+                <div style={{ padding: '20px 0', fontSize: '1.15rem', color: '#ffffff', lineHeight: 1.6 }}>
                   <MathRenderer text={activeCard.back} />
                   {activeCard.equation && (
                     <div style={{ marginTop: '12px' }}>
@@ -305,7 +307,7 @@ export const ActiveRecallDeck: React.FC<ActiveRecallDeckProps> = ({
                   )}
                 </div>
 
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
                   Rate your recall confidence below to calibrate next interval
                 </div>
               </div>

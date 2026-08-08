@@ -624,9 +624,14 @@ input::placeholder, textarea::placeholder {
   justify-content: space-between;
   border-radius: var(--radius-lg);
   padding: 28px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: var(--shadow-sm);
+  color: #ffffff;
+}
+
+.card-flip-front *, .card-flip-back * {
+  box-sizing: border-box;
 }
 
 .card-flip-back {
