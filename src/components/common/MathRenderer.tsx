@@ -14,10 +14,10 @@ export function cleanMathNotation(input: string): string {
 
   let res = input;
 
-  // 1. Recursive \frac{num}{den} parser
+  // 1. Recursive fraction parser (handles \frac, \\frac, \dfrac, \tfrac, etc.)
   const replaceFractions = (str: string): string => {
     let output = str;
-    const fracRegex = /\\frac\s*\{([^{}]+|\{[^{}]*\})\}\s*\{([^{}]+|\{[^{}]*\})\}/g;
+    const fracRegex = /\\*(?:d|t)?frac\s*\{([^{}]+|\{[^{}]*\})\}\s*\{([^{}]+|\{[^{}]*\})\}/gi;
     let matchFound = true;
     let loopLimit = 0;
 
@@ -28,7 +28,7 @@ export function cleanMathNotation(input: string): string {
         matchFound = true;
         const cleanNum = cleanMathNotation(num.trim());
         const cleanDen = cleanMathNotation(den.trim());
-        if (cleanNum.length <= 3 && cleanDen.length <= 3 && !cleanNum.includes(' ') && !cleanDen.includes(' ')) {
+        if (cleanNum.length <= 4 && cleanDen.length <= 4 && !cleanNum.includes(' ') && !cleanDen.includes(' ')) {
           return `${cleanNum} / ${cleanDen}`;
         }
         return `(${cleanNum} / ${cleanDen})`;
@@ -36,7 +36,8 @@ export function cleanMathNotation(input: string): string {
     }
 
     // Handle loose single-character \frac a b
-    output = output.replace(/\\frac\s+([a-zA-Z0-9])\s+([a-zA-Z0-9])/g, '$1 / $2');
+    output = output.replace(/\\*(?:d|t)?frac\s+([a-zA-Z0-9]+)\s+([a-zA-Z0-9]+)/gi, '$1 / $2');
+    output = output.replace(/\\*(?:d|t)?frac\b/gi, '');
     return output;
   };
 
