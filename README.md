@@ -154,15 +154,17 @@ flowchart LR
 ---
 
 <!-- ========================================================= -->
-<!-- 6. SCREENSHOTS & UI WALKTHROUGH -->
+<!-- 6. UI ARCHITECTURE & DESIGN PREVIEWS -->
 <!-- ========================================================= -->
 
-## 📷 Interface Previews
+## 🎨 UI Architecture & Design Previews
+
+> 💡 *The vector schematics below illustrate the core interface layouts and workflow mechanics. To explore the live interactive application with active animations, Socratic tutoring, and 3D card flips, visit the **[Live Deployed App](https://edtech-fawn.vercel.app)**.*
 
 | 🔐 **Notebook Authentication** | 🧭 **Student Knowledge Graph (DAG)** |
 |:---:|:---:|
 | ![Login Portal Preview](assets/screenshots/login.svg) | ![Student Knowledge Graph Preview](assets/screenshots/student_graph.svg) |
-| *Strict credential check & tactile open-notebook UI* | *Interactive DAG prerequisite nodes & mastery scoring* |
+| *Strict credential check & tactile open-notebook layout* | *Interactive DAG prerequisite nodes & mastery scoring* |
 
 | 👩‍🏫 **Faculty Mastery Heatmap** | 📝 **Differentiated Worksheet Studio** |
 |:---:|:---:|
