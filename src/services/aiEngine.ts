@@ -136,90 +136,152 @@ export async function evaluateFeynmanExplanationAsync(
  * Synchronous / Heuristic Socratic Generator (used as instant fallback & unit tests)
  */
 export function generateSocraticResponse(userMessage: string, contextTopic?: string): string {
-  const msg = userMessage.toLowerCase();
+  const msg = userMessage.toLowerCase().trim();
   
-  if (msg.includes('airplane') || msg.includes('plane') || msg.includes('fly') || msg.includes('flight') || msg.includes('wing') || msg.includes('lift') || msg.includes('bernoulli')) {
+  // 1. Aerodynamics & Fluid Dynamics
+  if (msg.includes('airplane') || msg.includes('plane') || msg.includes('fly') || msg.includes('flight') || msg.includes('wing') || msg.includes('lift') || msg.includes('bernoulli') || msg.includes('airfoil')) {
     return `Let's examine the physics of flight from first principles! An airplane wing (airfoil) is curved on top and flatter on the bottom. When air flows faster over the curved top, what does Bernoulli's principle tell us about the air pressure above vs. below the wing? Which direction must the net aerodynamic force act?`;
   }
 
-  if (msg.includes('derivative') || msg.includes('calculus') || msg.includes('rate of change')) {
-    return `Great question! Before calculating the derivative mechanically, let's think about what a derivative physically represents. If you were looking at a car's speedometer at an exact split second, how does that relate to the total distance traveled over time? What happens if the time interval Δt shrinks toward zero?`;
+  // 2. Buoyancy, Density & Floating (e.g. Ice Floating)
+  if (msg.includes('ice') || msg.includes('float') || msg.includes('buoyan') || msg.includes('archimedes') || msg.includes('density') || msg.includes('sink')) {
+    return `Let's investigate from atomic structure and Archimedes' Principle! When liquid water freezes into ice, its hydrogen bonds form an open hexagonal crystalline lattice. Does this lattice cause the molecules to spread farther apart or pack closer together? And according to Archimedes' Principle, why does an object with lower density than the surrounding fluid experience a net upward buoyant force?`;
+  }
+
+  // 3. Calculus: Derivatives & Rates of Change
+  if (msg.includes('derivative') || msg.includes('chain rule') || msg.includes('product rule') || msg.includes('calculus') || msg.includes('rate of change') || msg.includes('differentiate')) {
+    return `Great question! Before calculating the derivative mechanically, let's think about what a derivative physically represents. If you were looking at a car's speedometer at an exact split second, how does that relate to the total distance traveled over time? What happens to the secant line slope as the time interval Δt shrinks toward zero?`;
+  }
+
+  // 4. Calculus: Integrals & Accumulation
+  if (msg.includes('integral') || msg.includes('integration') || msg.includes('anti-derivative') || msg.includes('area under') || msg.includes('riemann')) {
+    return `Let's visualize integration from first principles! If a derivative gives you the instantaneous velocity v(t), what happens when you sum up infinitely many infinitesimal rectangles of width dt multiplied by height v(t)? What physical quantity does that total area under the curve accumulate?`;
   }
   
-  if (msg.includes('matrix') || msg.includes('vector') || msg.includes('linear algebra')) {
-    return `Let's visualize this geometrically. When we multiply a matrix by a vector, we aren't just doing arithmetic on numbers—we are transforming the entire coordinate grid! Imagine rotating or stretching a rubber sheet. What happens to the basis vectors î = [1, 0] and ĵ = [0, 1] after the transformation?`;
+  // 5. Linear Algebra: Matrices, Eigenvectors & Transforms
+  if (msg.includes('matrix') || msg.includes('vector') || msg.includes('linear algebra') || msg.includes('eigen') || msg.includes('determinant')) {
+    return `Let's visualize this geometrically. When we multiply a matrix by a vector, we aren't just doing arithmetic on numbers—we are transforming the entire coordinate grid! Imagine rotating or stretching a rubber sheet. What happens to the special vectors (eigenvectors) whose direction remains completely unchanged along their span during this transformation?`;
   }
 
-  if (msg.includes('photosynthesis') || msg.includes('chloroplast') || msg.includes('biology')) {
-    return `Let's trace the energy currency! Sunlight hits the thylakoid membrane, but what is the exact molecule that gets split to release oxygen and provide excited electrons? Try walking through the Light-Dependent reactions first.`;
+  // 6. Thermodynamics & Entropy
+  if (msg.includes('thermodynamic') || msg.includes('entropy') || msg.includes('heat') || msg.includes('carnot') || msg.includes('temperature') || msg.includes('absolute zero')) {
+    return `Let's think in terms of statistical mechanics! Temperature is simply the average kinetic energy of vibrating molecules. Why can heat energy never spontaneously flow from a colder body to a hotter body without external work? What does the Second Law of Thermodynamics say about the total number of microstates (entropy) of an isolated system over time?`;
   }
 
-  if (msg.includes('gravity') || msg.includes('gravitation') || msg.includes('orbit') || msg.includes('planet') || msg.includes('black hole')) {
-    return `Let's explore gravitation from first principles! Newton described gravity as an attractive force proportional to mass and inversely proportional to the square of distance (F = G * m1 * m2 / r²). Einstein later revealed gravity as the curvature of spacetime itself. If you double the distance r between the Earth and the Moon, what happens to the gravitational pull between them? And why does a satellite in orbit stay in perpetual free-fall without crashing into Earth?`;
+  // 7. Electromagnetism & Circuits
+  if (msg.includes('circuit') || msg.includes('current') || msg.includes('voltage') || msg.includes('resistance') || msg.includes('ohm') || msg.includes('magnetic') || msg.includes('induction') || msg.includes('faraday')) {
+    return `Let's trace the flow of electrical charges! Voltage represents the electrical potential energy per unit charge (the "push"), while current is the rate of flow of electrons. In a closed circuit with two resistors in series vs. parallel, why must the current remain constant through series components, while the voltage drops across each?`;
   }
 
-  if (msg.includes('force') || msg.includes('newton') || msg.includes('friction') || msg.includes('momentum')) {
-    return `Let's draw a mental Free Body Diagram first! What are all the individual contact forces and non-contact forces acting on the object along each axis? Is there any net unbalanced force, or is the system in dynamic equilibrium?`;
+  // 8. Quantum Mechanics & Relativity
+  if (msg.includes('quantum') || msg.includes('relativity') || msg.includes('photon') || msg.includes('wave-particle') || msg.includes('speed of light') || msg.includes('time dilation')) {
+    return `Let's explore this famous thought experiment! Einstein postulated that the speed of light c is identical in all inertial reference frames, regardless of how fast the light source moves. If a spaceship travels at 0.9c and shines a flashlight forward, why does an outside observer measure the light at exactly c, and what must happen to the tick-rate of time inside the spaceship to keep the speed of light constant?`;
   }
 
-  if (msg.includes('money') || msg.includes('inflation') || msg.includes('economy') || msg.includes('price')) {
-    return `Let's think in first principles! If the total amount of currency circulating on an island doubles overnight, but the total supply of grain and goods stays identical, what must happen to the price of each basket of grain when consumers bid for them?`;
+  // 9. Chemistry: Chemical Bonding & Reactions
+  if (msg.includes('bond') || msg.includes('covalent') || msg.includes('ionic') || msg.includes('electron') || msg.includes('reaction') || msg.includes('ph') || msg.includes('acid') || msg.includes('equilibrium')) {
+    return `Let's look at the outermost electron shells! Atoms seek the lowest energetic state (often a full valence shell). In a covalent bond like H₂O, the atoms share electrons, but oxygen has higher electronegativity. How does this unequal sharing create a partial electrical dipole, and why does that give water its unique boiling point and surface tension?`;
   }
 
-  if (msg.includes('recursion') || msg.includes('binary tree') || msg.includes('algorithm') || msg.includes('code')) {
-    return `With recursion, the secret is always in the base case and the sub-problem contract! If your function solved the problem for a sub-tree of size (N - 1), what is the single remaining step to combine that with the root?`;
+  // 10. Biology: Genetics, Photosynthesis & Cells
+  if (msg.includes('photosynthesis') || msg.includes('chloroplast') || msg.includes('dna') || msg.includes('rna') || msg.includes('gene') || msg.includes('cell') || msg.includes('mitochondria')) {
+    return `Let's trace the biochemical energy cycle! In cellular energy, ATP acts as the universal chemical battery. When sunlight strikes chlorophyll in the thylakoid membrane, what is the exact molecule that gets split to supply electrons, and how does the resulting proton gradient power ATP Synthase?`;
   }
 
-  const socraticPrompts = [
-    `That's a pivotal concept in ${contextTopic || 'this discipline'}. What is the fundamental definition you are applying here, and what assumptions are you making about starting conditions?`,
-    `Let's break that down into smaller steps. What is the very first physical or mathematical thing that occurs before this step? How can you verify that intermediate result?`,
-    `Interesting intuition! If we tested an extreme edge case (like when x = 0 or as x approaches infinity), does your explanation still hold true? What happens?`,
-    `Could you explain what you expect to happen if we reverse the process? What is the core mechanism driving this behavior?`
-  ];
-  return socraticPrompts[Math.floor(Math.random() * socraticPrompts.length)];
+  // 11. Gravity, Orbits & Astrophysics
+  if (msg.includes('gravity') || msg.includes('gravitation') || msg.includes('orbit') || msg.includes('planet') || msg.includes('black hole') || msg.includes('rocket')) {
+    return `Let's explore gravitation from first principles! Newton described gravity as an attractive force (F = G * m1 * m2 / r²), while Einstein revealed it as the curvature of spacetime. If you double the distance r between two planets, by what factor does the gravitational pull drop? And why does a satellite in orbit stay in perpetual free-fall without crashing into Earth?`;
+  }
+
+  // 12. Classical Mechanics: Forces, Newton's Laws & Momentum
+  if (msg.includes('force') || msg.includes('newton') || msg.includes('friction') || msg.includes('momentum') || msg.includes('energy') || msg.includes('collision')) {
+    return `Let's draw a mental Free Body Diagram first! What are all the individual contact forces (normal force, friction) and non-contact forces (gravity) acting on the object along each axis? According to Newton's Second Law (F_net = m * a), what must happen to the velocity if the net unbalanced force is zero?`;
+  }
+
+  // 13. Economics & Systems Thinking
+  if (msg.includes('money') || msg.includes('inflation') || msg.includes('economy') || msg.includes('price') || msg.includes('market') || msg.includes('supply') || msg.includes('demand')) {
+    return `Let's think in first principles! If the total amount of currency circulating on an island doubles overnight, but the total supply of grain and goods stays identical, what must happen to the price of each basket of grain when consumers bid for them? How does scarcity determine value?`;
+  }
+
+  // 14. Computer Science: Algorithms, Recursion & Data Structures
+  if (msg.includes('recursion') || msg.includes('binary tree') || msg.includes('algorithm') || msg.includes('code') || msg.includes('sort') || msg.includes('graph') || msg.includes('dynamic programming') || msg.includes('big o')) {
+    return `With algorithmic thinking, the key is understanding invariants and sub-problems! If your function solved the problem for an input of size (N - 1), what is the single remaining step to combine that with the N-th element? And what base case guarantees the computation terminates?`;
+  }
+
+  // 15. Dynamic First-Principles Parser for Any Specific Question
+  // Extract key nouns/phrases from the user's prompt to formulate a contextual Socratic response
+  const cleaned = msg.replace(/^(what is|what are|why does|why do|why is|how does|how do|how is|explain|tell me about|can you explain)\s+/i, '').replace(/[?!.]/g, '').trim();
+  const subjectSnippet = cleaned.length > 3 ? cleaned : (contextTopic || 'this topic');
+
+  return `Let's investigate **${subjectSnippet}** from first principles! 
+1. What is the fundamental physical, mathematical, or logical rule governing this system?
+2. If you were to explain the starting state before any changes occur, what are the key components involved?
+3. What do you predict happens if we double or eliminate one of those key variables?`;
 }
 
 /**
  * Synchronous / Heuristic Feynman Evaluator
  */
 export function evaluateFeynmanExplanation(topicTitle: string, studentExplanation: string): ChatMessage['feynmanFeedback'] {
-  const wordCount = studentExplanation.trim().split(/\s+/).length;
+  const words = studentExplanation.trim().split(/\s+/);
+  const wordCount = words.length;
   const lower = studentExplanation.toLowerCase();
 
-  let comprehensionScore = 70;
+  let comprehensionScore = 72;
   let clarityScore = 75;
   const missingPoints: string[] = [];
   let praise = '';
   let suggestion = '';
 
-  if (wordCount < 15) {
-    comprehensionScore = 45;
-    clarityScore = 50;
-    missingPoints.push('Core underlying mechanism');
-    missingPoints.push('Real-world analogy or visual illustration');
-    praise = 'Good start identifying the topic!';
-    suggestion = 'Your explanation is quite brief. Try explaining it as if you were teaching a 12-year-old using simple words and analogies.';
-  } else if (lower.includes('because') || lower.includes('means') || lower.includes('for example') || lower.includes('imagine')) {
-    comprehensionScore = Math.min(96, 75 + Math.floor(wordCount / 4));
-    clarityScore = Math.min(94, 80 + Math.floor(wordCount / 6));
-    praise = 'Terrific use of causal reasoning and everyday language!';
-    suggestion = 'To make this explanation 100% airtight, connect it back to the mathematical formulation or boundary condition.';
-    if (!lower.includes('limit') && topicTitle.toLowerCase().includes('calculus')) {
-      missingPoints.push('Mentioning how limits formalize the instantaneous rate');
-    }
+  const hasCausalReasoning = lower.includes('because') || lower.includes('therefore') || lower.includes('due to') || lower.includes('leads to') || lower.includes('results in') || lower.includes('causes');
+  const hasAnalogy = lower.includes('like a') || lower.includes('imagine') || lower.includes('for example') || lower.includes('think of') || lower.includes('similar to');
+  const hasFirstPrinciples = lower.includes('fundamental') || lower.includes('mechanism') || lower.includes('atoms') || lower.includes('energy') || lower.includes('rate') || lower.includes('force');
+
+  if (wordCount < 12) {
+    comprehensionScore = 48;
+    clarityScore = 52;
+    missingPoints.push(`Underlying cause and mechanism for ${topicTitle}`);
+    missingPoints.push('Real-world analogy to illustrate the concept');
+    praise = 'Good initial start identifying the topic!';
+    suggestion = 'Your explanation is very concise. Try explaining the "why" and "how" as if teaching someone who has never heard of this concept before.';
   } else {
-    comprehensionScore = 65;
-    clarityScore = 70;
-    missingPoints.push('Intuitive analogy for beginners');
-    missingPoints.push('Why this concept matters in practice');
-    praise = 'You covered the formal jargon well.';
-    suggestion = 'Avoid simply repeating textbook definitions. Try replacing technical terms with simple analogies.';
+    // Score based on causal depth and clarity
+    let comp = 70 + Math.min(15, Math.floor(wordCount / 5));
+    let clar = 72 + Math.min(15, Math.floor(wordCount / 6));
+
+    if (hasCausalReasoning) {
+      comp += 8;
+      clar += 6;
+    }
+    if (hasAnalogy) {
+      clar += 10;
+      comp += 4;
+    }
+    if (hasFirstPrinciples) {
+      comp += 6;
+    }
+
+    comprehensionScore = Math.min(98, comp);
+    clarityScore = Math.min(96, clar);
+
+    if (hasAnalogy && hasCausalReasoning) {
+      praise = `Outstanding intuitive breakdown of ${topicTitle}! Using analogies paired with cause-and-effect reasoning makes the concept immediately accessible.`;
+      suggestion = `To reach 100% mastery, connect your intuition back to the formal mathematical boundary conditions or edge cases.`;
+    } else if (hasCausalReasoning) {
+      praise = `Strong logical structure explaining how ${topicTitle} operates step-by-step!`;
+      suggestion = `Try introducing a concrete physical analogy (e.g. water pipes, moving cars, or everyday objects) to make it even easier for a beginner to visualize.`;
+      missingPoints.push('Intuitive visual analogy for non-technical learners');
+    } else {
+      praise = `Good coverage of the key ideas in ${topicTitle}.`;
+      suggestion = `Avoid relying purely on definitions. Explain *why* the phenomenon happens using causal connectors like "because" or "which leads to".`;
+      missingPoints.push('Explicit cause-and-effect explanation of the underlying mechanism');
+    }
   }
 
   return {
     comprehensionScore,
     clarityScore,
-    missingKeyPoints: missingPoints.length > 0 ? missingPoints : ['All key primary points covered!'],
+    missingKeyPoints: missingPoints.length > 0 ? missingPoints : ['All primary conceptual mechanisms effectively covered!'],
     praise,
     suggestion
   };
