@@ -14,6 +14,7 @@ export default async function handler(req: any, res: any) {
   try {
     const {
       provider = 'openai',
+      apiKey,
       systemPrompt,
       messages,
       model,
@@ -23,9 +24,10 @@ export default async function handler(req: any, res: any) {
       stream = false
     } = req.body;
 
-    const openaiKey = process.env.OPENAI_API_KEY;
-    const anthropicKey = process.env.ANTHROPIC_API_KEY;
-    const geminiKey = process.env.GEMINI_API_KEY;
+    const clientKey = typeof apiKey === 'string' ? apiKey.trim() : '';
+    const openaiKey = clientKey || process.env.OPENAI_API_KEY;
+    const anthropicKey = clientKey || process.env.ANTHROPIC_API_KEY;
+    const geminiKey = clientKey || process.env.GEMINI_API_KEY;
 
     // Server-side Prompt Injection & Jailbreak Guardrail
     const lastUserMessage = messages?.filter((m: any) => m.role === 'user').slice(-1)[0]?.content || '';

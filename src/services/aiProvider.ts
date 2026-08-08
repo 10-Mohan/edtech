@@ -193,6 +193,7 @@ export const AIProviderService = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           provider: config.provider !== 'simulated' ? config.provider : 'openai',
+          apiKey: config.apiKey?.trim() || undefined,
           systemPrompt: effectiveSystemPrompt,
           messages: sanitizedMessages,
           model: config.model,
@@ -323,6 +324,7 @@ export const AIProviderService = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           provider: config.provider,
+          apiKey: config.apiKey?.trim() || undefined,
           model: config.model,
           systemPrompt: augmentedSystemPrompt,
           messages: sanitizedMessages,
@@ -529,7 +531,11 @@ export const AIProviderService = {
       const proxyRes = await fetch('/api/vision', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64, mimeType })
+        body: JSON.stringify({
+          imageBase64,
+          mimeType,
+          apiKey: config.apiKey?.trim() || undefined
+        })
       });
 
       if (proxyRes.ok) {

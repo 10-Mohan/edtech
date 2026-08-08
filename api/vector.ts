@@ -12,8 +12,9 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const { action, text, vector, limit = 3, collection = 'waypoint_curriculum' } = req.body;
-    const openaiKey = process.env.OPENAI_API_KEY;
+    const { action, text, vector, limit = 3, collection = 'waypoint_curriculum', apiKey } = req.body;
+    const clientKey = typeof apiKey === 'string' ? apiKey.trim() : '';
+    const openaiKey = clientKey || process.env.OPENAI_API_KEY;
     const qdrantUrl = process.env.QDRANT_URL;
     const qdrantApiKey = process.env.QDRANT_API_KEY;
 

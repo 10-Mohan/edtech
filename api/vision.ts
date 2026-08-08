@@ -12,15 +12,16 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const { imageBase64, mimeType = 'image/jpeg' } = req.body;
-    const openaiKey = process.env.OPENAI_API_KEY;
+    const { imageBase64, mimeType = 'image/jpeg', apiKey } = req.body;
+    const clientKey = typeof apiKey === 'string' ? apiKey.trim() : '';
+    const openaiKey = clientKey || process.env.OPENAI_API_KEY;
 
     if (!imageBase64) {
       return res.status(400).json({ error: 'Missing imageBase64 payload' });
     }
 
     if (!openaiKey) {
-      return res.status(500).json({ error: 'Server OPENAI_API_KEY is not configured on the backend' });
+      return res.status(500).json({ error: 'OpenAI API key is not configured. Please enter your API key in AI Settings.' });
     }
 
     const visionSystemPrompt = `You are an expert STEM Homework Inspector and Computer Vision Logic Engine.

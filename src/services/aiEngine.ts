@@ -154,7 +154,11 @@ export function generateSocraticResponse(userMessage: string, contextTopic?: str
     return `Let's trace the energy currency! Sunlight hits the thylakoid membrane, but what is the exact molecule that gets split to release oxygen and provide excited electrons? Try walking through the Light-Dependent reactions first.`;
   }
 
-  if (msg.includes('force') || msg.includes('newton') || msg.includes('friction') || msg.includes('gravity') || msg.includes('momentum')) {
+  if (msg.includes('gravity') || msg.includes('gravitation') || msg.includes('orbit') || msg.includes('planet') || msg.includes('black hole')) {
+    return `Let's explore gravitation from first principles! Newton described gravity as an attractive force proportional to mass and inversely proportional to the square of distance: $$F = G \\frac{m_1 m_2}{r^2}$$. Einstein later revealed gravity as the curvature of spacetime itself. If you double the distance $r$ between the Earth and the Moon, what happens to the gravitational pull between them? And why does a satellite in orbit stay in perpetual free-fall without crashing into Earth?`;
+  }
+
+  if (msg.includes('force') || msg.includes('newton') || msg.includes('friction') || msg.includes('momentum')) {
     return `Let's draw a mental Free Body Diagram first! What are all the individual contact forces and non-contact forces acting on the object along each axis? Is there any net unbalanced force, or is the system in dynamic equilibrium?`;
   }
 
