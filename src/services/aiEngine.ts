@@ -143,11 +143,11 @@ export function generateSocraticResponse(userMessage: string, contextTopic?: str
   }
 
   if (msg.includes('derivative') || msg.includes('calculus') || msg.includes('rate of change')) {
-    return `Great question! Before calculating the derivative mechanically, let's think about what a derivative physically represents. If you were looking at a car's speedometer at an exact split second, how does that relate to the total distance traveled over time? What happens if the time interval $\\Delta t$ shrinks toward zero?`;
+    return `Great question! Before calculating the derivative mechanically, let's think about what a derivative physically represents. If you were looking at a car's speedometer at an exact split second, how does that relate to the total distance traveled over time? What happens if the time interval Δt shrinks toward zero?`;
   }
   
   if (msg.includes('matrix') || msg.includes('vector') || msg.includes('linear algebra')) {
-    return `Let's visualize this geometrically. When we multiply a matrix by a vector, we aren't just doing arithmetic on numbers—we are transforming the entire coordinate grid! Imagine rotating or stretching a rubber sheet. What happens to the basis vectors $\\hat{i} = [1, 0]$ and $\\hat{j} = [0, 1]$ after the transformation?`;
+    return `Let's visualize this geometrically. When we multiply a matrix by a vector, we aren't just doing arithmetic on numbers—we are transforming the entire coordinate grid! Imagine rotating or stretching a rubber sheet. What happens to the basis vectors î = [1, 0] and ĵ = [0, 1] after the transformation?`;
   }
 
   if (msg.includes('photosynthesis') || msg.includes('chloroplast') || msg.includes('biology')) {
@@ -155,7 +155,7 @@ export function generateSocraticResponse(userMessage: string, contextTopic?: str
   }
 
   if (msg.includes('gravity') || msg.includes('gravitation') || msg.includes('orbit') || msg.includes('planet') || msg.includes('black hole')) {
-    return `Let's explore gravitation from first principles! Newton described gravity as an attractive force proportional to mass and inversely proportional to the square of distance: $$F = G * (m1 * m2) / r²$$. Einstein later revealed gravity as the curvature of spacetime itself. If you double the distance r between the Earth and the Moon, what happens to the gravitational pull between them? And why does a satellite in orbit stay in perpetual free-fall without crashing into Earth?`;
+    return `Let's explore gravitation from first principles! Newton described gravity as an attractive force proportional to mass and inversely proportional to the square of distance (F = G * m1 * m2 / r²). Einstein later revealed gravity as the curvature of spacetime itself. If you double the distance r between the Earth and the Moon, what happens to the gravitational pull between them? And why does a satellite in orbit stay in perpetual free-fall without crashing into Earth?`;
   }
 
   if (msg.includes('force') || msg.includes('newton') || msg.includes('friction') || msg.includes('momentum')) {
@@ -167,13 +167,13 @@ export function generateSocraticResponse(userMessage: string, contextTopic?: str
   }
 
   if (msg.includes('recursion') || msg.includes('binary tree') || msg.includes('algorithm') || msg.includes('code')) {
-    return `With recursion, the secret is always in the base case and the sub-problem contract! If your function solved the problem for a sub-tree of size $(N-1)$, what is the single remaining step to combine that with the root?`;
+    return `With recursion, the secret is always in the base case and the sub-problem contract! If your function solved the problem for a sub-tree of size (N - 1), what is the single remaining step to combine that with the root?`;
   }
 
   const socraticPrompts = [
     `That's a pivotal concept in ${contextTopic || 'this discipline'}. What is the fundamental definition you are applying here, and what assumptions are you making about starting conditions?`,
     `Let's break that down into smaller steps. What is the very first physical or mathematical thing that occurs before this step? How can you verify that intermediate result?`,
-    `Interesting intuition! If we tested an extreme edge case (like when $x = 0$ or as $x \\to \\infty$), does your explanation still hold true? What happens?`,
+    `Interesting intuition! If we tested an extreme edge case (like when x = 0 or as x approaches infinity), does your explanation still hold true? What happens?`,
     `Could you explain what you expect to happen if we reverse the process? What is the core mechanism driving this behavior?`
   ];
   return socraticPrompts[Math.floor(Math.random() * socraticPrompts.length)];
