@@ -159,7 +159,7 @@ flowchart LR
 
 ## 🎨 UI Architecture & Design Previews
 
-> 💡 *The vector schematics below illustrate the core interface layouts and workflow mechanics. To explore the live interactive application with active animations, Socratic tutoring, and 3D card flips, visit the **[Live Deployed App](https://edtech-fawn.vercel.app)**.*
+> 💡 *The UI design mockups below illustrate the core interface layouts and workflow mechanics. To explore the live interactive application with active animations, Socratic tutoring, and 3D card flips, visit the **[Live Deployed App](https://edtech-fawn.vercel.app)**.*
 
 | 🔐 **Notebook Authentication** | 🧭 **Student Knowledge Graph (DAG)** |
 |:---:|:---:|
