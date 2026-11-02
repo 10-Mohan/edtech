@@ -87,6 +87,46 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     return () => unsubscribe();
   }, []);
 
+  // Early warning mentor alerts state synchronized from localStorage
+  const [mentorAlerts, setMentorAlerts] = useState<Record<string, any>>(() => {
+    try {
+      const raw = localStorage.getItem('waypoint_mentor_alerts');
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    const handleAlertSync = () => {
+      try {
+        const raw = localStorage.getItem('waypoint_mentor_alerts');
+        setMentorAlerts(raw ? JSON.parse(raw) : {});
+      } catch {
+        setMentorAlerts({});
+      }
+    };
+    window.addEventListener('waypoint_mentor_alert_updated', handleAlertSync);
+    window.addEventListener('storage', handleAlertSync);
+    return () => {
+      window.removeEventListener('waypoint_mentor_alert_updated', handleAlertSync);
+      window.removeEventListener('storage', handleAlertSync);
+    };
+  }, []);
+
+  // Check if current advisee or any linked advisee has an active early warning alert
+  const flaggedAlert = useMemo(() => {
+    if (!mentorAlerts || Object.keys(mentorAlerts).length === 0) return null;
+    if (mentorAlerts[selectedChildId]) return mentorAlerts[selectedChildId];
+    for (const childId of linkedChildIds) {
+      if (mentorAlerts[childId]) return mentorAlerts[childId];
+    }
+    if (currentUser?.linkedStudentId && mentorAlerts[currentUser.linkedStudentId]) {
+      return mentorAlerts[currentUser.linkedStudentId];
+    }
+    return Object.values(mentorAlerts)[0] || null;
+  }, [mentorAlerts, selectedChildId, linkedChildIds, currentUser]);
+
   // Dynamically resolve comprehensive report and parent summary for the parent's linked child
   const studentReport: StudentComprehensiveReport = useMemo(() => {
     return BackendService.getStudentReport(selectedChildId);
@@ -192,6 +232,115 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* Early Warning Alert Banner for Flagged Advisee */}
+      {flaggedAlert && (
+        <div
+          className="glass-panel"
+          style={{
+            padding: '20px 24px',
+            border: '1.5px solid rgba(244, 63, 94, 0.45)',
+            background: 'linear-gradient(135deg, rgba(244, 63, 94, 0.12) 0%, rgba(30, 27, 75, 0.5) 100%)',
+            borderRadius: 'var(--radius-lg)',
+            boxShadow: '0 8px 30px rgba(244, 63, 94, 0.15)'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+            <div
+              style={{
+                width: '42px',
+                height: '42px',
+                borderRadius: '12px',
+                background: 'rgba(244, 63, 94, 0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                border: '1px solid rgba(244, 63, 94, 0.4)'
+              }}
+            >
+              <AlertTriangle size={24} color="#f43f5e" />
+            </div>
+
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '6px' }}>
+                <h2 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
+                  Early warning: <span style={{ color: '#f43f5e' }}>{flaggedAlert.studentName || studentReport?.studentName}</span> may need support.
+                </h2>
+                <span
+                  className="badge badge-rose"
+                  style={{
+                    background: 'rgba(244, 63, 94, 0.15)',
+                    color: '#f43f5e',
+                    border: '1px solid rgba(244, 63, 94, 0.3)',
+                    fontWeight: 700
+                  }}
+                >
+                  Faculty Alert
+                </span>
+                {flaggedAlert.riskLevel && (
+                  <span className="badge badge-amber" style={{ fontSize: '0.75rem' }}>
+                    {flaggedAlert.riskLevel} Risk Level
+                  </span>
+                )}
+              </div>
+
+              {flaggedAlert.reasons && flaggedAlert.reasons.length > 0 && (
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginBottom: '12px' }}>
+                  <strong>Triggered signals:</strong> {flaggedAlert.reasons.join(' • ')}
+                </div>
+              )}
+
+              <div
+                style={{
+                  background: 'var(--bg-surface-elevated)',
+                  padding: '14px 18px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-subtle)'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
+                  <Sparkles size={15} color="#a855f7" />
+                  <span>Suggested check-in:</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '10px' }}>
+                  <div
+                    style={{
+                      padding: '10px 14px',
+                      background: 'var(--bg-surface)',
+                      borderRadius: 'var(--radius-sm)',
+                      borderLeft: '3px solid #06b6d4'
+                    }}
+                  >
+                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#06b6d4', marginBottom: '3px' }}>
+                      1. Study Habits & Practice Cadence
+                    </div>
+                    <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-dim)', lineHeight: 1.4 }}>
+                      &ldquo;How is your weekly study rhythm feeling? Would breaking homework into 20-minute focused revision blocks help with difficult problem sets?&rdquo;
+                    </p>
+                  </div>
+
+                  <div
+                    style={{
+                      padding: '10px 14px',
+                      background: 'var(--bg-surface)',
+                      borderRadius: 'var(--radius-sm)',
+                      borderLeft: '3px solid #a855f7'
+                    }}
+                  >
+                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#a855f7', marginBottom: '3px' }}>
+                      2. Semester Stress & Workload Balance
+                    </div>
+                    <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-dim)', lineHeight: 1.4 }}>
+                      &ldquo;Mid-semester courses can pile up quickly. Are you feeling overwhelmed by deadlines, and what is one concept causing the highest stress right now?&rdquo;
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Top Guardian Security & Linked Student Banner */}
       <div className="glass-panel" style={{ padding: '24px 28px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>

@@ -1690,8 +1690,9 @@ export const mockAuthUsers: AuthUser[] = [
     role: 'parent',
     password: 'demo123',
     avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
-    title: 'Faculty Mentor for Aarav Sharma',
-    linkedStudentId: 'st_01'
+    title: 'Faculty Mentor for Arjun Nair & Aarav Sharma',
+    linkedStudentId: 'st_04',
+    linkedStudentIds: ['st_04', 'st_01']
   },
   {
     id: 'st_02',
@@ -1710,8 +1711,9 @@ export const mockAuthUsers: AuthUser[] = [
     role: 'parent',
     password: 'demo123',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
-    title: 'Faculty Mentor for Rohan Iyer',
-    linkedStudentId: 'st_02'
+    title: 'Faculty Mentor for Neha Gupta & Rohan Iyer',
+    linkedStudentId: 'st_09',
+    linkedStudentIds: ['st_09', 'st_02']
   },
   {
     id: 'st_03',
