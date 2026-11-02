@@ -17,9 +17,9 @@
 <!-- 2. TITLE & TAGLINE -->
 <!-- ========================================================= -->
 
-# 🎓 Waypoint — University Student & Faculty Portal
+# 🎓 Waypoint Campus — Ideas today for a better campus tomorrow
 
-> **A tactile, cognitive learning platform that unifies academic operations, Socratic & Feynman AI tutoring, spaced repetition (SM-2), and curriculum knowledge graphs for students, educators, and families.**
+> **Ideas today for a better campus tomorrow: AI-powered learning that catches struggling students early.**
 
 <p align="center">
   <a href="https://edtech-fawn.vercel.app"><img src="https://img.shields.io/badge/🚀_Live_Demo-edtech--fawn.vercel.app-blue?style=for-the-badge&logo=vercel" alt="Live Demo"></a>

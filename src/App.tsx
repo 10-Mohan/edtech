@@ -356,7 +356,7 @@ export const App: React.FC = () => {
 
             {/* TEACHER PORTAL VIEWS */}
             {role === 'teacher' && (
-              <Suspense fallback={<LoadingFallback message="Loading Teacher Studio & Class Analytics..." />}>
+              <Suspense fallback={<LoadingFallback message="Loading Faculty Studio & Class Analytics..." />}>
                 <TeacherDashboard
                   nodes={conceptNodes}
                   activeTeacherTab={teacherTab}
@@ -370,7 +370,7 @@ export const App: React.FC = () => {
 
             {/* PARENT PORTAL VIEWS */}
             {role === 'parent' && (
-              <Suspense fallback={<LoadingFallback message="Loading Guardian Portal & Progress Reports..." />}>
+              <Suspense fallback={<LoadingFallback message="Loading Mentor Portal & Progress Reports..." />}>
                 <ParentDashboard
                   activeParentTab={parentTab}
                   onSelectTab={handleSelectTab}

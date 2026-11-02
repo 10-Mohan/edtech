@@ -151,7 +151,7 @@ export const BackendSettingsModal: React.FC<BackendSettingsModalProps> = ({ isOp
                 Database & Backend Architecture
               </h2>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', margin: 0 }}>
-                Live multi-tenant synchronization across Student, Teacher, and Parent portals.
+                Live multi-tenant synchronization across Student, Faculty, and Mentor portals.
               </p>
             </div>
           </div>

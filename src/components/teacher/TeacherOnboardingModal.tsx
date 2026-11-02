@@ -192,7 +192,7 @@ export const TeacherOnboardingModal: React.FC<TeacherOnboardingModalProps> = ({
               </div>
               <div>
                 <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
-                  Teacher Classroom Quickstart Setup
+                  Faculty Classroom Quickstart Setup
                 </h2>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
                   Step {step} of 3: {step === 1 ? 'Class Details' : step === 2 ? 'Pedagogy & AI Rules' : 'Curriculum Seeding'}
@@ -530,7 +530,7 @@ export const TeacherOnboardingModal: React.FC<TeacherOnboardingModalProps> = ({
               ) : (
                 <>
                   <GraduationCap size={16} />
-                  <span>Launch Teacher Studio</span>
+                  <span>Launch Faculty Studio</span>
                 </>
               )}
             </button>

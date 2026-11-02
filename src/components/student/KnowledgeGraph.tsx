@@ -101,11 +101,11 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({
               <span className="badge badge-indigo">DAG Engine</span>
               <span className="badge badge-emerald" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <ShieldCheck size={12} />
-                Family & Faculty Synchronized
+                Mentor & Faculty Synchronized
               </span>
             </div>
             <p style={{ margin: 0, maxWidth: '640px' }}>
-              Your personalized knowledge graph tracks conceptual dependencies. High-risk misconceptions are automatically isolated with red beacons and shared with your guardian report.
+              Your personalized knowledge graph tracks conceptual dependencies. High-risk misconceptions are automatically isolated with red beacons and shared with your mentor report.
             </p>
           </div>
 
@@ -164,7 +164,7 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({
             style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem' }}
           >
             <Heart size={13} fill={heartReacted ? '#f43f5e' : 'none'} color={heartReacted ? '#f43f5e' : 'currentColor'} />
-            <span>{heartReacted ? 'Heart Sent to Parent!' : 'Send Thank You ❤️'}</span>
+            <span>{heartReacted ? 'Heart Sent to Mentor!' : 'Send Thank You ❤️'}</span>
           </button>
         </div>
       )}

@@ -177,7 +177,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>Teacher Orchestration Portal</h1>
+              <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>Faculty Orchestration Portal</h1>
               <span className="badge badge-cyan">AP STEM Cohort ({students.length} Enrolled)</span>
             </div>
             <p style={{ margin: 0 }}>
@@ -241,7 +241,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             {cohortStats.total} Students
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-            Fully synchronized across faculty and parent portals
+            Fully synchronized across faculty and mentor portals
           </div>
         </div>
 
@@ -749,9 +749,9 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         </Suspense>
       )}
 
-      {/* Teacher Onboarding Quickstart Modal */}
+      {/* Faculty Onboarding Quickstart Modal */}
       {isOnboardingOpen && (
-        <Suspense fallback={<LoadingFallback message="Loading Teacher Quickstart..." />}>
+        <Suspense fallback={<LoadingFallback message="Loading Faculty Quickstart..." />}>
           <TeacherOnboardingModal
             isOpen={isOnboardingOpen}
             onClose={() => setIsOnboardingOpen(false)}

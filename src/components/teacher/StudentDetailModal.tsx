@@ -296,7 +296,7 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                 <div>
                   <div style={{ fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <User size={16} color="#818cf8" />
-                    <span>Parent / Guardian: {report.parentName}</span>
+                    <span>Mentor: {report.parentName}</span>
                   </div>
                   <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
                     <Mail size={14} />
@@ -311,7 +311,7 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                   style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                 >
                   <Send size={14} />
-                  <span>{emailStatus === 'sending' ? 'Dispatching Email...' : 'Send Weekly Parent Digest'}</span>
+                  <span>{emailStatus === 'sending' ? 'Dispatching Email...' : 'Send Weekly Mentor Digest'}</span>
                 </button>
               </div>
 

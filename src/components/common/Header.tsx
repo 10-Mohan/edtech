@@ -95,14 +95,14 @@ export const Header: React.FC<HeaderProps> = ({
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.25rem', letterSpacing: '-0.03em' }}>
-              Waypoint
+              Waypoint Campus
             </span>
             <span className="badge badge-indigo" style={{ fontSize: '0.68rem', padding: '2px 8px' }}>
-              AI 2.0
+              Campus 2.0
             </span>
           </div>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', margin: 0 }}>
-            Adaptive Diagnostic & Mastery Platform
+            Ideas today for a better campus tomorrow: AI‑powered learning that catches struggling students early.
           </p>
         </div>
       </div>
@@ -145,10 +145,10 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Users size={16} color="var(--primary-light)" />
             <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
-              Parent Guardian • Linked to: {studentDisplayName}
+              Mentor • Linked to: {studentDisplayName}
             </span>
             <span className="badge badge-emerald" style={{ fontSize: '0.7rem', padding: '1px 6px' }}>
-              Private Family View
+              Private Mentor View
             </span>
           </div>
         )}
@@ -167,7 +167,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Briefcase size={16} color="var(--primary-light)" />
             <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
-              Teacher Orchestration Cockpit • AP STEM ({allStudents.length} Students Enrolled)
+              Faculty Orchestration Cockpit • AP STEM ({allStudents.length} Students Enrolled)
             </span>
           </div>
         )}
@@ -314,7 +314,7 @@ export const Header: React.FC<HeaderProps> = ({
               {currentUser?.name || profile.name || (currentRole === 'student' ? 'Maya Lin' : currentRole === 'parent' ? 'Elena Lin' : 'Dr. Vance')}
             </span>
             <span style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>
-              {currentRole === 'parent' ? 'Parent Account' : currentRole === 'student' ? 'Student Account' : 'Faculty Account'}
+              {currentRole === 'parent' ? 'Mentor Account' : currentRole === 'student' ? 'Student Account' : 'Faculty Account'}
             </span>
           </div>
         </div>

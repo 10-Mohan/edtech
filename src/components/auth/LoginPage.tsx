@@ -613,13 +613,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           <div className="tape"></div>
           <div className="brand">
             <div className="brand-mark"></div>
-            <div className="brand-word">Waypoint <span>AI</span></div>
+            <div className="brand-word">Waypoint <span>Campus</span></div>
           </div>
           <div className="prompt-label">
             {role === 'faculty'
               ? 'Cohort Mastery & Intervention'
               : role === 'parent'
-              ? 'Family & Learning Bridge'
+              ? 'Mentor & Learning Bridge'
               : 'Teach it back to me'}
           </div>
           <div className="handwrite" id="hw">
@@ -631,9 +631,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           </div>
           <div className="margin-note">
             {role === 'faculty' ? (
-              <>The <b>Teacher Radar</b>: live cohort diagnostics and instant 3-tier worksheet differentiation to eliminate 10+ hours of manual lesson planning.</>
+              <>The <b>Faculty Radar</b>: live cohort diagnostics and instant 3-tier worksheet differentiation to eliminate 10+ hours of manual lesson planning.</>
             ) : role === 'parent' ? (
-              <>The <b>Family Bridge</b>: plain-language weekly digests and dinner table conversation starters to connect classroom STEM to real-world curiosity.</>
+              <>The <b>Mentor Bridge</b>: plain-language weekly digests and mentor check-in conversation starters to connect classroom STEM to real-world curiosity.</>
             ) : (
               <>The <b>Feynman check</b>: if you can't explain optimization without the jargon, the graph shows exactly where the gap is — not just that one exists.</>
             )}
@@ -667,7 +667,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 data-role="parent"
                 type="button"
               >
-                Parent
+                Mentor
               </button>
               <div className="underline"></div>
             </div>
@@ -676,7 +676,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               {role === 'faculty'
                 ? 'Pick up the roll book'
                 : role === 'parent'
-                ? "Maya's Family Bridge"
+                ? "Maya's Mentor Bridge"
                 : 'Pick up your notebook'}
             </div>
             <div className="card-hint" id="chint">
@@ -764,10 +764,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   type="button"
                   className="demo-pill"
                   onClick={() => handleQuickLogin('parent_elena')}
-                  title="elena.lin@parent.waypoint.edu / demo123 (Maya's Parent)"
+                  title="elena.lin@parent.waypoint.edu / demo123 (Maya's Mentor)"
                   style={{ background: 'rgba(16, 185, 129, 0.15)', borderColor: '#10b981' }}
                 >
-                  Elena (Maya's Parent)
+                  Elena (Maya's Mentor)
                 </button>
                 <button
                   type="button"
@@ -781,10 +781,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   type="button"
                   className="demo-pill"
                   onClick={() => handleQuickLogin('parent_david')}
-                  title="david.chen@parent.waypoint.edu / demo123 (Leo's Parent)"
+                  title="david.chen@parent.waypoint.edu / demo123 (Leo's Mentor)"
                   style={{ background: 'rgba(16, 185, 129, 0.15)', borderColor: '#10b981' }}
                 >
-                  David (Leo's Parent)
+                  David (Leo's Mentor)
                 </button>
                 <button
                   type="button"

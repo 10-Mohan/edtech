@@ -489,7 +489,7 @@ export const CurriculumEditorModal: React.FC<CurriculumEditorModalProps> = ({
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <h2 style={{ fontSize: '1.35rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
-                  Teacher Curriculum & Content Studio
+                  Faculty Curriculum & Content Studio
                 </h2>
                 <span className="badge badge-cyan" style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.72rem' }}>
                   <Database size={12} />

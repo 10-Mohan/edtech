@@ -314,8 +314,8 @@ st_05,Marcus Vance,11th Grade,79,42,45,50,52,51,James Vance,james.v@gmail.com`);
           studentId,
           studentName,
           studentEmail: row.student_email || existing?.studentEmail || `${studentName.toLowerCase().replace(/\s+/g, '.')}@oakwood.edu`,
-          parentName: row.parent_name || existing?.parentName || 'Parent Guardian',
-          parentEmail: row.parent_email || existing?.parentEmail || 'parent@example.com',
+          parentName: row.parent_name || existing?.parentName || 'Mentor',
+          parentEmail: row.parent_email || existing?.parentEmail || 'mentor@example.com',
           grade: row.grade || '11th Grade',
           attendanceRate: Number(row.attendance_rate) || 95,
           overallMastery: overall,
@@ -605,7 +605,7 @@ st_05,Marcus Vance,11th Grade,79,42,45,50,52,51,James Vance,james.v@gmail.com`);
                     <strong>Dynamic Topic Score Scanning:</strong> When real dataset scores fall below 70% (e.g. for Leo Chen with 45% in Chain Rule), the system automatically flags the specific misconception: <em>"Systematically dropping inner derivative g'(x) during d/dx[f(g(x))]"</em>.
                   </li>
                   <li>
-                    <strong>Granular Error Logs:</strong> Each student record stores the exact mistake type, frequency, and severity, which feeds directly into the Teacher Cohort Matrix, Student Knowledge Graph, and Parent Weekly Summaries.
+                    <strong>Granular Error Logs:</strong> Each student record stores the exact mistake type, frequency, and severity, which feeds directly into the Faculty Cohort Matrix, Student Knowledge Graph, and Mentor Weekly Summaries.
                   </li>
                   <li>
                     <strong>Adaptive Differentiation:</strong> The platform groups students into Tier 1 (Scaffolded), Tier 2 (Targeted), and Tier 3 (Extension) based directly on these live dataset metrics.

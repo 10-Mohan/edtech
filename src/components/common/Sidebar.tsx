@@ -68,8 +68,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Navigation Group Title */}
         <div style={{ padding: '0 12px 12px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-dim)' }}>
           {currentRole === 'student' && 'Student Hub'}
-          {currentRole === 'teacher' && 'Instructor Tools'}
-          {currentRole === 'parent' && `${childFirstName}'s Family Portal`}
+          {currentRole === 'teacher' && 'Faculty Dashboard'}
+          {currentRole === 'parent' && 'Mentor Dashboard'}
         </div>
 
         {/* Student Navigation Items */}
@@ -175,7 +175,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             />
             <NavItem
               icon={<Sparkles size={18} />}
-              label="Dinner Table Starters"
+              label="Mentor Check-In Starters"
               active={activeTab === 'dinner_prompts'}
               onClick={() => onSelectTab('dinner_prompts')}
               badge="2 Prompts"

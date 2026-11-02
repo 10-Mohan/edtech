@@ -118,10 +118,10 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     BackendService.sendParentEncouragementNudge(
       selectedChildId,
       textToSend.trim(),
-      currentUser?.name || studentReport?.parentName || 'Parent'
+      currentUser?.name || studentReport?.parentName || 'Mentor'
     );
 
-    setNudgeSuccess(`Encouragement sent to ${studentReport?.studentName || 'your child'}! It is now visible on their student dashboard.`);
+    setNudgeSuccess(`Encouragement sent to ${studentReport?.studentName || 'your student'}! It is now visible on their student dashboard.`);
     setNudgeMessage('');
     setTimeout(() => {
       setNudgeSuccess(null);
@@ -183,7 +183,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     },
     {
       id: 'dinner_prompts',
-      label: 'Dinner Table Starters',
+      label: 'Mentor Check-In Starters',
       icon: <Sparkles size={16} />,
       badge: `${summary?.dinnerTablePrompts?.length || 2} Prompts`,
       isActive: isDinnerPrompts
@@ -214,14 +214,14 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 </h1>
                 <span className="badge badge-emerald" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <ShieldCheck size={13} />
-                  Private Family Access
+                  Private Mentor Access
                 </span>
                 <span className="badge badge-indigo">
                   {studentReport?.grade || 'Grade 11 (AP Advanced STEM)'}
                 </span>
               </div>
               <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-dim)' }}>
-                {studentReport?.school || 'Oakwood Horizon STEM Academy'} • Parent Guardian: <strong style={{ color: 'var(--text-main)' }}>{currentUser?.name || studentReport?.parentName || 'Elena Lin'}</strong> ({currentUser?.email || studentReport?.parentEmail || 'guardian@family.org'})
+                {studentReport?.school || 'Oakwood Horizon STEM Academy'} • Mentor: <strong style={{ color: 'var(--text-main)' }}>{currentUser?.name || studentReport?.parentName || 'Elena Lin'}</strong> ({currentUser?.email || studentReport?.parentEmail || 'guardian@family.org'})
               </p>
             </div>
           </div>
@@ -241,7 +241,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 }}
               >
                 <Users size={16} color="var(--primary-light)" />
-                <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>My Children:</span>
+                <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>My Students:</span>
                 <select
                   value={selectedChildId}
                   onChange={e => setSelectedChildId(e.target.value)}
@@ -724,7 +724,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 </div>
                 <div>
                   <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>
-                    Family Dinner Table STEM Starters
+                    Mentor Check-In STEM Starters
                   </h2>
                   <p style={{ margin: '2px 0 0', fontSize: '0.82rem', color: 'var(--text-dim)' }}>
                     Thought-provoking conversation hooks tailored to what {childFirstName} is learning this week.
@@ -802,7 +802,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               ) : (
                 <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-dim)' }}>
                   <HelpCircle size={32} style={{ margin: '0 auto 8px' }} />
-                  <p style={{ margin: 0 }}>Dinner prompts will be generated automatically as new concepts are covered in class.</p>
+                  <p style={{ margin: 0 }}>Mentor prompts will be generated automatically as new concepts are covered in class.</p>
                 </div>
               )}
             </div>
@@ -842,7 +842,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 </div>
                 <div>
                   <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>
-                    Send Encouragement to {studentReport?.studentName || 'your child'}
+                    Send Encouragement to {studentReport?.studentName || 'your student'}
                   </h3>
                   <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
                     Your message will instantly appear on {childFirstName}'s learning portal.

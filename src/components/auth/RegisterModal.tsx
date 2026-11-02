@@ -188,7 +188,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                 }}
               >
                 <Users size={18} color="#34d399" />
-                <span style={{ fontSize: '0.78rem', fontWeight: 700 }}>Parent</span>
+                <span style={{ fontSize: '0.78rem', fontWeight: 700 }}>Mentor</span>
               </button>
 
               <button
@@ -206,7 +206,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                 }}
               >
                 <Briefcase size={18} color="#22d3ee" />
-                <span style={{ fontSize: '0.78rem', fontWeight: 700 }}>Teacher</span>
+                <span style={{ fontSize: '0.78rem', fontWeight: 700 }}>Faculty</span>
               </button>
             </div>
           </div>
